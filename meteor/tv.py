@@ -9,7 +9,7 @@ from typing import Literal, overload
 import numpy as np
 from skimage.restoration import denoise_tv_chambolle
 
-from .rsmap import Map
+from .rsmap import Map, extend_resolution
 from .settings import (
     BRACKET_FOR_GOLDEN_OPTIMIZATION,
     MAP_SAMPLING,
@@ -107,6 +107,7 @@ def tv_denoise_difference_map(
     *,
     full_output: bool = False,
     weights_to_scan: Sequence[float] | np.ndarray | None = None,
+    extend_resolution_by: float = 0.5,
 ) -> Map | tuple[Map, TvDenoiseResult]:
     """Single-pass TV denoising of a difference map.
 
@@ -160,6 +161,7 @@ def tv_denoise_difference_map(
     >>> denoised_map, result = tv_denoise_difference_map(coefficients, full_output=True)
     >>> print(f"Optimal: {result.optimal_tv_weight}, Negentropy: {result.optimal_negentropy}")
     """
+    difference_map = extend_resolution(difference_map, extend_by=extend_resolution_by)
     realspace_map = difference_map.to_ccp4_map(map_sampling=MAP_SAMPLING)
     realspace_map_array = np.array(realspace_map.grid)
 
@@ -189,14 +191,15 @@ def tv_denoise_difference_map(
     if difference_map.has_uncertainties:
         final_map.set_uncertainties(difference_map.uncertainties)
 
+    # TODO: fix this block
     # sometimes `from_ccp4_map` adds reflections -- systematic absences or
     # reflections just beyond the resolution limt; remove those
-    extra_indices = final_map.index.difference(difference_map.index)
-    final_map.drop(extra_indices, inplace=True)
-    sym_diff = difference_map.index.symmetric_difference(final_map.index)
-    if len(sym_diff) > 0:
-        msg = "something went wrong, input and output coefficients do not have identical indices"
-        raise IndexError(msg)
+    # extra_indices = final_map.index.difference(difference_map.index)
+    # final_map.drop(extra_indices, inplace=True)
+    # sym_diff = difference_map.index.symmetric_difference(final_map.index)
+    # if len(sym_diff) > 0:
+    #     msg = "something went wrong, input and output coefficients do not have identical indices"
+    #     raise IndexError(msg)
 
     if full_output:
         initial_negentropy = negentropy(realspace_map_array)

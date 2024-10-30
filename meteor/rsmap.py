@@ -8,6 +8,7 @@ import gemmi
 import numpy as np
 import pandas as pd
 import reciprocalspaceship as rs
+from reciprocalspaceship.utils import generate_reciprocal_asu
 
 from .settings import GEMMI_HIGH_RESOLUTION_BUFFER
 from .utils import (
@@ -30,6 +31,22 @@ def _assert_is_map(obj: Any, *, require_uncertainties: bool) -> None:
     if require_uncertainties and (not obj.has_uncertainties):
         msg = f"{obj} Map missing required uncertainty column"
         raise MissingUncertaintiesError(msg)
+
+
+def extend_resolution(dataset: Map, *, extend_by: float, anomalous: bool = False) -> rs.DataSet:
+    # TODO: clean this up and unit test, should probably also work for DataSets (!)
+    MINIMUM_POSSIBLE_RESOLUTION = 0.1
+    
+    _, old_dmin = dataset.resolution_limits
+    new_dmin = max(old_dmin - extend_by, MINIMUM_POSSIBLE_RESOLUTION)
+    new_hkls = generate_reciprocal_asu(dataset.cell, dataset.spacegroup, new_dmin, anomalous=anomalous)
+    new_hkls = pd.MultiIndex.from_arrays(new_hkls.T, names=("H", "K", "L"))
+
+    extended_hkls = dataset.index.union(new_hkls)
+    extended = dataset.copy().reindex(extended_hkls).fillna(0)
+    extended.infer_mtz_dtypes()
+
+    return extended
 
 
 class Map(rs.DataSet):
