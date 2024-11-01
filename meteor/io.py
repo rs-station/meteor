@@ -1,6 +1,4 @@
-"""https://www.ccp4.ac.uk/html/mtzformat.html
-https://www.globalphasing.com/buster/wiki/index.cgi?MTZcolumns
-"""
+"""MTZ input/output helper functions"""
 
 from __future__ import annotations
 

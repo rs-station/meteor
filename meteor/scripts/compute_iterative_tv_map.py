@@ -1,3 +1,5 @@
+"""source code for meteor.phaseboost"""
+
 from __future__ import annotations
 
 from typing import Any

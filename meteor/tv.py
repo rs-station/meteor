@@ -1,3 +1,5 @@
+"""total variation denoising of maps"""
+
 from __future__ import annotations
 
 import json

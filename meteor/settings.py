@@ -1,3 +1,5 @@
+"""runtime settings for `meteor`"""
+
 from __future__ import annotations
 
 import numpy as np
@@ -8,7 +10,10 @@ GEMMI_HIGH_RESOLUTION_BUFFER: float = 1e-6
 MAP_SAMPLING: int = 3
 
 
-# known map labels
+# known map labels, see:
+# https://www.ccp4.ac.uk/html/mtzformat.html
+# https://www.globalphasing.com/buster/wiki/index.cgi?MTZcolumns
+
 OBSERVED_INTENSITY_COLUMNS: list[str] = [
     "I",  # generic
     "IMEAN",  # CCP4

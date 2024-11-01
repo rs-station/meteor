@@ -1,3 +1,5 @@
+"""computing structure factors from models"""
+
 from pathlib import Path
 
 import gemmi

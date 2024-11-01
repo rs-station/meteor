@@ -1,3 +1,5 @@
+"""iterative TV-based phase retrieval"""
+
 from __future__ import annotations
 
 from collections.abc import Callable

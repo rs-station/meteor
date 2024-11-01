@@ -11,6 +11,9 @@ __pycache__/
 *.pdb
 *.cif
 
+# documentation is automatically built
+docs/
+
 # C extensions
 *.so
 
@@ -52,6 +55,7 @@ htmlcov/
 .coverage
 .coverage.*
 .cache
+.ruff_cache
 nosetests.xml
 coverage.xml
 *.cover
