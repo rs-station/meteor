@@ -32,6 +32,10 @@ tests = [
     "pytest",
     "pytest-cov",
     "pytest-xdist",
+    "nbmake",
+]
+notebooks = [
+    "matplotlib",
 ]
 
 [project.scripts]
