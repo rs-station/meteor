@@ -11,7 +11,10 @@ import numpy as np
 import reciprocalspaceship as rs
 
 from .rsmap import Map, assert_is_map
-from .settings import DEFAULT_KPARAMS_TO_SCAN
+from .settings import (
+    DEFAULT_KPARAMS_TO_SCAN,
+    MAP_SAMPLING,
+)
 from .utils import assert_isomorphous, filter_common_indices
 from .validate import ScalarMaximizer, map_negentropy
 
@@ -23,7 +26,6 @@ class KWeightScreenResult:
     _weight_name = "weight"
     _negentropy_name = "negentropy"
 
-    initial_negentropy: float
     optimal_k_weight: float
     optimal_negentropy: float
     map_sampling_used: float
@@ -259,15 +261,13 @@ def max_negentropy_kweighted_difference_map(
     )
 
     if full_output:
-        initial_negentropy = negentropy(realspace_map_array)
-        tv_result = TvDenoiseResult(
-            initial_negentropy=float(initial_negentropy),
-            optimal_tv_weight=float(maximizer.argument_optimum),
+        kweight_screen_result = KWeightScreenResult(
+            optimal_k_weight=float(maximizer.argument_optimum),
             optimal_negentropy=float(maximizer.objective_maximum),
-            map_sampling_used_for_tv=MAP_SAMPLING,
-            tv_weights_scanned=maximizer.values_evaluated,
+            map_sampling_used=MAP_SAMPLING,
+            k_weights_scanned=maximizer.values_evaluated,
             negentropy_at_weights=maximizer.objective_at_values,
         )
-        return final_map, tv_result
+        return kweighted_dataset, opt_k_parameter, kweight_screen_result
 
     return kweighted_dataset, opt_k_parameter
