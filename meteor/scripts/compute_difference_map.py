@@ -8,7 +8,8 @@ import structlog
 
 from meteor.rsmap import Map
 from meteor.settings import MAP_SAMPLING, TV_WEIGHT_DEFAULT
-from meteor.tv import TvDenoiseResult, tv_denoise_difference_map
+from meteor.tv import TV_WEIGHT_PARAMETER_NAME, tv_denoise_difference_map
+from meteor.utils import ParameterScreenMetadata
 from meteor.validate import map_negentropy
 
 from .common import (
@@ -54,7 +55,7 @@ def denoise_diffmap_according_to_mode(
     diffmap: Map,
     tv_denoise_mode: WeightMode,
     tv_weight: float | None = None,
-) -> tuple[Map, TvDenoiseResult]:
+) -> tuple[Map, ParameterScreenMetadata]:
     """
     Denoise a difference map `diffmap` using a specified `WeightMode`.
 
@@ -81,7 +82,7 @@ def denoise_diffmap_according_to_mode(
     final_map: meteor.rsmap.Map
         The difference map, denoised if requested
 
-    metadata: meteor.tv.TvDenoiseResult
+    metadata: meteor.utils.ParameterScreenMetadata
         Information regarding the denoising process.
     """
     if tv_denoise_mode == WeightMode.optimize:
@@ -92,7 +93,7 @@ def denoise_diffmap_according_to_mode(
 
         log.info(
             "Optimal TV weight found",
-            weight=f"{metadata.optimal_tv_weight:.2e}",
+            weight=f"{metadata.optimal_parameter_value:.2e}",
             initial_negentropy=f"{metadata.initial_negentropy:.2e}",
             final_negentropy=f"{metadata.optimal_negentropy:.2e}",
         )
@@ -117,13 +118,13 @@ def denoise_diffmap_according_to_mode(
     elif tv_denoise_mode == WeightMode.none:
         final_map = diffmap
         final_negentropy = map_negentropy(final_map)
-        metadata = TvDenoiseResult(
+        metadata = ParameterScreenMetadata(
+            parameter_scanned=TV_WEIGHT_PARAMETER_NAME,
             initial_negentropy=final_negentropy,
             optimal_negentropy=final_negentropy,
-            optimal_tv_weight=0.0,
-            map_sampling_used_for_tv=MAP_SAMPLING,
-            tv_weights_scanned=[0.0],
-            negentropy_at_weights=[final_negentropy],
+            optimal_parameter_value=0.0,
+            map_sampling=MAP_SAMPLING,
+            parameter_scan_results=[(0.0, final_negentropy)],
         )
 
         log.info("Requested no TV denoising")
@@ -159,7 +160,6 @@ def main(command_line_arguments: list[str] | None = None) -> None:
     final_map.write_mtz(args.mtzout)
 
     log.info("Writing metadata.", file=str(args.metadataout))
-    metadata.k_parameter_used = kparameter_used
     metadata.to_json_file(args.metadataout)
 
 

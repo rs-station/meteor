@@ -25,8 +25,7 @@ from meteor.rsmap import Map
 from meteor.scale import scale_maps
 from meteor.settings import COMPUTED_MAP_RESOLUTION_LIMIT, KWEIGHT_PARAMETER_DEFAULT
 from meteor.sfcalc import structure_file_to_calculated_map
-from meteor.tv import TvDenoiseResult
-from meteor.utils import cut_resolution
+from meteor.utils import ParameterScreenMetadata, cut_resolution
 
 log = structlog.get_logger()
 
@@ -348,7 +347,7 @@ def kweight_diffmap_according_to_mode(
 
 
 def write_combined_metadata(
-    *, filename: Path, it_tv_metadata: pd.DataFrame, final_tv_metadata: TvDenoiseResult
+    *, filename: Path, it_tv_metadata: pd.DataFrame, final_tv_metadata: ParameterScreenMetadata
 ) -> None:
     combined_metadata = {
         "iterative_tv": it_tv_metadata.to_json(orient="records", indent=4),
@@ -358,9 +357,9 @@ def write_combined_metadata(
         json.dump(combined_metadata, f, indent=4)
 
 
-def read_combined_metadata(*, filename: Path) -> tuple[pd.DataFrame, TvDenoiseResult]:
+def read_combined_metadata(*, filename: Path) -> tuple[pd.DataFrame, ParameterScreenMetadata]:
     with filename.open("r") as f:
         combined_metadata = json.load(f)
     it_tv_metadata = pd.read_json(StringIO(combined_metadata["iterative_tv"]))
-    final_tv_metadata = TvDenoiseResult.from_json(combined_metadata["final_tv_pass"])
+    final_tv_metadata = ParameterScreenMetadata.from_json(combined_metadata["final_tv_pass"])
     return it_tv_metadata, final_tv_metadata

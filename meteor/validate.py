@@ -141,6 +141,23 @@ class ScalarMaximizer:
             self.objective_maximum = objective_value
         return float(objective_value)
 
+    @property
+    def parameter_scan_results(self) -> list[tuple[float, float]]:
+        """
+        Retrieve the parameter values evaluated and the corresponding objective function
+        evaluations, as a list:
+
+            [
+                (parameter_value_1, objective_value_1),
+                (parameter_value_2, objective_value_2),
+                (parameter_value_3, objective_value_3),
+                ...
+            ]
+
+        """
+        scan_results = zip(self.values_evaluated, self.objective_at_values, strict=False)
+        return list(scan_results)
+
     def optimize_over_explicit_values(
         self, *, arguments_to_scan: Sequence[float] | np.ndarray
     ) -> None:
