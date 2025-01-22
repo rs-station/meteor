@@ -11,7 +11,7 @@ from meteor.iterative import (
 )
 from meteor.rsmap import Map
 from meteor.testing import diffmap_realspace_rms
-from meteor.tv import TvDenoiseResult
+from meteor.utils import ParameterScreenMetadata
 
 
 @pytest.fixture
@@ -49,7 +49,7 @@ def test_tv_denoise_complex_difference_sf(
     )
 
     assert isinstance(denoised_sfs, rs.DataSeries)
-    assert isinstance(metadata, TvDenoiseResult)
+    assert isinstance(metadata, ParameterScreenMetadata)
 
     # weak check, but makes sure something happened
     assert np.sum(np.abs(denoised_sfs)) < np.sum(np.abs(noise))

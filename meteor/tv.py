@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass
-from pathlib import Path
 from typing import Literal, overload
 
 import numpy as np
@@ -20,62 +17,12 @@ from .settings import (
     TV_MAX_WEIGHT_EXPECTED,
     TV_STOP_TOLERANCE,
 )
+from .utils import ParameterScreenMetadata
 from .validate import ScalarMaximizer, negentropy
 
 log = structlog.get_logger()
 
-
-@dataclass
-class TvDenoiseResult:
-    # constants for JSON format
-    _scan_name = "scan"
-    _weight_name = "weight"
-    _negentropy_name = "negentropy"
-
-    initial_negentropy: float
-    optimal_tv_weight: float
-    optimal_negentropy: float
-    map_sampling_used_for_tv: float
-    tv_weights_scanned: list[float]
-    negentropy_at_weights: list[float]
-    k_parameter_used: float | None = None
-
-    def json(self) -> dict:
-        json_payload = asdict(self)
-        json_payload.pop("tv_weights_scanned")
-        json_payload.pop("negentropy_at_weights")
-        json_payload[self._scan_name] = [
-            {
-                self._weight_name: float(self.tv_weights_scanned[idx]),
-                self._negentropy_name: float(self.negentropy_at_weights[idx]),
-            }
-            for idx in range(len(self.tv_weights_scanned))
-        ]
-        return json_payload
-
-    def to_json_file(self, filename: Path) -> None:
-        with filename.open("w") as f:
-            json.dump(self.json(), f, indent=4)
-
-    @classmethod
-    def from_json(cls, json_payload: dict) -> TvDenoiseResult:
-        try:
-            data = json_payload.pop(cls._scan_name)
-            json_payload["tv_weights_scanned"] = [float(point[cls._weight_name]) for point in data]
-            json_payload["negentropy_at_weights"] = [
-                float(point[cls._negentropy_name]) for point in data
-            ]
-            return cls(**json_payload)
-
-        except Exception as exptn:
-            msg = "could not load json payload; mis-formatted"
-            raise ValueError(msg) from exptn
-
-    @classmethod
-    def from_json_file(cls, filename: Path) -> TvDenoiseResult:
-        with filename.open("r") as f:
-            json_payload = json.load(f)
-        return cls.from_json(json_payload)
+TV_WEIGHT_PARAMETER_NAME: str = "tv_weight"
 
 
 def _tv_denoise_array(*, map_as_array: np.ndarray, weight: float) -> np.ndarray:
@@ -105,7 +52,7 @@ def tv_denoise_difference_map(
     *,
     full_output: Literal[True],
     weights_to_scan: Sequence[float] | np.ndarray | None = None,
-) -> tuple[Map, TvDenoiseResult]: ...
+) -> tuple[Map, ParameterScreenMetadata]: ...
 
 
 def tv_denoise_difference_map(
@@ -113,7 +60,7 @@ def tv_denoise_difference_map(
     *,
     full_output: bool = False,
     weights_to_scan: Sequence[float] | np.ndarray | None = None,
-) -> Map | tuple[Map, TvDenoiseResult]:
+) -> Map | tuple[Map, ParameterScreenMetadata]:
     """Single-pass TV denoising of a difference map.
 
     Automatically selects the optimal level of regularization (the TV weight, aka lambda) by
@@ -132,7 +79,7 @@ def tv_denoise_difference_map(
         that will be used to compute the difference map.
 
     full_output : bool, optional
-        If `True`, the function returns both the denoised map coefficients and a `TvDenoiseResult`
+        If `True`, the function returns both the denoised map coefficients and a `ParameterScreenMetadata`
          object containing the optimal weight and the associated negentropy. If `False`, only
          the denoised map coefficients are returned. Default is `False`.
 
@@ -143,11 +90,11 @@ def tv_denoise_difference_map(
 
     Returns
     -------
-    Map | tuple[Map, TvDenoiseResult]
+    Map | tuple[Map, ParameterScreenMetadata]
         If `full_output` is `False`, returns a `Map`, the denoised map coefficients.
         If `full_output` is `True`, returns a tuple containing:
         - `Map`: The denoised map coefficients.
-        - `TvDenoiseResult`: An object w/ the optimal weight and the corresponding negentropy.
+        - `ParameterScreenMetadata`: An object w/ the optimal weight and the corresponding negentropy.
 
     Raises
     ------
@@ -206,13 +153,13 @@ def tv_denoise_difference_map(
 
     if full_output:
         initial_negentropy = negentropy(realspace_map_array)
-        tv_result = TvDenoiseResult(
+        tv_result = ParameterScreenMetadata(
+            parameter_scanned=TV_WEIGHT_PARAMETER_NAME,
             initial_negentropy=float(initial_negentropy),
-            optimal_tv_weight=float(maximizer.argument_optimum),
+            optimal_parameter_value=float(maximizer.argument_optimum),
             optimal_negentropy=float(maximizer.objective_maximum),
-            map_sampling_used_for_tv=MAP_SAMPLING,
-            tv_weights_scanned=maximizer.values_evaluated,
-            negentropy_at_weights=maximizer.objective_at_values,
+            map_sampling=MAP_SAMPLING,
+            parameter_scan_results=maximizer.parameter_scan_results,
         )
         return final_map, tv_result
 

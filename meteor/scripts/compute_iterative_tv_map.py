@@ -93,7 +93,7 @@ def main(command_line_arguments: list[str] | None = None) -> None:
 
     log.info(
         "Optimal TV weight found",
-        weight=final_tv_metadata.optimal_tv_weight,
+        weight=final_tv_metadata.optimal_parameter_value,
         final_negentropy=round(final_tv_metadata.optimal_negentropy, 4),
     )
 
@@ -101,7 +101,6 @@ def main(command_line_arguments: list[str] | None = None) -> None:
     final_map.write_mtz(args.mtzout)
 
     log.info("Writing metadata.", file=str(args.metadataout))
-    final_tv_metadata.k_parameter_used = kparameter_used
     write_combined_metadata(
         filename=args.metadataout,
         it_tv_metadata=it_tv_metadata,

@@ -11,25 +11,26 @@ import pytest
 from meteor import tv
 from meteor.rsmap import Map
 from meteor.testing import diffmap_realspace_rms
+from meteor.utils import ParameterScreenMetadata
 from meteor.validate import map_negentropy
 
 DEFAULT_WEIGHTS_TO_SCAN = np.logspace(-2, 0, 25)
 
 
 def test_tv_denoise_result(tv_denoise_result_source_data: dict) -> None:
-    tdr_obj = tv.TvDenoiseResult(**tv_denoise_result_source_data)
+    tdr_obj = ParameterScreenMetadata(**tv_denoise_result_source_data)
     assert tv_denoise_result_source_data == asdict(tdr_obj)
 
     json = tdr_obj.json()
-    roundtrip = tv.TvDenoiseResult.from_json(json)
+    roundtrip = ParameterScreenMetadata.from_json(json)
     assert tv_denoise_result_source_data == asdict(roundtrip)
 
 
 def test_tv_denoise_result_to_file(tv_denoise_result_source_data: dict, tmp_path: Path) -> None:
-    tdr_obj = tv.TvDenoiseResult(**tv_denoise_result_source_data)
+    tdr_obj = ParameterScreenMetadata(**tv_denoise_result_source_data)
     filepath = tmp_path / "tmp.json"
     tdr_obj.to_json_file(filepath)
-    roundtrip = tv.TvDenoiseResult.from_json_file(filepath)
+    roundtrip = ParameterScreenMetadata.from_json_file(filepath)
     assert tv_denoise_result_source_data == asdict(roundtrip)
 
 
@@ -54,7 +55,7 @@ def test_tv_denoise_map_smoke(
     if full_output:
         assert len(output) == 2
         assert isinstance(output[0], Map)
-        assert isinstance(output[1], tv.TvDenoiseResult)
+        assert isinstance(output[1], ParameterScreenMetadata)
     else:
         assert isinstance(output, Map)
 
@@ -119,7 +120,7 @@ def test_tv_denoise_map(
 
     assert rms_to_noise_free(denoised_map) < rms_to_noise_free(noisy_map), "error didnt drop"
     np.testing.assert_allclose(
-        result.optimal_tv_weight, best_weight, rtol=0.5, err_msg="opt weight"
+        result.optimal_parameter_value, best_weight, rtol=0.5, err_msg="opt weight"
     )
 
 
@@ -137,8 +138,8 @@ def test_final_map_has_reported_negentropy(noisy_map: Map) -> None:
         full_output=True,
     )
     actual_negentropy = map_negentropy(output_map)
-    assert len(metadata.negentropy_at_weights) == 1
+    assert len(metadata.parameter_scan_results) == 1
 
     # it seems converting to real space and back can cause a small (few %) discrepency
     assert np.isclose(actual_negentropy, metadata.optimal_negentropy, atol=0.05)
-    assert np.isclose(actual_negentropy, metadata.negentropy_at_weights[0], atol=0.05)
+    assert np.isclose(actual_negentropy, metadata.parameter_scan_results[0][1], atol=0.05)

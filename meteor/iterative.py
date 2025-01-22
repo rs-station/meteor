@@ -13,8 +13,14 @@ from .settings import (
     ITERATIVE_TV_CONVERGENCE_TOLERANCE,
     ITERATIVE_TV_MAX_ITERATIONS,
 )
-from .tv import TvDenoiseResult, tv_denoise_difference_map
-from .utils import CellType, SpacegroupType, assert_isomorphous, average_phase_diff_in_degrees
+from .tv import tv_denoise_difference_map
+from .utils import (
+    CellType,
+    ParameterScreenMetadata,
+    SpacegroupType,
+    assert_isomorphous,
+    average_phase_diff_in_degrees,
+)
 
 log = structlog.get_logger()
 
@@ -104,7 +110,7 @@ class IterativeTvDenoiser:
         *,
         cell: CellType,
         spacegroup: SpacegroupType,
-    ) -> tuple[rs.DataSeries, TvDenoiseResult]:
+    ) -> tuple[rs.DataSeries, ParameterScreenMetadata]:
         """Apply a single iteration of TV denoising to set of complex SFs, return complex SFs"""
         diffmap = Map.from_structurefactor(
             complex_difference_sf,
@@ -191,7 +197,7 @@ class IterativeTvDenoiser:
             metadata.append(
                 {
                     "iteration": num_iterations,
-                    "tv_weight": tv_metadata.optimal_tv_weight,
+                    "tv_weight": tv_metadata.optimal_parameter_value,
                     "negentropy_after_tv": tv_metadata.optimal_negentropy,
                     "average_phase_change": phase_change,
                 },
@@ -201,7 +207,7 @@ class IterativeTvDenoiser:
                     f"  iteration {num_iterations:04d}",  # noqa: G004
                     phase_change=round(phase_change, 4),
                     negentropy=round(tv_metadata.optimal_negentropy, 4),
-                    tv_weight=tv_metadata.optimal_tv_weight,
+                    tv_weight=tv_metadata.optimal_parameter_value,
                 )
 
             if num_iterations > self.max_iterations:

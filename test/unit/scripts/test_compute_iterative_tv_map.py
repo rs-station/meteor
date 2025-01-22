@@ -16,7 +16,8 @@ from meteor.scripts.common import DiffMapSet
 from meteor.scripts.compute_iterative_tv_map import (
     IterativeTvArgParser,
 )
-from meteor.tv import TvDenoiseResult
+from meteor.tv import TV_WEIGHT_PARAMETER_NAME
+from meteor.utils import ParameterScreenMetadata
 
 TV_WEIGHTS_TO_SCAN = [0.01, 0.05]
 
@@ -40,17 +41,14 @@ def mock_compute_it_tv(
 
 def mock_tv_denoise_difference_map(
     diffmap: Map, *, full_output: bool, weights_to_scan: Sequence[float] | np.ndarray | None = None
-) -> tuple[Map, TvDenoiseResult]:
-    fake_metadata = TvDenoiseResult(
+) -> tuple[Map, ParameterScreenMetadata]:
+    fake_metadata = ParameterScreenMetadata(
+        parameter_scanned=TV_WEIGHT_PARAMETER_NAME,
         initial_negentropy=0.001,
-        optimal_tv_weight=0.1,
+        optimal_parameter_value=0.1,
         optimal_negentropy=1.0,
-        map_sampling_used_for_tv=3,
-        tv_weights_scanned=[0.1],
-        negentropy_at_weights=[
-            1.0,
-        ],
-        k_parameter_used=None,
+        map_sampling=3,
+        parameter_scan_results=[(0.1, 1.0)],
     )
     return diffmap, fake_metadata
 
