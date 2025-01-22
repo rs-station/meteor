@@ -38,10 +38,10 @@ class KWeightScreenResult:
         json_payload.pop("negentropy_at_weights")
         json_payload[self._scan_name] = [
             {
-                self._weight_name: float(self.tv_weights_scanned[idx]),
+                self._weight_name: float(self.k_weights_scanned[idx]),
                 self._negentropy_name: float(self.negentropy_at_weights[idx]),
             }
-            for idx in range(len(self.tv_weights_scanned))
+            for idx in range(len(self.k_weights_scanned))
         ]
         return json_payload
 
