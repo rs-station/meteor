@@ -61,19 +61,28 @@ def test_script_produces_consistent_results(
 
     compute_difference_map.main(cli_args)
 
-    result_metadata = MaximizerScanMetadata.from_json_file(output_metadata)
+    # TODO here, load both the k- and tv- scans from the metadata
+    # kweighting_metadata = MaximizerScanMetadata.from_json_file(output_metadata, ...)
+    tv_scan_metadata = MaximizerScanMetadata.from_json_file(output_metadata)
     result_map = Map.read_mtz_file(output_mtz)
 
     # 1. make sure negentropy increased
+    # TODO fix this up to do TV and k-weighting independently
     if kweight_mode == WeightMode.none and tv_weight_mode == WeightMode.none:
         np.testing.assert_allclose(
-            result_metadata.optimal_negentropy, result_metadata.initial_negentropy
+            tv_scan_metadata.optimal_negentropy, tv_scan_metadata.initial_negentropy
         )
     else:
-        assert result_metadata.optimal_negentropy >= result_metadata.initial_negentropy
+        assert tv_scan_metadata.optimal_negentropy >= tv_scan_metadata.initial_negentropy
 
     # 2. make sure optimized weights close to expected
     if kweight_mode == WeightMode.optimize:
+        # TODO here, it should be something like 
+        # np.testing.assert_allclose(
+        #     kweight_parameter,
+        #     kweighting_metadata.optimal_parameter_value,
+        #     err_msg="kweight optimium different from expected",
+        # )
         raise NotImplementedError
 
     if tv_weight_mode == WeightMode.optimize:
@@ -81,7 +90,7 @@ def test_script_produces_consistent_results(
             optimal_tv_no_kweighting = 0.025
             np.testing.assert_allclose(
                 optimal_tv_no_kweighting,
-                result_metadata.optimal_parameter_value,
+                tv_scan_metadata.optimal_parameter_value,
                 rtol=0.1,
                 err_msg="tv weight optimium different from expected",
             )
@@ -89,7 +98,7 @@ def test_script_produces_consistent_results(
             optimal_tv_with_weighting = 0.00867
             np.testing.assert_allclose(
                 optimal_tv_with_weighting,
-                result_metadata.optimal_parameter_value,
+                tv_scan_metadata.optimal_parameter_value,
                 rtol=0.1,
                 err_msg="tv weight optimium different from expected",
             )
