@@ -93,9 +93,9 @@ lint.ignore = [
     "TD002",  # to do authorship
     "TD003",  # to do issue
     "PD002",  # allow inplace modifications in Pandas operations
-    "TCH001", # type checking blocks
-    "TCH002", # type checking blocks
-    "TCH003", # type checking blocks
+    "TC001", # type checking blocks
+    "TC002", # type checking blocks
+    "TC003", # type checking blocks
     "COM812", # missing trailing comma, conflicts
     "ISC001", # string line concat, conflicts
 ]
