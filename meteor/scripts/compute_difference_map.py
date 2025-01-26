@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import structlog
 
 from meteor.rsmap import Map
-from meteor.settings import MAP_SAMPLING, TV_WEIGHT_DEFAULT
-from meteor.tv import TV_WEIGHT_PARAMETER_NAME, tv_denoise_difference_map
+from meteor.settings import MAP_SAMPLING, TV_WEIGHT_DEFAULT, TV_WEIGHT_PARAMETER_NAME
+from meteor.tv import tv_denoise_difference_map
 from meteor.validate import MaximizerScanMetadata, map_negentropy
 
 from .common import (
@@ -118,7 +119,7 @@ def denoise_diffmap_according_to_mode(
         final_map = diffmap
         final_negentropy = map_negentropy(final_map)
         metadata = MaximizerScanMetadata(
-            scanned_parameter_name=TV_WEIGHT_PARAMETER_NAME,
+            parameter_name=TV_WEIGHT_PARAMETER_NAME,
             initial_negentropy=final_negentropy,
             optimal_negentropy=final_negentropy,
             optimal_parameter_value=0.0,
@@ -159,7 +160,8 @@ def main(command_line_arguments: list[str] | None = None) -> None:
     final_map.write_mtz(args.mtzout)
 
     log.info("Writing metadata.", file=str(args.metadataout))
-    metadata.to_json_file(args.metadataout)
+    with args.metadataout.open("w") as f:
+        json.dump(metadata.json(), f, indent=4)
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ from meteor import settings
 from meteor.rsmap import Map
 from meteor.scripts import compute_difference_map
 from meteor.scripts.common import WeightMode
+from meteor.settings import K_PARAMETER_NAME, TV_WEIGHT_PARAMETER_NAME
 from meteor.utils import filter_common_indices
 from meteor.validate import MaximizerScanMetadata
 
@@ -61,14 +62,24 @@ def test_script_produces_consistent_results(
 
     compute_difference_map.main(cli_args)
 
-    # TODO here, load both the k- and tv- scans from the metadata
-    # kweighting_metadata = MaximizerScanMetadata.from_json_file(output_metadata, ...)
-    tv_scan_metadata = MaximizerScanMetadata.from_json_file(output_metadata)
+    kweighting_metadata = MaximizerScanMetadata.from_json_file(
+        filename=output_metadata, parameter_name=K_PARAMETER_NAME
+    )
+    tv_scan_metadata = MaximizerScanMetadata.from_json_file(
+        filename=output_metadata,
+        parameter_name=TV_WEIGHT_PARAMETER_NAME,
+    )
     result_map = Map.read_mtz_file(output_mtz)
 
     # 1. make sure negentropy increased
-    # TODO fix this up to do TV and k-weighting independently
-    if kweight_mode == WeightMode.none and tv_weight_mode == WeightMode.none:
+    if kweight_mode == WeightMode.none:
+        np.testing.assert_allclose(
+            kweighting_metadata.optimal_negentropy, kweighting_metadata.initial_negentropy
+        )
+    else:
+        assert kweighting_metadata.optimal_negentropy >= kweighting_metadata.initial_negentropy
+
+    if tv_weight_mode == WeightMode.none:
         np.testing.assert_allclose(
             tv_scan_metadata.optimal_negentropy, tv_scan_metadata.initial_negentropy
         )
@@ -77,12 +88,11 @@ def test_script_produces_consistent_results(
 
     # 2. make sure optimized weights close to expected
     if kweight_mode == WeightMode.optimize:
-        # TODO here, it should be something like 
-        # np.testing.assert_allclose(
-        #     kweight_parameter,
-        #     kweighting_metadata.optimal_parameter_value,
-        #     err_msg="kweight optimium different from expected",
-        # )
+        np.testing.assert_allclose(
+            kweight_parameter,
+            kweighting_metadata.optimal_parameter_value,
+            err_msg="kweight optimium different from expected",
+        )
         raise NotImplementedError
 
     if tv_weight_mode == WeightMode.optimize:

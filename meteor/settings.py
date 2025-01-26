@@ -40,6 +40,7 @@ COMPUTED_PHASE_COLUMNS: list[str] = ["PHIC"]
 # k-weighting
 KWEIGHT_PARAMETER_DEFAULT: float = 0.05
 DEFAULT_KPARAMS_TO_SCAN = np.linspace(0.0, 1.0, 101)
+K_PARAMETER_NAME: str = "k_parameter"
 
 
 # tv denoising
@@ -48,6 +49,7 @@ BRACKET_FOR_GOLDEN_OPTIMIZATION: tuple[float, float] = (0.0, 0.01)  # the braket
 TV_MAX_WEIGHT_EXPECTED = 0.1  # this value sets the threshold for a warning to the user
 TV_STOP_TOLERANCE: float = 0.00000005  # inner loop; not for iterative-tv phase retrieval
 TV_MAX_NUM_ITER: int = 50  # inner loop; not for iterative-tv phase retrieval
+TV_WEIGHT_PARAMETER_NAME: str = "tv_weight"
 
 # iterative tv
 ITERATIVE_TV_CONVERGENCE_TOLERANCE: float = 0.001

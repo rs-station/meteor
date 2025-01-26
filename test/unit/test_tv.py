@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import asdict
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -14,23 +12,6 @@ from meteor.testing import diffmap_realspace_rms
 from meteor.validate import MaximizerScanMetadata, map_negentropy
 
 DEFAULT_WEIGHTS_TO_SCAN = np.logspace(-2, 0, 25)
-
-
-def test_tv_denoise_result(tv_denoise_result_source_data: dict) -> None:
-    tdr_obj = MaximizerScanMetadata(**tv_denoise_result_source_data)
-    assert tv_denoise_result_source_data == asdict(tdr_obj)
-
-    json = tdr_obj.json()
-    roundtrip = MaximizerScanMetadata.from_json(json)
-    assert tv_denoise_result_source_data == asdict(roundtrip)
-
-
-def test_tv_denoise_result_to_file(tv_denoise_result_source_data: dict, tmp_path: Path) -> None:
-    tdr_obj = MaximizerScanMetadata(**tv_denoise_result_source_data)
-    filepath = tmp_path / "tmp.json"
-    tdr_obj.to_json_file(filepath)
-    roundtrip = MaximizerScanMetadata.from_json_file(filepath)
-    assert tv_denoise_result_source_data == asdict(roundtrip)
 
 
 @pytest.mark.parametrize(

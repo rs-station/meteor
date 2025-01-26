@@ -16,12 +16,11 @@ from .settings import (
     TV_MAX_NUM_ITER,
     TV_MAX_WEIGHT_EXPECTED,
     TV_STOP_TOLERANCE,
+    TV_WEIGHT_PARAMETER_NAME,
 )
 from .validate import MaximizerScanMetadata, ScalarMaximizer, negentropy
 
 log = structlog.get_logger()
-
-TV_WEIGHT_PARAMETER_NAME: str = "tv_weight"
 
 
 def _tv_denoise_array(*, map_as_array: np.ndarray, weight: float) -> np.ndarray:
@@ -153,7 +152,7 @@ def tv_denoise_difference_map(
     if full_output:
         initial_negentropy = negentropy(realspace_map_array)
         tv_result = MaximizerScanMetadata(
-            scanned_parameter_name=TV_WEIGHT_PARAMETER_NAME,
+            parameter_name=TV_WEIGHT_PARAMETER_NAME,
             initial_negentropy=float(initial_negentropy),
             optimal_parameter_value=float(maximizer.argument_optimum),
             optimal_negentropy=float(maximizer.objective_maximum),

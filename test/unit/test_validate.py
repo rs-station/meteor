@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import numpy as np
@@ -46,7 +47,9 @@ def test_maximizer_metadata_smoke(tv_denoise_result_source_data: dict) -> None:
 def test_maximizer_metadata_json_roundtrip(tv_denoise_result_source_data: dict) -> None:
     metadata = validate.MaximizerScanMetadata(**tv_denoise_result_source_data)
     json_metadata = metadata.json()
-    new_metadata = metadata.from_json(json_metadata)
+    new_metadata = metadata.from_json(
+        json_payload=json_metadata, parameter_name=metadata.parameter_name
+    )
     assert new_metadata == metadata
 
 
@@ -55,8 +58,13 @@ def test_maximizer_metadata_read_write_roundtrip(
 ) -> None:
     metadata = validate.MaximizerScanMetadata(**tv_denoise_result_source_data)
     json_file = tmp_path / "metadata.json"
-    metadata.to_json_file(json_file)
-    new_metadata = metadata.from_json_file(json_file)
+
+    with json_file.open("w") as f:
+        json.dump(metadata.json(), f)
+
+    new_metadata = metadata.from_json_file(
+        filename=json_file, parameter_name=metadata.parameter_name
+    )
     assert new_metadata == metadata
 
 
