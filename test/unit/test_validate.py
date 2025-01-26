@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import numpy as np
 from numpy.testing import assert_almost_equal
 
@@ -35,6 +38,34 @@ def test_negentropy_zero() -> None:
 
 def test_map_negentropy(noise_free_map: Map, very_noisy_map: Map) -> None:
     assert validate.map_negentropy(noise_free_map) > validate.map_negentropy(very_noisy_map)
+
+
+def test_maximizer_metadata_smoke(tv_denoise_result_source_data: dict) -> None:
+    validate.MaximizerScanMetadata(**tv_denoise_result_source_data)
+
+
+def test_maximizer_metadata_json_roundtrip(tv_denoise_result_source_data: dict) -> None:
+    metadata = validate.MaximizerScanMetadata(**tv_denoise_result_source_data)
+    json_metadata = metadata.json()
+    new_metadata = metadata.from_json(
+        json_payload=json_metadata, parameter_name=metadata.parameter_name
+    )
+    assert new_metadata == metadata
+
+
+def test_maximizer_metadata_read_write_roundtrip(
+    tv_denoise_result_source_data: dict, tmp_path: Path
+) -> None:
+    metadata = validate.MaximizerScanMetadata(**tv_denoise_result_source_data)
+    json_file = tmp_path / "metadata.json"
+
+    with json_file.open("w") as f:
+        json.dump(metadata.json(), f)
+
+    new_metadata = metadata.from_json_file(
+        filename=json_file, parameter_name=metadata.parameter_name
+    )
+    assert new_metadata == metadata
 
 
 def test_negentropy_maximizer_explicit() -> None:

@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 import pytest
 
-from meteor import io
+from meteor import mtzio
 
 FIND_column_FUNC_TYPE = Callable[[list[str]], str]
 
@@ -62,19 +62,19 @@ COMPUTED_PHASE_CASES = [
 
 def test_infer_mtz_column() -> None:
     to_search = ["FOO", "BAR", "BAZ"]
-    assert io._infer_mtz_column(to_search, ["FOO"]) == "FOO"
-    assert io._infer_mtz_column(to_search, ["BAR"]) == "BAR"
-    with pytest.raises(io.AmbiguousMtzColumnError):
-        _ = io._infer_mtz_column(to_search, [])
-    with pytest.raises(io.AmbiguousMtzColumnError):
-        _ = io._infer_mtz_column(to_search, ["FOO", "BAR"])
+    assert mtzio._infer_mtz_column(to_search, ["FOO"]) == "FOO"
+    assert mtzio._infer_mtz_column(to_search, ["BAR"]) == "BAR"
+    with pytest.raises(mtzio.AmbiguousMtzColumnError):
+        _ = mtzio._infer_mtz_column(to_search, [])
+    with pytest.raises(mtzio.AmbiguousMtzColumnError):
+        _ = mtzio._infer_mtz_column(to_search, ["FOO", "BAR"])
 
 
 def validate_find_column_result(
     function: FIND_column_FUNC_TYPE, columns: list[str], expected_result: str
 ) -> None:
     if expected_result == "raise":
-        with pytest.raises(io.AmbiguousMtzColumnError):
+        with pytest.raises(mtzio.AmbiguousMtzColumnError):
             _ = function(columns)
     else:
         assert function(columns) == expected_result
@@ -82,24 +82,24 @@ def validate_find_column_result(
 
 @pytest.mark.parametrize(("columns", "expected_result"), OBSERVED_INTENSITY_CASES)
 def test_find_observed_intensity_column(columns: list[str], expected_result: str) -> None:
-    validate_find_column_result(io.find_observed_intensity_column, columns, expected_result)
+    validate_find_column_result(mtzio.find_observed_intensity_column, columns, expected_result)
 
 
 @pytest.mark.parametrize(("columns", "expected_result"), OBSERVED_AMPLITUDE_CASES)
 def test_find_observed_amplitude_column(columns: list[str], expected_result: str) -> None:
-    validate_find_column_result(io.find_observed_amplitude_column, columns, expected_result)
+    validate_find_column_result(mtzio.find_observed_amplitude_column, columns, expected_result)
 
 
 @pytest.mark.parametrize(("columns", "expected_result"), OBSERVED_UNCERTAINTY_CASES)
 def test_find_observed_uncertainty_column(columns: list[str], expected_result: str) -> None:
-    validate_find_column_result(io.find_observed_uncertainty_column, columns, expected_result)
+    validate_find_column_result(mtzio.find_observed_uncertainty_column, columns, expected_result)
 
 
 @pytest.mark.parametrize(("columns", "expected_result"), COMPUTED_AMPLITUDE_CASES)
 def test_find_computed_amplitude_column(columns: list[str], expected_result: str) -> None:
-    validate_find_column_result(io.find_computed_amplitude_column, columns, expected_result)
+    validate_find_column_result(mtzio.find_computed_amplitude_column, columns, expected_result)
 
 
 @pytest.mark.parametrize(("columns", "expected_result"), COMPUTED_PHASE_CASES)
 def test_find_computed_phase_column(columns: list[str], expected_result: str) -> None:
-    validate_find_column_result(io.find_computed_phase_column, columns, expected_result)
+    validate_find_column_result(mtzio.find_computed_phase_column, columns, expected_result)
