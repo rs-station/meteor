@@ -8,7 +8,8 @@ from meteor import settings
 from meteor.rsmap import Map
 from meteor.scripts import compute_difference_map
 from meteor.scripts.common import WeightMode
-from meteor.utils import ParameterScreenMetadata, filter_common_indices
+from meteor.utils import filter_common_indices
+from meteor.validate import MaximizerScanMetadata
 
 # faster tests
 settings.MAP_SAMPLING = 1
@@ -60,7 +61,7 @@ def test_script_produces_consistent_results(
 
     compute_difference_map.main(cli_args)
 
-    result_metadata = ParameterScreenMetadata.from_json_file(output_metadata)
+    result_metadata = MaximizerScanMetadata.from_json_file(output_metadata)
     result_map = Map.read_mtz_file(output_mtz)
 
     # 1. make sure negentropy increased

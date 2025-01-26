@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass
-from pathlib import Path
 from typing import Literal, overload
 
 import gemmi
@@ -25,34 +22,6 @@ class NotIsomorphousError(RuntimeError): ...
 
 
 class ResolutionCutOverlapError(ValueError): ...
-
-
-@dataclass
-class ParameterScreenMetadata:
-    parameter_scanned: str
-    initial_negentropy: float
-    optimal_parameter_value: float
-    optimal_negentropy: float
-    map_sampling: float
-
-    parameter_scan_results: list[tuple[float, float]]
-
-    def json(self) -> dict:
-        return asdict(self)
-
-    def to_json_file(self, filename: Path) -> None:
-        with filename.open("w") as f:
-            json.dump(self.json(), f, indent=4)
-
-    @classmethod
-    def from_json(cls, json_payload: dict) -> ParameterScreenMetadata:
-        return cls(**json_payload)
-
-    @classmethod
-    def from_json_file(cls, filename: Path) -> ParameterScreenMetadata:
-        with filename.open("r") as f:
-            json_payload = json.load(f)
-        return cls.from_json(json_payload)
 
 
 def assert_isomorphous(*, derivative: rs.DataSet, native: rs.DataSet) -> None:

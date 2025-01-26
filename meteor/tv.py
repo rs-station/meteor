@@ -17,8 +17,7 @@ from .settings import (
     TV_MAX_WEIGHT_EXPECTED,
     TV_STOP_TOLERANCE,
 )
-from .utils import ParameterScreenMetadata
-from .validate import ScalarMaximizer, negentropy
+from .validate import MaximizerScanMetadata, ScalarMaximizer, negentropy
 
 log = structlog.get_logger()
 
@@ -52,7 +51,7 @@ def tv_denoise_difference_map(
     *,
     full_output: Literal[True],
     weights_to_scan: Sequence[float] | np.ndarray | None = None,
-) -> tuple[Map, ParameterScreenMetadata]: ...
+) -> tuple[Map, MaximizerScanMetadata]: ...
 
 
 def tv_denoise_difference_map(
@@ -60,7 +59,7 @@ def tv_denoise_difference_map(
     *,
     full_output: bool = False,
     weights_to_scan: Sequence[float] | np.ndarray | None = None,
-) -> Map | tuple[Map, ParameterScreenMetadata]:
+) -> Map | tuple[Map, MaximizerScanMetadata]:
     """Single-pass TV denoising of a difference map.
 
     Automatically selects the optimal level of regularization (the TV weight, aka lambda) by
@@ -79,7 +78,7 @@ def tv_denoise_difference_map(
         that will be used to compute the difference map.
 
     full_output : bool, optional
-        If `True`, the function returns both the denoised map coefficients and a `ParameterScreenMetadata`
+        If `True`, the function returns both the denoised map coefficients and a `MaximizerScanMetadata`
          object containing the optimal weight and the associated negentropy. If `False`, only
          the denoised map coefficients are returned. Default is `False`.
 
@@ -90,11 +89,11 @@ def tv_denoise_difference_map(
 
     Returns
     -------
-    Map | tuple[Map, ParameterScreenMetadata]
+    Map | tuple[Map, MaximizerScanMetadata]
         If `full_output` is `False`, returns a `Map`, the denoised map coefficients.
         If `full_output` is `True`, returns a tuple containing:
         - `Map`: The denoised map coefficients.
-        - `ParameterScreenMetadata`: An object w/ the optimal weight and the corresponding negentropy.
+        - `MaximizerScanMetadata`: An object w/ the optimal weight and the corresponding negentropy.
 
     Raises
     ------
@@ -153,8 +152,8 @@ def tv_denoise_difference_map(
 
     if full_output:
         initial_negentropy = negentropy(realspace_map_array)
-        tv_result = ParameterScreenMetadata(
-            parameter_scanned=TV_WEIGHT_PARAMETER_NAME,
+        tv_result = MaximizerScanMetadata(
+            scanned_parameter_name=TV_WEIGHT_PARAMETER_NAME,
             initial_negentropy=float(initial_negentropy),
             optimal_parameter_value=float(maximizer.argument_optimum),
             optimal_negentropy=float(maximizer.objective_maximum),

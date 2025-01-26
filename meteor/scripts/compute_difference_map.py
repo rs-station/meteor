@@ -9,8 +9,7 @@ import structlog
 from meteor.rsmap import Map
 from meteor.settings import MAP_SAMPLING, TV_WEIGHT_DEFAULT
 from meteor.tv import TV_WEIGHT_PARAMETER_NAME, tv_denoise_difference_map
-from meteor.utils import ParameterScreenMetadata
-from meteor.validate import map_negentropy
+from meteor.validate import MaximizerScanMetadata, map_negentropy
 
 from .common import (
     DiffmapArgParser,
@@ -55,7 +54,7 @@ def denoise_diffmap_according_to_mode(
     diffmap: Map,
     tv_denoise_mode: WeightMode,
     tv_weight: float | None = None,
-) -> tuple[Map, ParameterScreenMetadata]:
+) -> tuple[Map, MaximizerScanMetadata]:
     """
     Denoise a difference map `diffmap` using a specified `WeightMode`.
 
@@ -82,7 +81,7 @@ def denoise_diffmap_according_to_mode(
     final_map: meteor.rsmap.Map
         The difference map, denoised if requested
 
-    metadata: meteor.utils.ParameterScreenMetadata
+    metadata: meteor.utils.MaximizerScanMetadata
         Information regarding the denoising process.
     """
     if tv_denoise_mode == WeightMode.optimize:
@@ -118,13 +117,13 @@ def denoise_diffmap_according_to_mode(
     elif tv_denoise_mode == WeightMode.none:
         final_map = diffmap
         final_negentropy = map_negentropy(final_map)
-        metadata = ParameterScreenMetadata(
-            parameter_scanned=TV_WEIGHT_PARAMETER_NAME,
+        metadata = MaximizerScanMetadata(
+            scanned_parameter_name=TV_WEIGHT_PARAMETER_NAME,
             initial_negentropy=final_negentropy,
             optimal_negentropy=final_negentropy,
             optimal_parameter_value=0.0,
             map_sampling=MAP_SAMPLING,
-            parameter_scan_results=[(0.0, final_negentropy)],
+            parameter_scan_results=[[0.0, final_negentropy]],
         )
 
         log.info("Requested no TV denoising")

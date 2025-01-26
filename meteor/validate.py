@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable, Sequence
+from dataclasses import asdict, dataclass
+from pathlib import Path
 
 import numpy as np
 from scipy.optimize import minimize_scalar
@@ -96,6 +99,37 @@ def map_negentropy(map_to_assess: Map, *, tolerance: float = 0.1) -> float:
     return negentropy(realspace_map_array, tolerance=tolerance)
 
 
+@dataclass
+class MaximizerScanMetadata:
+    """Structured data reporting a run of `ScalarMaximizer`"""
+
+    scanned_parameter_name: str | None
+    initial_negentropy: float
+    optimal_parameter_value: float
+    optimal_negentropy: float
+    map_sampling: float
+
+    parameter_scan_results: list[list[float]]
+    """ a list of [parameter, objective] pairs that were scanned """
+
+    def json(self) -> dict:
+        return asdict(self)
+
+    def to_json_file(self, filename: Path) -> None:
+        with filename.open("w") as f:
+            json.dump(self.json(), f, indent=4)
+
+    @classmethod
+    def from_json(cls, json_payload: dict) -> MaximizerScanMetadata:
+        return cls(**json_payload)
+
+    @classmethod
+    def from_json_file(cls, filename: Path) -> MaximizerScanMetadata:
+        with filename.open("r") as f:
+            json_payload = json.load(f)
+        return cls.from_json(json_payload)
+
+
 class ScalarMaximizer:
     """
     Maximize a function using one of two strategies, or a combination of both:
@@ -142,21 +176,11 @@ class ScalarMaximizer:
         return float(objective_value)
 
     @property
-    def parameter_scan_results(self) -> list[tuple[float, float]]:
-        """
-        Retrieve the parameter values evaluated and the corresponding objective function
-        evaluations, as a list:
-
-            [
-                (parameter_value_1, objective_value_1),
-                (parameter_value_2, objective_value_2),
-                (parameter_value_3, objective_value_3),
-                ...
-            ]
-
-        """
+    def parameter_scan_results(self) -> list[list[float]]:
         scan_results = zip(self.values_evaluated, self.objective_at_values, strict=False)
-        return list(scan_results)
+
+        # JSON does not support tuple types, so cast scan_results to a list of lists
+        return [list(value_objective_pair) for value_objective_pair in scan_results]
 
     def optimize_over_explicit_values(
         self, *, arguments_to_scan: Sequence[float] | np.ndarray

@@ -11,26 +11,25 @@ import pytest
 from meteor import tv
 from meteor.rsmap import Map
 from meteor.testing import diffmap_realspace_rms
-from meteor.utils import ParameterScreenMetadata
-from meteor.validate import map_negentropy
+from meteor.validate import MaximizerScanMetadata, map_negentropy
 
 DEFAULT_WEIGHTS_TO_SCAN = np.logspace(-2, 0, 25)
 
 
 def test_tv_denoise_result(tv_denoise_result_source_data: dict) -> None:
-    tdr_obj = ParameterScreenMetadata(**tv_denoise_result_source_data)
+    tdr_obj = MaximizerScanMetadata(**tv_denoise_result_source_data)
     assert tv_denoise_result_source_data == asdict(tdr_obj)
 
     json = tdr_obj.json()
-    roundtrip = ParameterScreenMetadata.from_json(json)
+    roundtrip = MaximizerScanMetadata.from_json(json)
     assert tv_denoise_result_source_data == asdict(roundtrip)
 
 
 def test_tv_denoise_result_to_file(tv_denoise_result_source_data: dict, tmp_path: Path) -> None:
-    tdr_obj = ParameterScreenMetadata(**tv_denoise_result_source_data)
+    tdr_obj = MaximizerScanMetadata(**tv_denoise_result_source_data)
     filepath = tmp_path / "tmp.json"
     tdr_obj.to_json_file(filepath)
-    roundtrip = ParameterScreenMetadata.from_json_file(filepath)
+    roundtrip = MaximizerScanMetadata.from_json_file(filepath)
     assert tv_denoise_result_source_data == asdict(roundtrip)
 
 
@@ -55,7 +54,7 @@ def test_tv_denoise_map_smoke(
     if full_output:
         assert len(output) == 2
         assert isinstance(output[0], Map)
-        assert isinstance(output[1], ParameterScreenMetadata)
+        assert isinstance(output[1], MaximizerScanMetadata)
     else:
         assert isinstance(output, Map)
 
