@@ -3,15 +3,12 @@
 from __future__ import annotations
 
 import argparse
-import json
 from dataclasses import dataclass
 from enum import StrEnum, auto
-from io import StringIO
 from pathlib import Path
 from typing import Any
 
 import numpy as np
-import pandas as pd
 import reciprocalspaceship as rs
 import structlog
 
@@ -26,7 +23,6 @@ from meteor.scale import scale_maps
 from meteor.settings import (
     COMPUTED_MAP_RESOLUTION_LIMIT,
     KWEIGHT_PARAMETER_DEFAULT,
-    TV_WEIGHT_PARAMETER_NAME,
 )
 from meteor.sfcalc import structure_file_to_calculated_map
 from meteor.utils import cut_resolution

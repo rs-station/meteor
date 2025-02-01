@@ -42,30 +42,21 @@ def test_map_negentropy(noise_free_map: Map, very_noisy_map: Map) -> None:
 
 
 def test_maximizer_metadata_smoke(tv_denoise_result_source_data: dict) -> None:
-    validate.TvScanMetadata(**tv_denoise_result_source_data)
-
-
-def test_maximizer_metadata_json_roundtrip(tv_denoise_result_source_data: dict) -> None:
-    metadata = validate.TvScanMetadata(**tv_denoise_result_source_data)
-    json_metadata = metadata.json()
-    new_metadata = metadata.from_json(
-        json_payload=json_metadata, parameter_name=metadata.parameter_name
-    )
-    assert new_metadata == metadata
+    TvScanMetadata(**tv_denoise_result_source_data)
 
 
 def test_maximizer_metadata_read_write_roundtrip(
     tv_denoise_result_source_data: dict, tmp_path: Path
 ) -> None:
-    metadata = validate.TvScanMetadata(**tv_denoise_result_source_data)
+    metadata = TvScanMetadata(**tv_denoise_result_source_data)
     json_file = tmp_path / "metadata.json"
 
     with json_file.open("w") as f:
         json.dump(metadata.json(), f)
 
-    new_metadata = metadata.from_json_file(
-        filename=json_file, parameter_name=metadata.parameter_name
-    )
+    with json_file.open("r") as f:
+        new_metadata = TvScanMetadata.model_validate_json(f.read())
+
     assert new_metadata == metadata
 
 

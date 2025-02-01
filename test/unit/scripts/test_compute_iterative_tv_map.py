@@ -10,14 +10,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from meteor.metadata import TvScanMetadata
 from meteor.rsmap import Map
 from meteor.scripts import compute_iterative_tv_map
 from meteor.scripts.common import DiffMapSet
 from meteor.scripts.compute_iterative_tv_map import (
     IterativeTvArgParser,
 )
-from meteor.settings import TV_WEIGHT_PARAMETER_NAME
-from meteor.metadata import TvScanMetadata
 
 TV_WEIGHTS_TO_SCAN = [0.01, 0.05]
 

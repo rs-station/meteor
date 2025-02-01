@@ -7,11 +7,11 @@ from typing import Any
 
 import structlog
 
+from meteor.metadata import TvScanMetadata
 from meteor.rsmap import Map
-from meteor.settings import MAP_SAMPLING, TV_WEIGHT_DEFAULT, TV_WEIGHT_PARAMETER_NAME
+from meteor.settings import MAP_SAMPLING, TV_WEIGHT_DEFAULT
 from meteor.tv import tv_denoise_difference_map
 from meteor.validate import map_negentropy
-from meteor.metadata import TvScanMetadata, DiffmapMetadata
 
 from .common import (
     DiffmapArgParser,

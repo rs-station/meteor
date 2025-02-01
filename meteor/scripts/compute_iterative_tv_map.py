@@ -7,6 +7,7 @@ from typing import Any
 import structlog
 
 from meteor.iterative import IterativeTvDenoiser
+from meteor.metadata import IterativeDiffmapMetadata
 from meteor.settings import (
     DEFAULT_TV_WEIGHTS_TO_SCAN_AT_EACH_ITERATION,
     ITERATIVE_TV_CONVERGENCE_TOLERANCE,
@@ -14,7 +15,7 @@ from meteor.settings import (
 )
 from meteor.tv import tv_denoise_difference_map
 
-from .common import DiffmapArgParser, kweight_diffmap_according_to_mode, write_combined_metadata
+from .common import DiffmapArgParser, kweight_diffmap_according_to_mode
 
 log = structlog.get_logger()
 
@@ -101,11 +102,13 @@ def main(command_line_arguments: list[str] | None = None) -> None:
     final_map.write_mtz(args.mtzout)
 
     log.info("Writing metadata.", file=str(args.metadataout))
-    write_combined_metadata(
-        filename=args.metadataout,
-        it_tv_metadata=it_tv_metadata,
-        final_tv_metadata=final_tv_metadata,
+    combined_metadata = IterativeDiffmapMetadata(
+        iterative_tv=it_tv_metadata,
+        final_tv_pass=final_tv_metadata,
     )
+
+    with args.metadataout.open("w") as f:
+        f.write(combined_metadata.model_dump_json())
 
 
 if __name__ == "__main__":

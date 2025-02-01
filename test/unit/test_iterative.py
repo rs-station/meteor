@@ -9,9 +9,9 @@ from meteor.iterative import (
     IterativeTvDenoiser,
     _assert_are_dataseries,
 )
+from meteor.metadata import TvScanMetadata
 from meteor.rsmap import Map
 from meteor.testing import diffmap_realspace_rms
-from meteor.metadata import TvScanMetadata
 
 
 @pytest.fixture

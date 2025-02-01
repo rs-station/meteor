@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Callable, Sequence
-from dataclasses import asdict, dataclass
-from pathlib import Path
 
 import numpy as np
 from scipy.optimize import minimize_scalar
@@ -97,7 +94,6 @@ def map_negentropy(map_to_assess: Map, *, tolerance: float = 0.1) -> float:
     realspace_map = map_to_assess.to_ccp4_map(map_sampling=MAP_SAMPLING)
     realspace_map_array = np.array(realspace_map.grid)
     return negentropy(realspace_map_array, tolerance=tolerance)
-
 
 
 class ScalarMaximizer:

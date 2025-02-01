@@ -7,6 +7,7 @@ import pandas as pd
 import reciprocalspaceship as rs
 import structlog
 
+from .metadata import TvScanMetadata
 from .rsmap import Map
 from .settings import (
     DEFAULT_TV_WEIGHTS_TO_SCAN_AT_EACH_ITERATION,
@@ -20,7 +21,6 @@ from .utils import (
     assert_isomorphous,
     average_phase_diff_in_degrees,
 )
-from .metadata import TvScanMetadata
 
 log = structlog.get_logger()
 

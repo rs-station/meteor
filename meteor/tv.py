@@ -9,6 +9,7 @@ import numpy as np
 import structlog
 from skimage.restoration import denoise_tv_chambolle
 
+from .metadata import TvScanMetadata
 from .rsmap import Map
 from .settings import (
     BRACKET_FOR_GOLDEN_OPTIMIZATION,
@@ -16,10 +17,8 @@ from .settings import (
     TV_MAX_NUM_ITER,
     TV_MAX_WEIGHT_EXPECTED,
     TV_STOP_TOLERANCE,
-    TV_WEIGHT_PARAMETER_NAME,
 )
 from .validate import ScalarMaximizer, negentropy
-from .metadata import TvScanMetadata
 
 log = structlog.get_logger()
 

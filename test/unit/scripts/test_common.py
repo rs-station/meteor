@@ -14,7 +14,7 @@ from meteor.scripts.common import (
     DiffmapArgParser,
     DiffMapSet,
     WeightMode,
-    kweight_diffmap_according_to_mode
+    kweight_diffmap_according_to_mode,
 )
 from meteor.utils import ResolutionCutOverlapError
 

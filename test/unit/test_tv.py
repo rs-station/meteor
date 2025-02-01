@@ -7,10 +7,10 @@ import pandas as pd
 import pytest
 
 from meteor import tv
+from meteor.metadata import TvScanMetadata
 from meteor.rsmap import Map
 from meteor.testing import diffmap_realspace_rms
 from meteor.validate import map_negentropy
-from meteor.metadata import TvScanMetadata
 
 DEFAULT_WEIGHTS_TO_SCAN = np.logspace(-2, 0, 25)
 
