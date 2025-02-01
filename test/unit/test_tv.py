@@ -9,7 +9,8 @@ import pytest
 from meteor import tv
 from meteor.rsmap import Map
 from meteor.testing import diffmap_realspace_rms
-from meteor.validate import MaximizerScanMetadata, map_negentropy
+from meteor.validate import map_negentropy
+from meteor.metadata import TvScanMetadata
 
 DEFAULT_WEIGHTS_TO_SCAN = np.logspace(-2, 0, 25)
 
@@ -35,7 +36,7 @@ def test_tv_denoise_map_smoke(
     if full_output:
         assert len(output) == 2
         assert isinstance(output[0], Map)
-        assert isinstance(output[1], MaximizerScanMetadata)
+        assert isinstance(output[1], TvScanMetadata)
     else:
         assert isinstance(output, Map)
 

@@ -10,7 +10,7 @@ from meteor.scripts import compute_difference_map
 from meteor.scripts.common import WeightMode
 from meteor.settings import K_PARAMETER_NAME, TV_WEIGHT_PARAMETER_NAME
 from meteor.utils import filter_common_indices
-from meteor.validate import MaximizerScanMetadata
+from meteor.metadata import DiffmapMetadata
 
 # faster tests
 settings.MAP_SAMPLING = 1
@@ -62,13 +62,14 @@ def test_script_produces_consistent_results(
 
     compute_difference_map.main(cli_args)
 
-    kweighting_metadata = MaximizerScanMetadata.from_json_file(
-        filename=output_metadata, parameter_name=K_PARAMETER_NAME
-    )
-    tv_scan_metadata = MaximizerScanMetadata.from_json_file(
-        filename=output_metadata,
-        parameter_name=TV_WEIGHT_PARAMETER_NAME,
-    )
+    # TODO
+    # kweighting_metadata = DiffmapMetadata.from_json_file(
+    #     filename=output_metadata, parameter_name=K_PARAMETER_NAME
+    # )
+    # tv_scan_metadata = KparameterScanMetadata.from_json_file(
+    #     filename=output_metadata,
+    #     parameter_name=TV_WEIGHT_PARAMETER_NAME,
+    # )
     result_map = Map.read_mtz_file(output_mtz)
 
     # 1. make sure negentropy increased

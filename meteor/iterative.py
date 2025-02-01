@@ -20,7 +20,7 @@ from .utils import (
     assert_isomorphous,
     average_phase_diff_in_degrees,
 )
-from .validate import MaximizerScanMetadata
+from .metadata import TvScanMetadata
 
 log = structlog.get_logger()
 
@@ -110,7 +110,7 @@ class IterativeTvDenoiser:
         *,
         cell: CellType,
         spacegroup: SpacegroupType,
-    ) -> tuple[rs.DataSeries, MaximizerScanMetadata]:
+    ) -> tuple[rs.DataSeries, TvScanMetadata]:
         """Apply a single iteration of TV denoising to set of complex SFs, return complex SFs"""
         diffmap = Map.from_structurefactor(
             complex_difference_sf,

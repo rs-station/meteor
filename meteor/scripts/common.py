@@ -30,7 +30,6 @@ from meteor.settings import (
 )
 from meteor.sfcalc import structure_file_to_calculated_map
 from meteor.utils import cut_resolution
-from meteor.validate import MaximizerScanMetadata
 
 log = structlog.get_logger()
 
@@ -349,26 +348,3 @@ def kweight_diffmap_according_to_mode(
         raise InvalidWeightModeError(kweight_mode)
 
     return diffmap, kweight_parameter
-
-
-# TODO: dont forget about this
-def write_combined_metadata(
-    *, filename: Path, it_tv_metadata: pd.DataFrame, final_tv_metadata: MaximizerScanMetadata
-) -> None:
-    combined_metadata = {
-        "iterative_tv": it_tv_metadata.to_json(orient="records", indent=4),
-        "final_tv_pass": final_tv_metadata.json(),
-    }
-    with filename.open("w") as f:
-        json.dump(combined_metadata, f, indent=4)
-
-
-def read_combined_metadata(*, filename: Path) -> tuple[pd.DataFrame, MaximizerScanMetadata]:
-    with filename.open("r") as f:
-        combined_metadata = json.load(f)
-    it_tv_metadata = pd.read_json(StringIO(combined_metadata["iterative_tv"]))
-    final_tv_metadata = MaximizerScanMetadata.from_json(
-        json_payload=combined_metadata["final_tv_pass"],
-        parameter_name=TV_WEIGHT_PARAMETER_NAME,
-    )
-    return it_tv_metadata, final_tv_metadata

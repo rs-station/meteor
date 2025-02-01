@@ -17,7 +17,7 @@ from meteor.scripts.compute_iterative_tv_map import (
     IterativeTvArgParser,
 )
 from meteor.settings import TV_WEIGHT_PARAMETER_NAME
-from meteor.validate import MaximizerScanMetadata
+from meteor.metadata import TvScanMetadata
 
 TV_WEIGHTS_TO_SCAN = [0.01, 0.05]
 
@@ -41,9 +41,8 @@ def mock_compute_it_tv(
 
 def mock_tv_denoise_difference_map(
     diffmap: Map, *, full_output: bool, weights_to_scan: Sequence[float] | np.ndarray | None = None
-) -> tuple[Map, MaximizerScanMetadata]:
-    fake_metadata = MaximizerScanMetadata(
-        parameter_name=TV_WEIGHT_PARAMETER_NAME,
+) -> tuple[Map, TvScanMetadata]:
+    fake_metadata = TvScanMetadata(
         initial_negentropy=0.001,
         optimal_parameter_value=0.1,
         optimal_negentropy=1.0,

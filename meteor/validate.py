@@ -99,35 +99,6 @@ def map_negentropy(map_to_assess: Map, *, tolerance: float = 0.1) -> float:
     return negentropy(realspace_map_array, tolerance=tolerance)
 
 
-@dataclass
-class MaximizerScanMetadata:
-    """Structured data reporting a run of `ScalarMaximizer`"""
-
-    parameter_name: str
-    initial_negentropy: float
-    optimal_parameter_value: float
-    optimal_negentropy: float
-    map_sampling: float
-    parameter_scan_results: list[list[float]]
-    """ a list of [parameter, objective] pairs that were scanned """
-
-    def json(self) -> dict:
-        payload = asdict(self)
-        return {self.parameter_name: payload}
-
-    @classmethod
-    def from_json(cls, *, json_payload: dict, parameter_name: str) -> MaximizerScanMetadata:
-        if parameter_name in json_payload:
-            return cls(**json_payload[parameter_name])
-        msg = f"cannot find `{parameter_name}` in JSON. Found: `{json_payload.keys()}`."
-        raise OSError(msg)
-
-    @classmethod
-    def from_json_file(cls, *, filename: Path, parameter_name: str) -> MaximizerScanMetadata:
-        with filename.open("r") as f:
-            json_payload = json.load(f)
-        return cls.from_json(json_payload=json_payload, parameter_name=parameter_name)
-
 
 class ScalarMaximizer:
     """
