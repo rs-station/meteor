@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import numpy as np
-import pandas as pd
 import reciprocalspaceship as rs
 import structlog
 
-from .metadata import TvScanMetadata
+from .metadata import TvIterationMetadata, TvScanMetadata
 from .rsmap import Map
 from .settings import (
     DEFAULT_TV_WEIGHTS_TO_SCAN_AT_EACH_ITERATION,
@@ -134,7 +133,7 @@ class IterativeTvDenoiser:
         native: rs.DataSeries,
         cell: CellType,
         spacegroup: SpacegroupType,
-    ) -> tuple[rs.DataSeries, pd.DataFrame]:
+    ) -> tuple[rs.DataSeries, list[TvIterationMetadata]]:
         """
         Estimate the derivative phases using the iterative TV algorithm.
 
@@ -160,7 +159,7 @@ class IterativeTvDenoiser:
         estimated_complex_derivative: rs.DataSeries
             The derivative SFs, with the same amplitudes but phases altered to minimize the TV.
 
-        metadata: pd.DataFrame
+        metadata: list[TvIterationMetadata]
             Information about the algorithm run as a function of iteration. For each step, includes:
             the tv_weight used, the negentropy (after the TV step), and the average phase change in
             degrees.
@@ -170,7 +169,7 @@ class IterativeTvDenoiser:
 
         converged: bool = False
         num_iterations: int = 0
-        metadata: list[dict[str, float]] = []
+        metadata: list[TvIterationMetadata] = []
 
         # do differences with rs.DataSeries, handles missing indices
         difference: rs.DataSeries = initial_derivative - native
@@ -195,12 +194,12 @@ class IterativeTvDenoiser:
             num_iterations += 1
 
             metadata.append(
-                {
-                    "iteration": num_iterations,
-                    "tv_weight": tv_metadata.optimal_parameter_value,
-                    "negentropy_after_tv": tv_metadata.optimal_negentropy,
-                    "average_phase_change": phase_change,
-                },
+                TvIterationMetadata(
+                    iteration=num_iterations,
+                    tv_weight=tv_metadata.optimal_parameter_value,
+                    negentropy_after_tv=tv_metadata.optimal_negentropy,
+                    average_phase_change=phase_change,
+                )
             )
             if self.verbose:
                 log.info(
@@ -213,7 +212,7 @@ class IterativeTvDenoiser:
             if num_iterations > self.max_iterations:
                 break
 
-        return derivative, pd.DataFrame(metadata)
+        return derivative, metadata
 
     def __call__(
         self,
@@ -221,7 +220,7 @@ class IterativeTvDenoiser:
         derivative: Map,
         native: Map,
         check_isomorphous: bool = True,
-    ) -> tuple[Map, pd.DataFrame]:
+    ) -> tuple[Map, list[TvIterationMetadata]]:
         """
         Denoise by estimating new, low-TV phases for the `derivative` dataset.
 
@@ -241,7 +240,7 @@ class IterativeTvDenoiser:
         updated_derivative: Map
             The estimated derivative phases, along with the input amplitudes and input phases.
 
-        metadata: pd.DataFrame
+        metadata: list[TvIterationMetadata]
             Information about the algorithm run as a function of iteration. For each step, includes:
             the tv_weight used, the negentropy (after the TV step), and the average phase change in
             degrees.

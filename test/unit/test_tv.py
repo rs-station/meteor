@@ -123,4 +123,6 @@ def test_final_map_has_reported_negentropy(noisy_map: Map) -> None:
 
     # it seems converting to real space and back can cause a small (few %) discrepency
     assert np.isclose(actual_negentropy, metadata.optimal_negentropy, atol=0.05)
-    assert np.isclose(actual_negentropy, metadata.parameter_scan_results[0][1], atol=0.05)
+    assert np.isclose(
+        actual_negentropy, metadata.parameter_scan_results[0].objective_value, atol=0.05
+    )

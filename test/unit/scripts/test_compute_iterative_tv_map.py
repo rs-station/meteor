@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from meteor.metadata import TvScanMetadata
+from meteor.metadata import EvaluatedPoint, TvScanMetadata
 from meteor.rsmap import Map
 from meteor.scripts import compute_iterative_tv_map
 from meteor.scripts.common import DiffMapSet
@@ -46,7 +46,7 @@ def mock_tv_denoise_difference_map(
         optimal_parameter_value=0.1,
         optimal_negentropy=1.0,
         map_sampling=3,
-        parameter_scan_results=[[0.1, 1.0]],
+        parameter_scan_results=[EvaluatedPoint(parameter_value=0.1, objective_value=0.1)],
     )
     return diffmap, fake_metadata
 

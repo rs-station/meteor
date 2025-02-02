@@ -103,7 +103,7 @@ def main(command_line_arguments: list[str] | None = None) -> None:
 
     log.info("Writing metadata.", file=str(args.metadataout))
     combined_metadata = IterativeDiffmapMetadata(
-        iterative_tv=it_tv_metadata,
+        iterative_tv_iterations=it_tv_metadata,
         final_tv_pass=final_tv_metadata,
     )
 

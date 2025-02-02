@@ -52,10 +52,11 @@ def test_maximizer_metadata_read_write_roundtrip(
     json_file = tmp_path / "metadata.json"
 
     with json_file.open("w") as f:
-        json.dump(metadata.json(), f)
+        json.dump(metadata.model_dump_json(), f)
 
     with json_file.open("r") as f:
-        new_metadata = TvScanMetadata.model_validate_json(f.read())
+        json_payload = json.loads(f.read())
+        new_metadata = TvScanMetadata.model_validate_json(json_payload)
 
     assert new_metadata == metadata
 

@@ -1,18 +1,19 @@
-import pandas as pd
 from pydantic import BaseModel
 
 from .settings import K_PARAMETER_NAME, TV_WEIGHT_PARAMETER_NAME
 
 
-class MaximizerScanMetadata(BaseModel):
-    """Structured data reporting a run of `ScalarMaximizer`"""
+class EvaluatedPoint(BaseModel):
+    parameter_value: float
+    objective_value: float
 
+
+class MaximizerScanMetadata(BaseModel):
     parameter_name: str
     initial_negentropy: float
     optimal_parameter_value: float
     optimal_negentropy: float
-    parameter_scan_results: list[list[float]]
-    """ a list of [parameter, objective] pairs that were scanned """
+    parameter_scan_results: list[EvaluatedPoint]
 
 
 class KparameterScanMetadata(MaximizerScanMetadata):
@@ -30,6 +31,13 @@ class DiffmapMetadata(BaseModel):
     tv_weight_optmization: TvScanMetadata
 
 
+class TvIterationMetadata(BaseModel):
+    iteration: int
+    tv_weight: float
+    negentropy_after_tv: float
+    average_phase_change: float
+
+
 class IterativeDiffmapMetadata(BaseModel):
-    iterative_tv: pd.DataFrame
+    iterative_tv_iterations: list[TvIterationMetadata]
     final_tv_pass: TvScanMetadata

@@ -24,7 +24,10 @@ def tv_denoise_result_source_data() -> dict:
         "optimal_parameter_value": 1.0,
         "optimal_negentropy": 5.0,
         "map_sampling": 5,
-        "parameter_scan_results": [[0.0, 0.0], [1.0, 5.0]],
+        "parameter_scan_results": [
+            {"parameter_value": 0.0, "objective_value": 0.0},
+            {"parameter_value": 1.0, "objective_value": 5.0},
+        ],
     }
 
 

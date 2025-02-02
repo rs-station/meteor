@@ -7,7 +7,7 @@ from typing import Any
 
 import structlog
 
-from meteor.metadata import TvScanMetadata
+from meteor.metadata import EvaluatedPoint, TvScanMetadata
 from meteor.rsmap import Map
 from meteor.settings import MAP_SAMPLING, TV_WEIGHT_DEFAULT
 from meteor.tv import tv_denoise_difference_map
@@ -124,7 +124,9 @@ def denoise_diffmap_according_to_mode(
             optimal_negentropy=final_negentropy,
             optimal_parameter_value=0.0,
             map_sampling=MAP_SAMPLING,
-            parameter_scan_results=[[0.0, final_negentropy]],
+            parameter_scan_results=[
+                EvaluatedPoint(parameter_value=0.0, objective_value=final_negentropy)
+            ],
         )
 
         log.info("Requested no TV denoising")
@@ -161,7 +163,7 @@ def main(command_line_arguments: list[str] | None = None) -> None:
 
     log.info("Writing metadata.", file=str(args.metadataout))
     with args.metadataout.open("w") as f:
-        json.dump(metadata.json(), f, indent=4)
+        json.dump(metadata.model_dump_json(), f, indent=4)
 
 
 if __name__ == "__main__":
