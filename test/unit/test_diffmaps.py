@@ -129,9 +129,10 @@ def test_compute_kweighted_difference_map_vs_analytical(
 
 
 def test_kweight_optimization(noise_free_map: rs.DataSet, noisy_map: rs.DataSet) -> None:
-    _, max_negent_kweight = max_negentropy_kweighted_difference_map(noisy_map, noise_free_map)
+    _, metadata = max_negentropy_kweighted_difference_map(noisy_map, noise_free_map)
 
     epsilon = 0.01
+    max_negent_kweight = metadata.optimal_parameter_value
     k_parameters_to_scan = [
         max(0.0, min(1.0, max_negent_kweight - epsilon)),
         max_negent_kweight,  # Already in range

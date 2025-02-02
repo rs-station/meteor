@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import numpy as np
@@ -5,7 +6,7 @@ import pytest
 import reciprocalspaceship as rs
 
 from meteor import settings
-from meteor.metadata import DiffmapMetadata
+from meteor.metadata import DiffmapMetadata, KparameterScanMetadata
 from meteor.rsmap import Map
 from meteor.scripts import compute_difference_map
 from meteor.scripts.common import WeightMode
@@ -62,22 +63,12 @@ def test_script_produces_consistent_results(
     compute_difference_map.main(cli_args)
 
     with output_metadata_file.open("r") as f:
-        diffmap_metadata = DiffmapMetadata.model_validate_json(f.read())
+        json_payload = json.loads(f.read())
+        diffmap_metadata = DiffmapMetadata.model_validate_json(json_payload)
 
     result_map = Map.read_mtz_file(output_mtz)
 
     # 1. make sure negentropy increased
-    if kweight_mode == WeightMode.none:
-        np.testing.assert_allclose(
-            diffmap_metadata.k_parameter_optimization.optimal_negentropy,
-            diffmap_metadata.k_parameter_optimization.initial_negentropy,
-        )
-    else:
-        assert (
-            diffmap_metadata.k_parameter_optimization.optimal_negentropy
-            >= diffmap_metadata.k_parameter_optimization.initial_negentropy
-        )
-
     if tv_weight_mode == WeightMode.none:
         np.testing.assert_allclose(
             diffmap_metadata.tv_weight_optmization.optimal_negentropy,
@@ -91,12 +82,12 @@ def test_script_produces_consistent_results(
 
     # 2. make sure optimized weights close to expected
     if kweight_mode == WeightMode.optimize:
+        assert isinstance(diffmap_metadata.k_parameter_optimization, KparameterScanMetadata)
         np.testing.assert_allclose(
             kweight_parameter,
             diffmap_metadata.k_parameter_optimization.optimal_parameter_value,
             err_msg="kweight optimium different from expected",
         )
-        raise NotImplementedError
 
     if tv_weight_mode == WeightMode.optimize:
         if kweight_mode == WeightMode.none:

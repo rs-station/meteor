@@ -7,6 +7,7 @@ from collections.abc import Sequence
 import numpy as np
 import reciprocalspaceship as rs
 
+from .metadata import KparameterScanMetadata
 from .rsmap import Map, assert_is_map
 from .settings import DEFAULT_KPARAMS_TO_SCAN
 from .utils import assert_isomorphous, filter_common_indices
@@ -136,7 +137,7 @@ def max_negentropy_kweighted_difference_map(
     *,
     k_parameter_values_to_scan: np.ndarray | Sequence[float] = DEFAULT_KPARAMS_TO_SCAN,
     check_isomorphous: bool = True,
-) -> rs.DataSet:
+) -> tuple[rs.DataSet, KparameterScanMetadata]:
     """
     Compute k-weighted differences between native and derivative amplitudes and phases.
 
@@ -163,8 +164,8 @@ def max_negentropy_kweighted_difference_map(
     kweighted_dataset: rs.DataSet
         dataset with added columns
 
-    opt_k_parameter: float
-        optimized k-weighting parameter
+    kparameter_metadata: KparameterScanMetadata
+        metadata detailing k-weight scan
     """
     assert_is_map(derivative, require_uncertainties=True)
     assert_is_map(native, require_uncertainties=True)
@@ -191,4 +192,15 @@ def max_negentropy_kweighted_difference_map(
         check_isomorphous=check_isomorphous,
     )
 
-    return kweighted_dataset, opt_k_parameter
+    unweighted_diffmap = compute_difference_map(
+        derivative, native, check_isomorphous=check_isomorphous
+    )
+
+    kparameter_metadata = KparameterScanMetadata(
+        initial_negentropy=map_negentropy(unweighted_diffmap),
+        optimal_parameter_value=float(maximizer.argument_optimum),
+        optimal_negentropy=float(maximizer.objective_maximum),
+        parameter_scan_results=maximizer.parameter_scan_results,
+    )
+
+    return kweighted_dataset, kparameter_metadata

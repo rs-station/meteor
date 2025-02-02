@@ -18,7 +18,6 @@ class MaximizerScanMetadata(BaseModel):
 
 class KparameterScanMetadata(MaximizerScanMetadata):
     parameter_name: str = K_PARAMETER_NAME
-    map_sampling: float
 
 
 class TvScanMetadata(MaximizerScanMetadata):
@@ -27,7 +26,7 @@ class TvScanMetadata(MaximizerScanMetadata):
 
 
 class DiffmapMetadata(BaseModel):
-    k_parameter_optimization: KparameterScanMetadata
+    k_parameter_optimization: KparameterScanMetadata | None
     tv_weight_optmization: TvScanMetadata
 
 
@@ -39,5 +38,6 @@ class TvIterationMetadata(BaseModel):
 
 
 class IterativeDiffmapMetadata(BaseModel):
+    kparameter_metadata:  KparameterScanMetadata | None
     iterative_tv_iterations: list[TvIterationMetadata]
     final_tv_pass: TvScanMetadata

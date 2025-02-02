@@ -17,6 +17,7 @@ from meteor.diffmaps import (
     compute_kweighted_difference_map,
     max_negentropy_kweighted_difference_map,
 )
+from meteor.metadata import KparameterScanMetadata
 from meteor.mtzio import find_observed_amplitude_column, find_observed_uncertainty_column
 from meteor.rsmap import Map
 from meteor.scale import scale_maps
@@ -282,7 +283,7 @@ class DiffmapArgParser(argparse.ArgumentParser):
 
 def kweight_diffmap_according_to_mode(
     *, mapset: DiffMapSet, kweight_mode: WeightMode, kweight_parameter: float | None = None
-) -> tuple[Map, float | None]:
+) -> tuple[Map, KparameterScanMetadata | None]:
     """
     Make and k-weight a difference map using a specified `WeightMode`.
 
@@ -310,16 +311,17 @@ def kweight_diffmap_according_to_mode(
     diffmap: meteor.rsmap.Map
         The difference map, k-weighted if requested.
 
-    kweight_parameter: float | None
-        The `kweight_parameter` used. Only really interesting if WeightMode.optimize.
+    kweight_metadata: KparameterScanMetadata | None
+        The information about the k_weight optimization used.
+        Only really interesting if WeightMode.optimize.
     """
     log.info("Computing difference map.")
 
     if kweight_mode == WeightMode.optimize:
-        diffmap, kweight_parameter = max_negentropy_kweighted_difference_map(
+        diffmap, kweight_metadata = max_negentropy_kweighted_difference_map(
             mapset.derivative, mapset.native
         )
-        log.info("  using negentropy optimized", kparameter=kweight_parameter)
+        log.info("  using negentropy max.", kparameter=kweight_metadata.optimal_parameter_value)
         if kweight_parameter is np.nan:
             msg = "determined `k-parameter` is NaN, something went wrong..."
             raise RuntimeError(msg)
@@ -332,15 +334,15 @@ def kweight_diffmap_according_to_mode(
         diffmap = compute_kweighted_difference_map(
             mapset.derivative, mapset.native, k_parameter=kweight_parameter
         )
-
+        kweight_metadata = None
         log.info("  using fixed", kparameter=kweight_parameter)
 
     elif kweight_mode == WeightMode.none:
         diffmap = compute_difference_map(mapset.derivative, mapset.native)
-        kweight_parameter = None
+        kweight_metadata = None
         log.info(" requested no k-weighting")
 
     else:
         raise InvalidWeightModeError(kweight_mode)
 
-    return diffmap, kweight_parameter
+    return diffmap, kweight_metadata

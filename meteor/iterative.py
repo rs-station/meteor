@@ -184,6 +184,9 @@ class IterativeTvDenoiser:
             updated_derivative: rs.DataSeries = denoised_difference_sfs + native
             updated_derivative *= np.abs(derivative) / np.abs(updated_derivative)
 
+            # TODO: NaNs! Created by the two lines above. WHY???! Find out and fix.
+            updated_derivative.dropna(inplace=True)
+
             # compute phase change, THEN set: derivative <- updated_derivative
             phase_change = average_phase_diff_in_degrees(derivative, updated_derivative)
             derivative = updated_derivative

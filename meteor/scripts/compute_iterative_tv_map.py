@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import structlog
@@ -84,7 +85,7 @@ def main(command_line_arguments: list[str] | None = None) -> None:
     mapset.derivative, it_tv_metadata = denoiser(derivative=mapset.derivative, native=mapset.native)
     log.info("Convergence.")
 
-    diffmap, kparameter_used = kweight_diffmap_according_to_mode(
+    diffmap, kparameter_metadata = kweight_diffmap_according_to_mode(
         kweight_mode=args.kweight_mode, kweight_parameter=args.kweight_parameter, mapset=mapset
     )
 
@@ -103,12 +104,13 @@ def main(command_line_arguments: list[str] | None = None) -> None:
 
     log.info("Writing metadata.", file=str(args.metadataout))
     combined_metadata = IterativeDiffmapMetadata(
+        kparameter_metadata=kparameter_metadata,
         iterative_tv_iterations=it_tv_metadata,
         final_tv_pass=final_tv_metadata,
     )
 
     with args.metadataout.open("w") as f:
-        f.write(combined_metadata.model_dump_json())
+        json.dump(combined_metadata.model_dump_json(), f, indent=4)
 
 
 if __name__ == "__main__":

@@ -7,7 +7,6 @@ from typing import Any
 from unittest import mock
 
 import numpy as np
-import pandas as pd
 import pytest
 
 from meteor.metadata import EvaluatedPoint, TvScanMetadata
@@ -19,23 +18,6 @@ from meteor.scripts.compute_iterative_tv_map import (
 )
 
 TV_WEIGHTS_TO_SCAN = [0.01, 0.05]
-
-
-def mock_compute_it_tv(
-    derivative: Map, native: Map, *, tv_weights_to_scan: list[float], verbose: bool
-) -> tuple[Map, pd.DataFrame]:
-    assert isinstance(derivative, Map)
-    assert isinstance(native, Map)
-    fake_map = derivative
-    fake_metadata = pd.DataFrame.from_dict(
-        {
-            "iteration": [0],
-            "tv_weight": [tv_weights_to_scan[0]],
-            "negentropy_after_tv": [0.1],
-            "average_phase_change": [0.0001],
-        }
-    )
-    return fake_map, fake_metadata
 
 
 def mock_tv_denoise_difference_map(

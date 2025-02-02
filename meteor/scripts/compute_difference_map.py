@@ -7,7 +7,7 @@ from typing import Any
 
 import structlog
 
-from meteor.metadata import EvaluatedPoint, TvScanMetadata
+from meteor.metadata import DiffmapMetadata, EvaluatedPoint, TvScanMetadata
 from meteor.rsmap import Map
 from meteor.settings import MAP_SAMPLING, TV_WEIGHT_DEFAULT
 from meteor.tv import tv_denoise_difference_map
@@ -151,11 +151,15 @@ def main(command_line_arguments: list[str] | None = None) -> None:
     parser.check_output_filepaths(args)
     mapset = parser.load_difference_maps(args)
 
-    diffmap, kparameter_used = kweight_diffmap_according_to_mode(
+    diffmap, kweight_metadata = kweight_diffmap_according_to_mode(
         kweight_mode=args.kweight_mode, kweight_parameter=args.kweight_parameter, mapset=mapset
     )
-    final_map, metadata = denoise_diffmap_according_to_mode(
+    final_map, tv_metadata = denoise_diffmap_according_to_mode(
         tv_denoise_mode=args.tv_denoise_mode, tv_weight=args.tv_weight, diffmap=diffmap
+    )
+
+    aggregate_metadata = DiffmapMetadata(
+        k_parameter_optimization=kweight_metadata, tv_weight_optmization=tv_metadata
     )
 
     log.info("Writing output.", file=str(args.mtzout))
@@ -163,7 +167,7 @@ def main(command_line_arguments: list[str] | None = None) -> None:
 
     log.info("Writing metadata.", file=str(args.metadataout))
     with args.metadataout.open("w") as f:
-        json.dump(metadata.model_dump_json(), f, indent=4)
+        json.dump(aggregate_metadata.model_dump_json(), f, indent=4)
 
 
 if __name__ == "__main__":

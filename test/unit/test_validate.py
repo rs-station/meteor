@@ -52,7 +52,7 @@ def test_maximizer_metadata_read_write_roundtrip(
     json_file = tmp_path / "metadata.json"
 
     with json_file.open("w") as f:
-        json.dump(metadata.model_dump_json(), f)
+        json.dump(metadata.model_dump_json(), f, indent=4)
 
     with json_file.open("r") as f:
         json_payload = json.loads(f.read())
