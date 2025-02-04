@@ -151,7 +151,7 @@ def main(command_line_arguments: list[str] | None = None) -> None:
     parser.check_output_filepaths(args)
     mapset = parser.load_difference_maps(args)
 
-    diffmap, kweight_metadata = kweight_diffmap_according_to_mode(
+    diffmap, kparameter_metadata = kweight_diffmap_according_to_mode(
         kweight_mode=args.kweight_mode, kweight_parameter=args.kweight_parameter, mapset=mapset
     )
     final_map, tv_metadata = denoise_diffmap_according_to_mode(
@@ -159,7 +159,7 @@ def main(command_line_arguments: list[str] | None = None) -> None:
     )
 
     aggregate_metadata = DiffmapMetadata(
-        k_parameter_optimization=kweight_metadata, tv_weight_optmization=tv_metadata
+        k_parameter_optimization=kparameter_metadata, tv_weight_optmization=tv_metadata
     )
 
     log.info("Writing output.", file=str(args.mtzout))

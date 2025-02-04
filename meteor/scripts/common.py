@@ -311,17 +311,17 @@ def kweight_diffmap_according_to_mode(
     diffmap: meteor.rsmap.Map
         The difference map, k-weighted if requested.
 
-    kweight_metadata: KparameterScanMetadata | None
+    kparameter_metadata: KparameterScanMetadata | None
         The information about the k_weight optimization used.
         Only really interesting if WeightMode.optimize.
     """
     log.info("Computing difference map.")
 
     if kweight_mode == WeightMode.optimize:
-        diffmap, kweight_metadata = max_negentropy_kweighted_difference_map(
+        diffmap, kparameter_metadata = max_negentropy_kweighted_difference_map(
             mapset.derivative, mapset.native
         )
-        log.info("  using negentropy max.", kparameter=kweight_metadata.optimal_parameter_value)
+        log.info("  using negentropy max.", kparameter=kparameter_metadata.optimal_parameter_value)
         if kweight_parameter is np.nan:
             msg = "determined `k-parameter` is NaN, something went wrong..."
             raise RuntimeError(msg)
@@ -334,15 +334,15 @@ def kweight_diffmap_according_to_mode(
         diffmap = compute_kweighted_difference_map(
             mapset.derivative, mapset.native, k_parameter=kweight_parameter
         )
-        kweight_metadata = None
+        kparameter_metadata = None
         log.info("  using fixed", kparameter=kweight_parameter)
 
     elif kweight_mode == WeightMode.none:
         diffmap = compute_difference_map(mapset.derivative, mapset.native)
-        kweight_metadata = None
+        kparameter_metadata = None
         log.info(" requested no k-weighting")
 
     else:
         raise InvalidWeightModeError(kweight_mode)
 
-    return diffmap, kweight_metadata
+    return diffmap, kparameter_metadata
