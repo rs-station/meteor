@@ -93,7 +93,7 @@ def main(command_line_arguments: list[str] | None = None) -> None:
 
     log.info(
         "Optimal TV weight found",
-        weight=final_tv_metadata.optimal_tv_weight,
+        weight=f"{final_tv_metadata.optimal_tv_weight:.2e}",
         final_negentropy=round(final_tv_metadata.optimal_negentropy, 4),
     )
 
