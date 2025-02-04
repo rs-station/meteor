@@ -38,6 +38,6 @@ class TvIterationMetadata(BaseModel):
 
 
 class IterativeDiffmapMetadata(BaseModel):
-    kparameter_metadata:  KparameterScanMetadata | None
+    kparameter_metadata: KparameterScanMetadata | None
     iterative_tv_iterations: list[TvIterationMetadata]
     final_tv_pass: TvScanMetadata
