@@ -123,7 +123,6 @@ def average_phase_diff_in_degrees(
 
     diff = phase2 - phase1
     diff = (diff + 180) % 360 - 180
-    diff = diff[~np.isnan(diff)]
 
     return float(np.sum(np.abs(diff)) / float(np.prod(array1.shape)))
 

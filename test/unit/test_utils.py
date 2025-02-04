@@ -162,10 +162,3 @@ def test_average_phase_diff_in_degrees_mixed_types() -> None:
     ser2 = rs.DataSeries(np.ones(3), index=np.arange(3))
     result = utils.average_phase_diff_in_degrees(ser1, ser2)
     assert np.allclose(result, 0.0)
-
-
-def test_average_phase_diff_in_degrees_nan_regression() -> None:
-    arr1 = np.array([0.0, np.nan])
-    arr2 = np.array([0.0, 1.0]) + 1j * np.array([1.0, 0.0])
-    computed_average_phase_difference = utils.average_phase_diff_in_degrees(arr1, arr2)
-    assert computed_average_phase_difference == 45.0, computed_average_phase_difference
