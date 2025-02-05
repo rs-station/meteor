@@ -66,3 +66,6 @@ def test_script_produces_consistent_results(
     )
     rho = np.corrcoef(result_amplitudes.to_numpy(), reference_amplitudes.to_numpy())[0, 1]
     assert rho > 0.95
+
+    # 4. regression, make sure no NaNs creep into metadata
+    assert not np.any(np.isnan(iterative_tv_metadata))
