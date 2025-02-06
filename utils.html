@@ -3,19 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
-<meta name="generator" content="pdoc3 0.11.3">
+<meta name="generator" content="pdoc3 0.11.5">
 <title>meteor.utils API documentation</title>
 <meta name="description" content="crystallographic helper functions">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
-<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
 <style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => {
 hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
 hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
 })</script>
 </head>
 <body>
@@ -38,36 +49,160 @@ hljs.highlightAll();
 <span>def <span class="ident">assert_isomorphous</span></span>(<span>*, derivative: rs.DataSet, native: rs.DataSet) ‑> None</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def assert_isomorphous(*, derivative: rs.DataSet, native: rs.DataSet) -&gt; None:
+    if not native.is_isomorphous(derivative):
+        msg = &#34;`derivative` and `native` datasets are not similar enough; &#34;
+        msg += f&#34;they have cell/spacegroup: {derivative.cell}/{native.cell} and &#34;
+        msg += f&#34;{derivative.spacegroup}/{native.spacegroup} respectively&#34;
+        raise NotIsomorphousError(msg)</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 <dt id="meteor.utils.average_phase_diff_in_degrees"><code class="name flex">
 <span>def <span class="ident">average_phase_diff_in_degrees</span></span>(<span>array1: np.ndarray | rs.DataSeries, array2: np.ndarray | rs.DataSeries) ‑> float</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def average_phase_diff_in_degrees(
+    array1: np.ndarray | rs.DataSeries, array2: np.ndarray | rs.DataSeries
+) -&gt; float:
+    if isinstance(array1, rs.DataSeries) and isinstance(array2, rs.DataSeries):
+        array1, array2 = filter_common_indices(array1, array2)
+
+    if array1.shape != array2.shape:
+        msg = f&#34;inputs not same shape: {array1.shape} vs {array2.shape}&#34;
+        raise ShapeMismatchError(msg)
+
+    phase1 = np.rad2deg(np.angle(array1))
+    phase2 = np.rad2deg(np.angle(array2))
+
+    diff = phase2 - phase1
+    diff = (diff + 180) % 360 - 180
+
+    return float(np.sum(np.abs(diff)) / float(np.prod(array1.shape)))</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 <dt id="meteor.utils.canonicalize_amplitudes"><code class="name flex">
 <span>def <span class="ident">canonicalize_amplitudes</span></span>(<span>dataset: rs.DataSet,<br>*,<br>amplitude_column: str,<br>phase_column: str,<br>inplace: bool = False) ‑> reciprocalspaceship.dataset.DataSet | None</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def canonicalize_amplitudes(
+    dataset: rs.DataSet,
+    *,
+    amplitude_column: str,
+    phase_column: str,
+    inplace: bool = False,
+) -&gt; rs.DataSet | None:
+    if not inplace:
+        dataset = dataset.copy()
+
+    negative_amplitude_indices = dataset[amplitude_column] &lt; 0.0
+    dataset[amplitude_column] = np.abs(dataset[amplitude_column])
+    dataset.loc[negative_amplitude_indices, phase_column] += 180.0
+
+    dataset[phase_column] = canonicalize_phases(dataset[phase_column])
+
+    if not inplace:
+        return dataset
+    return None</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 <dt id="meteor.utils.cut_resolution"><code class="name flex">
-<span>def <span class="ident">cut_resolution</span></span>(<span>dataset: rs.DataSet,<br>*,<br>dmax_limit: float | None = None,<br>dmin_limit: float | None = None) ‑> reciprocalspaceship.dataset.DataSet</span>
+<span>def <span class="ident">cut_resolution</span></span>(<span>dataset: rs.DataSet,<br>*,<br>low_resolution_limit: float | None = None,<br>high_resolution_limit: float | None = None) ‑> reciprocalspaceship.dataset.DataSet</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cut_resolution(
+    dataset: rs.DataSet,
+    *,
+    low_resolution_limit: float | None = None,
+    high_resolution_limit: float | None = None,
+) -&gt; rs.DataSet:
+    if (
+        high_resolution_limit
+        and low_resolution_limit
+        and (high_resolution_limit &gt;= low_resolution_limit)
+    ):
+        msg = f&#34;requested highres &gt;= lowres: {high_resolution_limit} &gt;= {low_resolution_limit}&#34;
+        raise ResolutionCutOverlapError(msg)
+
+    d_hkl = dataset.compute_dHKL()
+    if isinstance(d_hkl, rs.DataSet):
+        d_hkl = d_hkl[&#34;dHKL&#34;]
+
+    if low_resolution_limit:
+        dataset = dataset.loc[(d_hkl &lt;= low_resolution_limit)]
+    if high_resolution_limit:
+        dataset = dataset.loc[(d_hkl &gt;= high_resolution_limit)]
+    return dataset</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 <dt id="meteor.utils.filter_common_indices"><code class="name flex">
-<span>def <span class="ident">filter_common_indices</span></span>(<span>df1: DataSet, df2: DataSet) ‑> tuple[reciprocalspaceship.dataset.DataSet, reciprocalspaceship.dataset.DataSet]</span>
+<span>def <span class="ident">filter_common_indices</span></span>(<span>df1: rs.DataSet, df2: rs.DataSet) ‑> tuple[reciprocalspaceship.dataset.DataSet, reciprocalspaceship.dataset.DataSet]</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def filter_common_indices(df1: rs.DataSet, df2: rs.DataSet) -&gt; tuple[rs.DataSet, rs.DataSet]:
+    common_indices = df1.index.intersection(df2.index)
+    df1_common = df1.loc[common_indices].copy()
+    df2_common = df2.loc[common_indices].copy()
+    if len(df1_common) == 0 or len(df2_common) == 0:
+        msg = &#34;cannot find any HKL incdices in common between `df1` and `df2`&#34;
+        raise IndexError(msg)
+    return df1_common, df2_common</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 <dt id="meteor.utils.numpy_array_to_map"><code class="name flex">
 <span>def <span class="ident">numpy_array_to_map</span></span>(<span>array: np.ndarray, *, spacegroup: SpacegroupType, cell: CellType) ‑> gemmi.Ccp4Map</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@cellify(&#34;cell&#34;)
+@spacegroupify(&#34;spacegroup&#34;)
+def numpy_array_to_map(
+    array: np.ndarray,
+    *,
+    spacegroup: SpacegroupType,
+    cell: CellType,
+) -&gt; gemmi.Ccp4Map:
+    ccp4_map = gemmi.Ccp4Map()
+    ccp4_map.grid = gemmi.FloatGrid(array.astype(np.float32))
+
+    if isinstance(cell, gemmi.UnitCell):
+        ccp4_map.grid.unit_cell = cell
+    else:
+        ccp4_map.grid.unit_cell.set(*cell)
+
+    if not isinstance(spacegroup, gemmi.SpaceGroup):
+        spacegroup = gemmi.SpaceGroup(spacegroup)
+    ccp4_map.grid.spacegroup = spacegroup
+
+    return ccp4_map</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 </dl>
@@ -80,16 +215,35 @@ hljs.highlightAll();
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Unspecified run-time error.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class NotIsomorphousError(RuntimeError): ...</code></pre>
 </details>
+<div class="desc"><p>Unspecified run-time error.</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.RuntimeError</li>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="meteor.utils.ResolutionCutOverlapError"><code class="flex name class">
+<span>class <span class="ident">ResolutionCutOverlapError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ResolutionCutOverlapError(ValueError): ...</code></pre>
+</details>
+<div class="desc"><p>Inappropriate argument value (of correct type).</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.ValueError</li>
 <li>builtins.Exception</li>
 <li>builtins.BaseException</li>
 </ul>
@@ -99,13 +253,13 @@ hljs.highlightAll();
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ShapeMismatchError(Exception): ...</code></pre>
 </details>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.Exception</li>
@@ -141,6 +295,9 @@ hljs.highlightAll();
 <h4><code><a title="meteor.utils.NotIsomorphousError" href="#meteor.utils.NotIsomorphousError">NotIsomorphousError</a></code></h4>
 </li>
 <li>
+<h4><code><a title="meteor.utils.ResolutionCutOverlapError" href="#meteor.utils.ResolutionCutOverlapError">ResolutionCutOverlapError</a></code></h4>
+</li>
+<li>
 <h4><code><a title="meteor.utils.ShapeMismatchError" href="#meteor.utils.ShapeMismatchError">ShapeMismatchError</a></code></h4>
 </li>
 </ul>
@@ -149,7 +306,7 @@ hljs.highlightAll();
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.3</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.5</a>.</p>
 </footer>
 </body>
 </html>

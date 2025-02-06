@@ -3,19 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
-<meta name="generator" content="pdoc3 0.11.3">
+<meta name="generator" content="pdoc3 0.11.5">
 <title>meteor.scripts.common API documentation</title>
 <meta name="description" content="shared code for the CLI">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
-<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
 <style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => {
 hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
 hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
 })</script>
 </head>
 <body>
@@ -38,6 +49,75 @@ hljs.highlightAll();
 <span>def <span class="ident">kweight_diffmap_according_to_mode</span></span>(<span>*,<br>mapset: <a title="meteor.scripts.common.DiffMapSet" href="#meteor.scripts.common.DiffMapSet">DiffMapSet</a>,<br>kweight_mode: <a title="meteor.scripts.common.WeightMode" href="#meteor.scripts.common.WeightMode">WeightMode</a>,<br>kweight_parameter: float | None = None) ‑> tuple[<a title="meteor.rsmap.Map" href="../rsmap.html#meteor.rsmap.Map">Map</a>, float | None]</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def kweight_diffmap_according_to_mode(
+    *, mapset: DiffMapSet, kweight_mode: WeightMode, kweight_parameter: float | None = None
+) -&gt; tuple[Map, float | None]:
+    &#34;&#34;&#34;
+    Make and k-weight a difference map using a specified `WeightMode`.
+
+    Three modes are possible to pick the k-parameter:
+      * `WeightMode.optimize`, max-negentropy value will and picked, this may take some time
+      * `WeightMode.fixed`, `kweight_parameter` is used
+      * `WeightMode.none`, then no k-weighting is done (note this is NOT equivalent to
+         kweight_parameter=0.0)
+
+    Parameters
+    ----------
+    mapset: DiffMapSet
+        The set of `derivative`, `native`, `computed` maps to use to compute the diffmap.
+
+    kweight_mode: WeightMode
+        How to set the k-parameter: {optimize, fixed, none}. See above. If `fixed`, then
+        `kweight_parameter` is required.
+
+    kweight_parameter: float | None
+        If kweight_mode == WeightMode.fixed, then this must be a float that specifies the
+        k-parameter to use.
+
+    Returns
+    -------
+    diffmap: meteor.rsmap.Map
+        The difference map, k-weighted if requested.
+
+    kweight_parameter: float | None
+        The `kweight_parameter` used. Only really interesting if WeightMode.optimize.
+    &#34;&#34;&#34;
+    log.info(&#34;Computing difference map.&#34;)
+
+    if kweight_mode == WeightMode.optimize:
+        diffmap, kweight_parameter = max_negentropy_kweighted_difference_map(
+            mapset.derivative, mapset.native
+        )
+        log.info(&#34;  using negentropy optimized&#34;, kparameter=kweight_parameter)
+        if kweight_parameter is np.nan:
+            msg = &#34;determined `k-parameter` is NaN, something went wrong...&#34;
+            raise RuntimeError(msg)
+
+    elif kweight_mode == WeightMode.fixed:
+        if not isinstance(kweight_parameter, float):
+            msg = f&#34;`kweight_parameter` is type `{type(kweight_parameter)}`, must be `float`&#34;
+            raise TypeError(msg)
+
+        diffmap = compute_kweighted_difference_map(
+            mapset.derivative, mapset.native, k_parameter=kweight_parameter
+        )
+
+        log.info(&#34;  using fixed&#34;, kparameter=kweight_parameter)
+
+    elif kweight_mode == WeightMode.none:
+        diffmap = compute_difference_map(mapset.derivative, mapset.native)
+        kweight_parameter = None
+        log.info(&#34; requested no k-weighting&#34;)
+
+    else:
+        raise InvalidWeightModeError(kweight_mode)
+
+    return diffmap, kweight_parameter</code></pre>
+</details>
 <div class="desc"><p>Make and k-weight a difference map using a specified <code><a title="meteor.scripts.common.WeightMode" href="#meteor.scripts.common.WeightMode">WeightMode</a></code>.</p>
 <p>Three modes are possible to pick the k-parameter:
 * <code><a title="meteor.scripts.common.WeightMode.optimize" href="#meteor.scripts.common.WeightMode.optimize">WeightMode.optimize</a></code>, max-negentropy value will and picked, this may take some time
@@ -67,12 +147,37 @@ k-parameter to use.</dd>
 <span>def <span class="ident">read_combined_metadata</span></span>(<span>*, filename: Path) ‑> tuple[pandas.core.frame.DataFrame, <a title="meteor.tv.TvDenoiseResult" href="../tv.html#meteor.tv.TvDenoiseResult">TvDenoiseResult</a>]</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_combined_metadata(*, filename: Path) -&gt; tuple[pd.DataFrame, TvDenoiseResult]:
+    with filename.open(&#34;r&#34;) as f:
+        combined_metadata = json.load(f)
+    it_tv_metadata = pd.read_json(StringIO(combined_metadata[&#34;iterative_tv&#34;]))
+    final_tv_metadata = TvDenoiseResult.from_json(combined_metadata[&#34;final_tv_pass&#34;])
+    return it_tv_metadata, final_tv_metadata</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 <dt id="meteor.scripts.common.write_combined_metadata"><code class="name flex">
 <span>def <span class="ident">write_combined_metadata</span></span>(<span>*,<br>filename: Path,<br>it_tv_metadata: pd.DataFrame,<br>final_tv_metadata: TvDenoiseResult) ‑> None</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_combined_metadata(
+    *, filename: Path, it_tv_metadata: pd.DataFrame, final_tv_metadata: TvDenoiseResult
+) -&gt; None:
+    combined_metadata = {
+        &#34;iterative_tv&#34;: it_tv_metadata.to_json(orient=&#34;records&#34;, indent=4),
+        &#34;final_tv_pass&#34;: final_tv_metadata.json(),
+    }
+    with filename.open(&#34;w&#34;) as f:
+        json.dump(combined_metadata, f, indent=4)</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 </dl>
@@ -85,7 +190,6 @@ k-parameter to use.</dd>
 <span>(</span><span>native: Map, derivative: Map, calculated: Map)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>DiffMapSet(native: 'Map', derivative: 'Map', calculated: 'Map')</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -117,6 +221,7 @@ class DiffMapSet:
             weight_using_uncertainties=weight_using_uncertainties,
         )</code></pre>
 </details>
+<div class="desc"><p>DiffMapSet(native: 'Map', derivative: 'Map', calculated: 'Map')</p></div>
 <h3>Class variables</h3>
 <dl>
 <dt id="meteor.scripts.common.DiffMapSet.calculated"><code class="name">var <span class="ident">calculated</span> : <a title="meteor.rsmap.Map" href="../rsmap.html#meteor.rsmap.Map">Map</a></code></dt>
@@ -138,6 +243,31 @@ class DiffMapSet:
 <span>def <span class="ident">scale</span></span>(<span>self, *, weight_using_uncertainties: bool = True) ‑> None</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def scale(self, *, weight_using_uncertainties: bool = True) -&gt; None:
+    self.native = scale_maps(
+        reference_map=self.calculated,
+        map_to_scale=self.native,
+        weight_using_uncertainties=weight_using_uncertainties,
+    )
+    log.info(
+        &#34;scaling: native --&gt; calculated&#34;,
+        weight_using_uncertainties=weight_using_uncertainties,
+    )
+
+    self.derivative = scale_maps(
+        reference_map=self.calculated,
+        map_to_scale=self.derivative,
+        weight_using_uncertainties=weight_using_uncertainties,
+    )
+    log.info(
+        &#34;scaling: derivative --&gt; calculated&#34;,
+        weight_using_uncertainties=weight_using_uncertainties,
+    )</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 </dl>
@@ -147,24 +277,6 @@ class DiffMapSet:
 <span>(</span><span>*args: Any, **kwargs: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Object for parsing command line strings into Python objects.</p>
-<p>Keyword Arguments:
-- prog &ndash; The name of the program (default:
-<code>os.path.basename(sys.argv[0])</code>)
-- usage &ndash; A usage message (default: auto-generated from arguments)
-- description &ndash; A description of what the program does
-- epilog &ndash; Text following the argument descriptions
-- parents &ndash; Parsers whose arguments should be copied into this one
-- formatter_class &ndash; HelpFormatter class for printing help messages
-- prefix_chars &ndash; Characters that prefix optional arguments
-- fromfile_prefix_chars &ndash; Characters that prefix files containing
-additional arguments
-- argument_default &ndash; The default value for all arguments
-- conflict_handler &ndash; String indicating how to handle conflicts
-- add_help &ndash; Add a -h/-help option
-- allow_abbrev &ndash; Allow long options to be abbreviated unambiguously
-- exit_on_error &ndash; Determines whether or not ArgumentParser exits with
-error info when an error occurs</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -222,6 +334,20 @@ error info when an error occurs</p></div>
             help=&#34;specify the MTZ column for the uncertainties; will try to guess if not provided&#34;,
         )
 
+        input_data_group = self.add_argument_group(&#34;input data specifics&#34;)
+        input_data_group.add_argument(
+            &#34;--highres&#34;,
+            type=float,
+            default=0.0,
+            help=&#34;Cut at high resolution. Default: no resolution cut beyond the data.&#34;,
+        )
+        input_data_group.add_argument(
+            &#34;--lowres&#34;,
+            type=float,
+            default=np.inf,
+            help=&#34;Cut at low resolution. Default: no resolution cut beyond the data.&#34;,
+        )
+
         output_group = self.add_argument_group(&#34;output&#34;)
         output_group.add_argument(
             &#34;-o&#34;,
@@ -266,13 +392,15 @@ error info when an error occurs</p></div>
                 raise OSError(msg)
 
     @staticmethod
-    def _construct_map(
+    def _construct_map(  # noqa: PLR0913
         *,
         name: str,
         mtz_file: Path,
         calculated_map_phases: rs.DataSeries,
         amplitude_column: str,
         uncertainty_column: str,
+        high_resolution_limit: float | None = None,
+        low_resolution_limit: float | None = None,
     ) -&gt; Map:
         log.info(
             &#34;Reading structure factors...&#34;,
@@ -305,6 +433,15 @@ error info when an error occurs</p></div>
         log.info(&#34;  uncertainties&#34;, sought=uncertainty_column, found=found_uncertainty_column)
 
         mtz.dropna(axis=&#34;index&#34;, how=&#34;any&#34;, subset=found_amplitude_column, inplace=True)
+        mtz = cut_resolution(
+            mtz,
+            low_resolution_limit=low_resolution_limit,
+            high_resolution_limit=high_resolution_limit,
+        )
+
+        if len(mtz) == 0:
+            msg = f&#34;resolution cut removed all reflections for map: {name}&#34;
+            raise RuntimeError(msg)
 
         return Map(
             mtz,
@@ -328,6 +465,8 @@ error info when an error occurs</p></div>
             calculated_map_phases=calculated_map.phases,
             amplitude_column=args.derivative_amplitude_column,
             uncertainty_column=args.derivative_uncertainty_column,
+            high_resolution_limit=args.highres,
+            low_resolution_limit=args.lowres,
         )
 
         native_map = DiffmapArgParser._construct_map(
@@ -336,6 +475,8 @@ error info when an error occurs</p></div>
             calculated_map_phases=calculated_map.phases,
             amplitude_column=args.native_amplitude_column,
             uncertainty_column=args.native_uncertainty_column,
+            high_resolution_limit=args.highres,
+            low_resolution_limit=args.lowres,
         )
 
         mapset = DiffMapSet(
@@ -347,6 +488,24 @@ error info when an error occurs</p></div>
         mapset.scale()
         return mapset</code></pre>
 </details>
+<div class="desc"><p>Object for parsing command line strings into Python objects.</p>
+<p>Keyword Arguments:
+- prog &ndash; The name of the program (default:
+<code>os.path.basename(sys.argv[0])</code>)
+- usage &ndash; A usage message (default: auto-generated from arguments)
+- description &ndash; A description of what the program does
+- epilog &ndash; Text following the argument descriptions
+- parents &ndash; Parsers whose arguments should be copied into this one
+- formatter_class &ndash; HelpFormatter class for printing help messages
+- prefix_chars &ndash; Characters that prefix optional arguments
+- fromfile_prefix_chars &ndash; Characters that prefix files containing
+additional arguments
+- argument_default &ndash; The default value for all arguments
+- conflict_handler &ndash; String indicating how to handle conflicts
+- add_help &ndash; Add a -h/-help option
+- allow_abbrev &ndash; Allow long options to be abbreviated unambiguously
+- exit_on_error &ndash; Determines whether or not ArgumentParser exits with
+error info when an error occurs</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>argparse.ArgumentParser</li>
@@ -364,12 +523,65 @@ error info when an error occurs</p></div>
 <span>def <span class="ident">check_output_filepaths</span></span>(<span>args: argparse.Namespace) ‑> None</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def check_output_filepaths(args: argparse.Namespace) -&gt; None:
+    for filename in [args.mtzout, args.metadataout]:
+        if filename.exists():
+            msg = f&#34;file: {filename} already exists, refusing to overwrite&#34;
+            raise OSError(msg)</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 <dt id="meteor.scripts.common.DiffmapArgParser.load_difference_maps"><code class="name flex">
 <span>def <span class="ident">load_difference_maps</span></span>(<span>args: argparse.Namespace) ‑> <a title="meteor.scripts.common.DiffMapSet" href="#meteor.scripts.common.DiffMapSet">DiffMapSet</a></span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def load_difference_maps(args: argparse.Namespace) -&gt; DiffMapSet:
+    # note: method accepts `args`, in case the passed arguments are mutable
+
+    log.info(&#34;Loading PDB &amp; computing FC/PHIC&#34;, file=str(args.structure))
+    calculated_map = structure_file_to_calculated_map(
+        args.structure, high_resolution_limit=COMPUTED_MAP_RESOLUTION_LIMIT
+    )
+
+    derivative_map = DiffmapArgParser._construct_map(
+        name=&#34;derivative&#34;,
+        mtz_file=args.derivative_mtz,
+        calculated_map_phases=calculated_map.phases,
+        amplitude_column=args.derivative_amplitude_column,
+        uncertainty_column=args.derivative_uncertainty_column,
+        high_resolution_limit=args.highres,
+        low_resolution_limit=args.lowres,
+    )
+
+    native_map = DiffmapArgParser._construct_map(
+        name=&#34;native&#34;,
+        mtz_file=args.native_mtz,
+        calculated_map_phases=calculated_map.phases,
+        amplitude_column=args.native_amplitude_column,
+        uncertainty_column=args.native_uncertainty_column,
+        high_resolution_limit=args.highres,
+        low_resolution_limit=args.lowres,
+    )
+
+    mapset = DiffMapSet(
+        native=native_map,
+        derivative=derivative_map,
+        calculated=calculated_map,
+    )
+
+    mapset.scale()
+    return mapset</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 </dl>
@@ -379,13 +591,13 @@ error info when an error occurs</p></div>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Inappropriate argument value (of correct type).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class InvalidWeightModeError(ValueError): ...</code></pre>
 </details>
+<div class="desc"><p>Inappropriate argument value (of correct type).</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.ValueError</li>
@@ -398,7 +610,6 @@ error info when an error occurs</p></div>
 <span>(</span><span>*args, **kwds)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Enum where members are also (and must be) strings</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -408,6 +619,7 @@ error info when an error occurs</p></div>
     fixed = auto()
     none = auto()</code></pre>
 </details>
+<div class="desc"><p>Enum where members are also (and must be) strings</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>enum.StrEnum</li>
@@ -486,7 +698,7 @@ error info when an error occurs</p></div>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.3</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.5</a>.</p>
 </footer>
 </body>
 </html>

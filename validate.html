@@ -3,19 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
-<meta name="generator" content="pdoc3 0.11.3">
+<meta name="generator" content="pdoc3 0.11.5">
 <title>meteor.validate API documentation</title>
 <meta name="description" content="map quality assessment: negentropy and negentropy maximization">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
-<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
 <style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => {
 hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
 hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
 })</script>
 </head>
 <body>
@@ -38,6 +49,41 @@ hljs.highlightAll();
 <span>def <span class="ident">map_negentropy</span></span>(<span>map_to_assess: Map, *, tolerance: float = 0.1) ‑> float</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def map_negentropy(map_to_assess: Map, *, tolerance: float = 0.1) -&gt; float:
+    &#34;&#34;&#34;
+    Computes the negentropy of a crystallographic map.
+
+    Negentropy is defined as the difference between the entropy of a given
+    distribution and the entropy of a Gaussian distribution with the same variance.
+    It is a measure of non-Gaussianity, with higher values indicating greater deviation
+    from Gaussianity.
+
+    Parameters
+    ----------
+    map_to_assess: Map
+        The map (coefficients) we will compute the negentropy for.
+
+    tolerance: float
+        Tolerance level determining if the negentropy is suspiciously negative. Defaults to 0.1.
+
+    Returns
+    -------
+    negentropy: float
+        The negentropy of the distribution of the (implicitly computed) map voxels.
+
+    Raises
+    ------
+    ValueError: If the computed negentropy is less than the negative tolerance,
+                indicating potential issues with the computation.
+    &#34;&#34;&#34;
+    realspace_map = map_to_assess.to_ccp4_map(map_sampling=MAP_SAMPLING)
+    realspace_map_array = np.array(realspace_map.grid)
+    return negentropy(realspace_map_array, tolerance=tolerance)</code></pre>
+</details>
 <div class="desc"><p>Computes the negentropy of a crystallographic map.</p>
 <p>Negentropy is defined as the difference between the entropy of a given
 distribution and the entropy of a Gaussian distribution with the same variance.
@@ -65,6 +111,61 @@ from Gaussianity.</p>
 <span>def <span class="ident">negentropy</span></span>(<span>samples: np.ndarray, *, tolerance: float = 0.1) ‑> float</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def negentropy(samples: np.ndarray, *, tolerance: float = 0.1) -&gt; float:
+    &#34;&#34;&#34;
+    Computes the negentropy of a given sample array.
+
+    Negentropy is defined as the difference between the entropy of a given
+    distribution and the entropy of a Gaussian distribution with the same variance.
+    It is a measure of non-Gaussianity, with higher values indicating greater deviation
+    from Gaussianity.
+
+    Parameters
+    ----------
+    samples: np.ndarray
+        A numpy array of sample data for which to calculate the negentropy.
+
+    tolerance: float
+        Tolerance level determining if the negentropy is suspiciously negative. Defaults to 0.1.
+
+    Returns
+    -------
+    negentropy: float
+        The negentropy of the distribution of `samples`.
+
+    Raises
+    ------
+    ValueError: If the computed negentropy is less than the negative tolerance,
+                indicating potential issues with the computation.
+
+    References
+    ----------
+    http://gregorygundersen.com/blog/2020/09/01/gaussian-entropy/
+
+    Example:
+    -------
+    &gt;&gt;&gt; samples = np.random.normal(size=1000)
+    &gt;&gt;&gt; negentropy(samples)
+    0.0012  # Example output, varies with input samples.
+    &#34;&#34;&#34;
+    std = np.std(samples.flatten())
+    if std &lt;= 0.0:
+        return -np.inf
+
+    neg_e = 0.5 * np.log(2.0 * np.pi * std**2) + 0.5 - differential_entropy(samples.flatten())
+    if not neg_e &gt;= -tolerance:
+        msg = (
+            f&#34;negentropy is a large negative number {neg_e}, exceeds the tolerance {tolerance}&#34;
+            &#34; -- something may have gone wrong&#34;
+        )
+        raise ValueError(msg)
+
+    return float(neg_e)</code></pre>
+</details>
 <div class="desc"><p>Computes the negentropy of a given sample array.</p>
 <p>Negentropy is defined as the difference between the entropy of a given
 distribution and the entropy of a Gaussian distribution with the same variance.
@@ -105,31 +206,6 @@ from Gaussianity.</p>
 <span>(</span><span>*, objective: Callable[[float], float])</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Maximize a function using one of two strategies, or a combination of both:</p>
-<ol>
-<li>simply loop over an explicit list of argument values and pick the max</li>
-<li>use the Golden ratio method to try and be a bit faster</li>
-</ol>
-<p>The objective function to maximize must be a scalar mapping, taking a single float as an
-argument and returning a single float. In the context of METEOR, this is useful to e.g.
-maximize over simple parameter choices, such as TV regularization strength or k-weight values.</p>
-<h2 id="attributes">Attributes</h2>
-<dl>
-<dt><strong><code>objective</code></strong> :&ensp;<code>Callable[[float], float]</code></dt>
-<dd>The objective function to maximize.</dd>
-<dt><strong><code>argument_optimum</code></strong> :&ensp;<code>float</code></dt>
-<dd>The argument (input) that gives the highest objective value found so far.</dd>
-<dt><strong><code>objective_maximum</code></strong> :&ensp;<code>float</code></dt>
-<dd>The maximum value of the objective function found so far.</dd>
-<dt><strong><code>values_evaluated</code></strong> :&ensp;<code>set[float]</code></dt>
-<dd>A set of argument values that have been evaluated during optimization.</dd>
-</dl>
-<p>Initializes the Maximizer with the given objective function.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>objective</code></strong> :&ensp;<code>Callable[[float], float]</code></dt>
-<dd>The objective function to be maximized. It should map a single float to a float.</dd>
-</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -236,12 +312,57 @@ maximize over simple parameter choices, such as TV regularization strength or k-
 
         self._update_optima(optimizer_result.x)</code></pre>
 </details>
+<div class="desc"><p>Maximize a function using one of two strategies, or a combination of both:</p>
+<ol>
+<li>simply loop over an explicit list of argument values and pick the max</li>
+<li>use the Golden ratio method to try and be a bit faster</li>
+</ol>
+<p>The objective function to maximize must be a scalar mapping, taking a single float as an
+argument and returning a single float. In the context of METEOR, this is useful to e.g.
+maximize over simple parameter choices, such as TV regularization strength or k-weight values.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>objective</code></strong> :&ensp;<code>Callable[[float], float]</code></dt>
+<dd>The objective function to maximize.</dd>
+<dt><strong><code>argument_optimum</code></strong> :&ensp;<code>float</code></dt>
+<dd>The argument (input) that gives the highest objective value found so far.</dd>
+<dt><strong><code>objective_maximum</code></strong> :&ensp;<code>float</code></dt>
+<dd>The maximum value of the objective function found so far.</dd>
+<dt><strong><code>values_evaluated</code></strong> :&ensp;<code>set[float]</code></dt>
+<dd>A set of argument values that have been evaluated during optimization.</dd>
+</dl>
+<p>Initializes the Maximizer with the given objective function.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>objective</code></strong> :&ensp;<code>Callable[[float], float]</code></dt>
+<dd>The objective function to be maximized. It should map a single float to a float.</dd>
+</dl></div>
 <h3>Methods</h3>
 <dl>
 <dt id="meteor.validate.ScalarMaximizer.optimize_over_explicit_values"><code class="name flex">
 <span>def <span class="ident">optimize_over_explicit_values</span></span>(<span>self, *, arguments_to_scan: Sequence[float] | np.ndarray) ‑> None</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def optimize_over_explicit_values(
+    self, *, arguments_to_scan: Sequence[float] | np.ndarray
+) -&gt; None:
+    &#34;&#34;&#34;
+    Scans through a list or array of argument values to find the optimum.
+
+    Parameters
+    ----------
+    arguments_to_scan : list[float] | np.ndarray
+        A list or array of argument values to evaluate.
+    &#34;&#34;&#34;
+    for argument_test_value in arguments_to_scan:
+        objective_value = self._update_optima(argument_test_value)
+        self.values_evaluated.append(float(argument_test_value))
+        self.objective_at_values.append(float(objective_value))</code></pre>
+</details>
 <div class="desc"><p>Scans through a list or array of argument values to find the optimum.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -253,6 +374,51 @@ maximize over simple parameter choices, such as TV regularization strength or k-
 <span>def <span class="ident">optimize_with_golden_algorithm</span></span>(<span>self, *, bracket: tuple[float, float], tolerance: float = 0.001) ‑> None</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def optimize_with_golden_algorithm(
+    self,
+    *,
+    bracket: tuple[float, float],
+    tolerance: float = 0.001,
+) -&gt; None:
+    &#34;&#34;&#34;
+    Uses the golden-section search algorithm to maximize the objective function within a given
+    bracket.
+
+    Parameters
+    ----------
+    bracket : tuple[float, float]
+        A tuple containing the lower and upper bounds of the bracket within which to search
+        for the optimum.
+
+    Raises
+    ------
+    RuntimeError
+        If the optimization using the golden algorithm fails.
+    &#34;&#34;&#34;
+
+    def _objective_with_value_tracking(argument_test_value: float) -&gt; float:
+        &#34;&#34;&#34;Adds the evaluated value to self.values_evaluated&#34;&#34;&#34;
+        objective_value = self.objective(argument_test_value)
+        self.values_evaluated.append(argument_test_value)
+        self.objective_at_values.append(objective_value)
+        return -objective_value  # negative: we want max
+
+    optimizer_result = minimize_scalar(
+        _objective_with_value_tracking,
+        bracket=bracket,
+        method=&#34;golden&#34;,
+        tol=tolerance,
+    )
+    if not optimizer_result.success:
+        msg = &#34;Golden minimization failed&#34;
+        raise RuntimeError(msg)
+
+    self._update_optima(optimizer_result.x)</code></pre>
+</details>
 <div class="desc"><p>Uses the golden-section search algorithm to maximize the objective function within a given
 bracket.</p>
 <h2 id="parameters">Parameters</h2>
@@ -303,7 +469,7 @@ for the optimum.</dd>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.3</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.5</a>.</p>
 </footer>
 </body>
 </html>

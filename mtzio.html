@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.5">
-<title>meteor.sfcalc API documentation</title>
-<meta name="description" content="computing structure factors from models">
+<title>meteor.mtzio API documentation</title>
+<meta name="description" content="MTZ input/output helper functions">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -33,10 +33,10 @@ el.replaceWith(d);
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>meteor.sfcalc</code></h1>
+<h1 class="title">Module <code>meteor.mtzio</code></h1>
 </header>
 <section id="section-intro">
-<p>computing structure factors from models</p>
+<p>MTZ input/output helper functions</p>
 </section>
 <section>
 </section>
@@ -45,51 +45,96 @@ el.replaceWith(d);
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="meteor.sfcalc.gemmi_structure_to_calculated_map"><code class="name flex">
-<span>def <span class="ident">gemmi_structure_to_calculated_map</span></span>(<span>structure: gemmi.Structure, *, high_resolution_limit: float) ‑> <a title="meteor.rsmap.Map" href="rsmap.html#meteor.rsmap.Map">Map</a></span>
+<dt id="meteor.mtzio.find_computed_amplitude_column"><code class="name flex">
+<span>def <span class="ident">find_computed_amplitude_column</span></span>(<span>mtz_columns: list[str]) ‑> str</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def gemmi_structure_to_calculated_map(
-    structure: gemmi.Structure, *, high_resolution_limit: float
-) -&gt; Map:
-    density_map = gemmi.DensityCalculatorX()
-    density_map.d_min = high_resolution_limit
-    density_map.grid.setup_from(structure)
-    for i, _ in enumerate(structure):
-        density_map.put_model_density_on_grid(structure[i])
-
-    ccp4_map = gemmi.Ccp4Map()
-    ccp4_map.grid = density_map.grid
-    ccp4_map.update_ccp4_header()
-
-    return Map.from_ccp4_map(ccp4_map, high_resolution_limit=high_resolution_limit)</code></pre>
+<pre><code class="python">def find_computed_amplitude_column(mtz_columns: list[str]) -&gt; str:
+    return _infer_mtz_column(mtz_columns, COMPUTED_AMPLITUDE_COLUMNS)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
-<dt id="meteor.sfcalc.structure_file_to_calculated_map"><code class="name flex">
-<span>def <span class="ident">structure_file_to_calculated_map</span></span>(<span>cif_or_pdb_file: pathlib.Path, *, high_resolution_limit: float) ‑> <a title="meteor.rsmap.Map" href="rsmap.html#meteor.rsmap.Map">Map</a></span>
+<dt id="meteor.mtzio.find_computed_phase_column"><code class="name flex">
+<span>def <span class="ident">find_computed_phase_column</span></span>(<span>mtz_columns: list[str]) ‑> str</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def structure_file_to_calculated_map(cif_or_pdb_file: Path, *, high_resolution_limit: float) -&gt; Map:
-    if not cif_or_pdb_file.exists():
-        msg = f&#34;could not find file: {cif_or_pdb_file}&#34;
-        raise OSError(msg)
-    structure = gemmi.read_structure(str(cif_or_pdb_file))
-    return gemmi_structure_to_calculated_map(structure, high_resolution_limit=high_resolution_limit)</code></pre>
+<pre><code class="python">def find_computed_phase_column(mtz_columns: list[str]) -&gt; str:
+    return _infer_mtz_column(mtz_columns, COMPUTED_PHASE_COLUMNS)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="meteor.mtzio.find_observed_amplitude_column"><code class="name flex">
+<span>def <span class="ident">find_observed_amplitude_column</span></span>(<span>mtz_columns: list[str]) ‑> str</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_observed_amplitude_column(mtz_columns: list[str]) -&gt; str:
+    return _infer_mtz_column(mtz_columns, OBSERVED_AMPLITUDE_COLUMNS)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="meteor.mtzio.find_observed_intensity_column"><code class="name flex">
+<span>def <span class="ident">find_observed_intensity_column</span></span>(<span>mtz_columns: list[str]) ‑> str</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_observed_intensity_column(mtz_columns: list[str]) -&gt; str:
+    return _infer_mtz_column(mtz_columns, OBSERVED_INTENSITY_COLUMNS)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="meteor.mtzio.find_observed_uncertainty_column"><code class="name flex">
+<span>def <span class="ident">find_observed_uncertainty_column</span></span>(<span>mtz_columns: list[str]) ‑> str</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_observed_uncertainty_column(mtz_columns: list[str]) -&gt; str:
+    return _infer_mtz_column(mtz_columns, OBSERVED_UNCERTAINTY_COLUMNS)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
 </dl>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="meteor.mtzio.AmbiguousMtzColumnError"><code class="flex name class">
+<span>class <span class="ident">AmbiguousMtzColumnError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AmbiguousMtzColumnError(ValueError): ...</code></pre>
+</details>
+<div class="desc"><p>Inappropriate argument value (of correct type).</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.ValueError</li>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -104,8 +149,18 @@ el.replaceWith(d);
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="meteor.sfcalc.gemmi_structure_to_calculated_map" href="#meteor.sfcalc.gemmi_structure_to_calculated_map">gemmi_structure_to_calculated_map</a></code></li>
-<li><code><a title="meteor.sfcalc.structure_file_to_calculated_map" href="#meteor.sfcalc.structure_file_to_calculated_map">structure_file_to_calculated_map</a></code></li>
+<li><code><a title="meteor.mtzio.find_computed_amplitude_column" href="#meteor.mtzio.find_computed_amplitude_column">find_computed_amplitude_column</a></code></li>
+<li><code><a title="meteor.mtzio.find_computed_phase_column" href="#meteor.mtzio.find_computed_phase_column">find_computed_phase_column</a></code></li>
+<li><code><a title="meteor.mtzio.find_observed_amplitude_column" href="#meteor.mtzio.find_observed_amplitude_column">find_observed_amplitude_column</a></code></li>
+<li><code><a title="meteor.mtzio.find_observed_intensity_column" href="#meteor.mtzio.find_observed_intensity_column">find_observed_intensity_column</a></code></li>
+<li><code><a title="meteor.mtzio.find_observed_uncertainty_column" href="#meteor.mtzio.find_observed_uncertainty_column">find_observed_uncertainty_column</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="meteor.mtzio.AmbiguousMtzColumnError" href="#meteor.mtzio.AmbiguousMtzColumnError">AmbiguousMtzColumnError</a></code></h4>
+</li>
 </ul>
 </li>
 </ul>

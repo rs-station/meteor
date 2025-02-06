@@ -3,19 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
-<meta name="generator" content="pdoc3 0.11.3">
+<meta name="generator" content="pdoc3 0.11.5">
 <title>meteor.rsmap API documentation</title>
 <meta name="description" content="Map class definition and related functions">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
-<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
 <style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
 <style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
 <script>window.addEventListener('DOMContentLoaded', () => {
 hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
 hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
 })</script>
 </head>
 <body>
@@ -38,6 +49,18 @@ hljs.highlightAll();
 <span>def <span class="ident">assert_is_map</span></span>(<span>obj: Any, *, require_uncertainties: bool) ‑> None</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def assert_is_map(obj: Any, *, require_uncertainties: bool) -&gt; None:
+    if not isinstance(obj, Map):
+        msg = f&#34;expected {obj} to be a rsmap.Map, got {type(obj)}&#34;
+        raise TypeError(msg)
+    if require_uncertainties and (not obj.has_uncertainties):
+        msg = f&#34;{obj} Map missing required uncertainty column&#34;
+        raise MissingUncertaintiesError(msg)</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 </dl>
@@ -50,23 +73,6 @@ hljs.highlightAll();
 <span>(</span><span>data: dict | pd.DataFrame | rs.DataSet,<br>*,<br>amplitude_column: str = 'F',<br>phase_column: str = 'PHI',<br>uncertainty_column: str | None = 'SIGF',<br>**kwargs: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>A high-level interface for a crystallographic map of any kind.</p>
-<p>Specifically, this class is based on a reciprocalspaceship <code>DataSet</code> (ie. a
-crystographically-aware pandas <code>DataFrame</code>), but is restricted to three and only three
-special columns corresponding to:</p>
-<pre><code>- (real) &lt;code&gt;amplitudes&lt;/code&gt;
-- &lt;code&gt;phases&lt;/code&gt;
-- &lt;code&gt;uncertainties&lt;/code&gt;, ie the standard deviation for a Gaussian around the amplitude mean
-</code></pre>
-<p>In addition, the class maintains an <code>index</code> of Miller indices, as well as the crystallographic
-metadata supported by <code>rs.DataSet</code>, most notably a <code>cell</code> and <code>spacegroup</code>.</p>
-<p>These structured data enable this class to perform some routine map-based caluclations, such as</p>
-<pre><code>- computing a real-space map, or computing map coefficients from a map
-- converting between complex Cartesian and polar (amplitude/phase) structure factors
-- reading and writing mtz and ccp4 map files
-</code></pre>
-<p>all in a way that automatically facilitates the bookkeeping tasks normally associated with
-these relatively simple operations.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -562,6 +568,23 @@ these relatively simple operations.</p></div>
             uncertainty_column=uncertainty_column,
         )</code></pre>
 </details>
+<div class="desc"><p>A high-level interface for a crystallographic map of any kind.</p>
+<p>Specifically, this class is based on a reciprocalspaceship <code>DataSet</code> (ie. a
+crystographically-aware pandas <code>DataFrame</code>), but is restricted to three and only three
+special columns corresponding to:</p>
+<pre><code>- (real) &lt;code&gt;amplitudes&lt;/code&gt;
+- &lt;code&gt;phases&lt;/code&gt;
+- &lt;code&gt;uncertainties&lt;/code&gt;, ie the standard deviation for a Gaussian around the amplitude mean
+</code></pre>
+<p>In addition, the class maintains an <code>index</code> of Miller indices, as well as the crystallographic
+metadata supported by <code>rs.DataSet</code>, most notably a <code>cell</code> and <code>spacegroup</code>.</p>
+<p>These structured data enable this class to perform some routine map-based caluclations, such as</p>
+<pre><code>- computing a real-space map, or computing map coefficients from a map
+- converting between complex Cartesian and polar (amplitude/phase) structure factors
+- reading and writing mtz and ccp4 map files
+</code></pre>
+<p>all in a way that automatically facilitates the bookkeeping tasks normally associated with
+these relatively simple operations.</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>reciprocalspaceship.dataset.DataSet</li>
@@ -578,6 +601,52 @@ these relatively simple operations.</p></div>
 <span>def <span class="ident">from_3d_numpy_map</span></span>(<span>cls,<br>map_grid: np.ndarray,<br>*,<br>spacegroup: Any,<br>cell: CellType,<br>high_resolution_limit: float) ‑> <a title="meteor.rsmap.Map" href="#meteor.rsmap.Map">Map</a></span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+@cellify(&#34;cell&#34;)
+def from_3d_numpy_map(
+    cls, map_grid: np.ndarray, *, spacegroup: Any, cell: CellType, high_resolution_limit: float
+) -&gt; Map:
+    &#34;&#34;&#34;
+    Create a `Map` from a 3d grid of voxel values stored in a numpy array.
+
+    Parameters
+    ----------
+    map_grid: np.ndarray
+        The array, laid out in Gemmi format
+    spacegroup: Any
+        Specifies which spacegroup, can be an int, gemmi.SpaceGroup, ...
+    cell
+        Specifies cell, can be a tuple, gemmi.Cell, ...
+    high_resolution_limit: float
+        The resolution of the map, irregardless of the sampling; we need this to infer the map
+        sampling
+
+    Returns
+    -------
+    map: Map
+        The map coefficients
+
+    See Also
+    --------
+    For information about Gemmi data layout: https://gemmi.readthedocs.io/en/latest/grid.html
+    &#34;&#34;&#34;
+    if len(map_grid.shape) != NUMBER_OF_DIMENSIONS_IN_UNIVERSE:
+        msg = &#34;`map_grid` should be a 3D array representing a realspace map&#34;
+        raise ValueError(msg)
+    ccp4 = numpy_array_to_map(
+        map_grid,
+        spacegroup=spacegroup,
+        cell=cell,
+    )
+    return cls.from_ccp4_map(
+        ccp4_map=ccp4,
+        high_resolution_limit=high_resolution_limit,
+    )</code></pre>
+</details>
 <div class="desc"><p>Create a <code><a title="meteor.rsmap.Map" href="#meteor.rsmap.Map">Map</a></code> from a 3d grid of voxel values stored in a numpy array.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
@@ -633,6 +702,67 @@ label partial or centric reflections, respectively.</p>
 <span>def <span class="ident">from_structurefactor</span></span>(<span>cls,<br>complex_structurefactor: np.ndarray | rs.DataSeries,<br>*,<br>index: pd.Index | None = None,<br>cell: CellType | None = None,<br>spacegroup: SpacegroupType | None = None) ‑> <a title="meteor.rsmap.Map" href="#meteor.rsmap.Map">Map</a></span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+@cellify(&#34;cell&#34;)
+@spacegroupify(&#34;spacegroup&#34;)
+def from_structurefactor(
+    cls,
+    complex_structurefactor: np.ndarray | rs.DataSeries,
+    *,
+    index: pd.Index | None = None,
+    cell: CellType | None = None,
+    spacegroup: SpacegroupType | None = None,
+) -&gt; Map:
+    # 1. `rs.DataSet.from_structurefactor` exists, but it operates on a column that&#39;s already
+    #    part of the dataset; having such a (redundant) column is forbidden by `Map`
+    # 2. recprocalspaceship has a `from_structurefactor` method, but it is occasionally
+    #    mangling indices for me when the input is a numpy array, as of 16 OCT 24
+    #
+    # hopefully we can resolve these and reuse code! - @tjlane
+
+    if index is None:
+        if isinstance(complex_structurefactor, rs.DataSeries) and hasattr(
+            complex_structurefactor, &#34;index&#34;
+        ):
+            index = complex_structurefactor.index
+
+        else:
+            msg = &#34;if `complex_structurefactor` is not a `DataSeries` with an `index` attribute&#34;
+            msg += &#34;, and index must be provided&#34;
+            raise ValueError(msg)
+
+    elif index.shape != complex_structurefactor.shape:
+        msg = f&#34;`complex_structurefactor` {complex_structurefactor.shape} does not have same &#34;
+        msg += f&#34;shape as `index` {index.shape}&#34;
+        raise ShapeMismatchError(msg)
+
+    amplitudes = rs.DataSeries(
+        np.abs(complex_structurefactor),
+        index=index,
+        dtype=rs.StructureFactorAmplitudeDtype(),
+        name=&#34;F&#34;,
+    )
+
+    phases = rs.DataSeries(
+        np.angle(complex_structurefactor, deg=True),
+        index=index,
+        dtype=rs.PhaseDtype(),
+        name=&#34;PHI&#34;,
+    )
+
+    dataset = rs.DataSet(
+        rs.concat([amplitudes, phases], axis=1),
+        index=index,
+        cell=cell,
+        spacegroup=spacegroup,
+    )
+
+    return cls(dataset)</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 <dt id="meteor.rsmap.Map.read_mtz_file"><code class="name flex">
@@ -646,7 +776,6 @@ label partial or centric reflections, respectively.</p>
 <dl>
 <dt id="meteor.rsmap.Map.amplitude_column_name"><code class="name">prop <span class="ident">amplitude_column_name</span> : str</code></dt>
 <dd>
-<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -655,10 +784,10 @@ label partial or centric reflections, respectively.</p>
 def amplitude_column_name(self) -&gt; str:
     return self._amplitude_column</code></pre>
 </details>
+<div class="desc"></div>
 </dd>
 <dt id="meteor.rsmap.Map.amplitudes"><code class="name">prop <span class="ident">amplitudes</span> : rs.DataSeries</code></dt>
 <dd>
-<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -667,10 +796,10 @@ def amplitude_column_name(self) -&gt; str:
 def amplitudes(self) -&gt; rs.DataSeries:
     return self[self._amplitude_column]</code></pre>
 </details>
+<div class="desc"></div>
 </dd>
 <dt id="meteor.rsmap.Map.has_uncertainties"><code class="name">prop <span class="ident">has_uncertainties</span> : bool</code></dt>
 <dd>
-<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -679,10 +808,10 @@ def amplitudes(self) -&gt; rs.DataSeries:
 def has_uncertainties(self) -&gt; bool:
     return self._uncertainty_column in self.columns</code></pre>
 </details>
+<div class="desc"></div>
 </dd>
 <dt id="meteor.rsmap.Map.phase_column_name"><code class="name">prop <span class="ident">phase_column_name</span> : str</code></dt>
 <dd>
-<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -691,10 +820,10 @@ def has_uncertainties(self) -&gt; bool:
 def phase_column_name(self) -&gt; str:
     return self._phase_column</code></pre>
 </details>
+<div class="desc"></div>
 </dd>
 <dt id="meteor.rsmap.Map.phases"><code class="name">prop <span class="ident">phases</span> : rs.DataSeries</code></dt>
 <dd>
-<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -703,10 +832,10 @@ def phase_column_name(self) -&gt; str:
 def phases(self) -&gt; rs.DataSeries:
     return self[self._phase_column]</code></pre>
 </details>
+<div class="desc"></div>
 </dd>
 <dt id="meteor.rsmap.Map.resolution_limits"><code class="name">prop <span class="ident">resolution_limits</span> : tuple[float, float]</code></dt>
 <dd>
-<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -716,10 +845,10 @@ def resolution_limits(self) -&gt; tuple[float, float]:
     d_hkl = self.compute_dHKL()
     return np.max(d_hkl), np.min(d_hkl)</code></pre>
 </details>
+<div class="desc"></div>
 </dd>
 <dt id="meteor.rsmap.Map.uncertainties"><code class="name">prop <span class="ident">uncertainties</span> : rs.DataSeries</code></dt>
 <dd>
-<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -731,10 +860,10 @@ def uncertainties(self) -&gt; rs.DataSeries:
     msg = &#34;uncertainties not set for Map object&#34;
     raise AttributeError(msg)</code></pre>
 </details>
+<div class="desc"></div>
 </dd>
 <dt id="meteor.rsmap.Map.uncertainties_column_name"><code class="name">prop <span class="ident">uncertainties_column_name</span> : str</code></dt>
 <dd>
-<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -749,6 +878,7 @@ def uncertainties_column_name(self) -&gt; str:
     msg = &#34;uncertainties not set for Map object&#34;
     raise AttributeError(msg)</code></pre>
 </details>
+<div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -757,12 +887,37 @@ def uncertainties_column_name(self) -&gt; str:
 <span>def <span class="ident">canonicalize_amplitudes</span></span>(<span>self) ‑> None</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def canonicalize_amplitudes(self) -&gt; None:
+    canonicalize_amplitudes(
+        self,
+        amplitude_column=self._amplitude_column,
+        phase_column=self._phase_column,
+        inplace=True,
+    )</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 <dt id="meteor.rsmap.Map.compute_dHKL"><code class="name flex">
 <span>def <span class="ident">compute_dHKL</span></span>(<span>self) ‑> reciprocalspaceship.dataseries.DataSeries</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_dHKL(self) -&gt; rs.DataSeries:  # noqa: N802, caps from reciprocalspaceship
+    # rs adds a &#34;dHKL&#34; column to the DataFrame
+    # that could be enabled by adding &#34;dHKL&#34; to _allowed_columns - @tjlane
+    if not hasattr(self, &#34;cell&#34;):
+        msg = &#34;no `cell` attribute set, cannot compute resolution (d-values)&#34;
+        raise AttributeError(msg)
+    d_hkl = self.cell.calculate_d_array(self.get_hkls())
+    return rs.DataSeries(d_hkl, dtype=&#34;R&#34;, index=self.index)</code></pre>
+</details>
 <div class="desc"><p>Compute the real space lattice plane spacing, d, associated with
 the HKL indices in the object.</p>
 <h2 id="parameters">Parameters</h2>
@@ -775,6 +930,13 @@ the HKL indices in the object.</p>
 <span>def <span class="ident">drop</span></span>(<span>self, labels: Any, *, inplace: bool = False) ‑> None | <a title="meteor.rsmap.Map" href="#meteor.rsmap.Map">Map</a></span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def drop(self, labels: Any, *, inplace: bool = False) -&gt; None | Map:
+    return super().drop(labels=labels, axis=&#34;index&#34;, columns=None, inplace=inplace)</code></pre>
+</details>
 <div class="desc"><p>Drop specified labels from rows or columns.</p>
 <p>Remove rows or columns by specifying label names and corresponding
 axis, or by directly specifying index or column names. When using a
@@ -911,6 +1073,31 @@ falcon  speed   320.0   250.0
 <span>def <span class="ident">get_hkls</span></span>(<span>self) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_hkls(self) -&gt; np.ndarray:
+    # overwrite rs implt&#39;n, return w/o modifying self -&gt; same behavior, under testing - @tjlane
+    # this is a rather horrible thing to do and we should fix it
+    # best is to push changes upstream
+    hkl_names = [&#34;H&#34;, &#34;K&#34;, &#34;L&#34;]
+    if self.index.names == hkl_names:
+        hkls = self.index.to_frame().to_numpy(dtype=np.int32)
+    elif all(col in self.columns for col in hkl_names):
+        # we need to pull out each column as a separate DataSeries so that we don&#39;t try to
+        # create a new Map object without F, PHI
+        hkls = np.vstack([self[col].to_numpy(dtype=np.int32) for col in hkl_names]).T
+    else:
+        msg = f&#34;cannot find `H`, `K`, and `L` columns in index or columns {self.columns}&#34;
+        raise ValueError(msg)
+
+    if hkls.shape[-1] != NUMBER_OF_DIMENSIONS_IN_UNIVERSE:
+        msg = f&#34;something went wrong, HKL array has a funny shape: {hkls.shape}&#34;
+        raise RuntimeError(msg)
+
+    return hkls</code></pre>
+</details>
 <div class="desc"><p>Get the Miller indices in the DataSet as a ndarray.</p>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -922,6 +1109,19 @@ falcon  speed   320.0   250.0
 <span>def <span class="ident">insert</span></span>(<span>self, loc: int, column: str, value: Any, *, allow_duplicates: bool = False) ‑> None</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def insert(self, loc: int, column: str, value: Any, *, allow_duplicates: bool = False) -&gt; None:
+    if column in self._allowed_columns:
+        super().insert(loc, column, value, allow_duplicates=allow_duplicates)
+    else:
+        msg = &#34;general column assignment not allowed for Map objects&#34;
+        msg += f&#34;special columns allowed: {self._allowed_columns}; &#34;
+        msg += &#34;see also Map.set_uncertainties(...)&#34;
+        raise MapMutabilityError(msg)</code></pre>
+</details>
 <div class="desc"><p>Insert column into DataFrame at specified location.</p>
 <p>Raises a ValueError if <code>column</code> is already contained in the DataFrame,
 unless <code>allow_duplicates</code> is set to True.</p>
@@ -970,24 +1170,76 @@ unless <code>allow_duplicates</code> is set to True.</p>
 <span>def <span class="ident">set_uncertainties</span></span>(<span>self, values: rs.DataSeries, column_name: str = 'SIGF') ‑> None</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_uncertainties(self, values: rs.DataSeries, column_name: str = &#34;SIGF&#34;) -&gt; None:
+    values = self._verify_uncertainty_type(values)
+
+    if self.has_uncertainties:
+        self.uncertainties = values
+    else:
+        # otherwise, create a new column
+        self._uncertainty_column = column_name
+        number_of_columns = len(self.columns)
+        number_of_columns_with_just_amplitudes_and_phases = 2
+        if number_of_columns != number_of_columns_with_just_amplitudes_and_phases:
+            msg = &#34;Misconfigured columns&#34;
+            raise RuntimeError(msg)
+        super().insert(
+            number_of_columns, self._uncertainty_column, values, allow_duplicates=False
+        )</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 <dt id="meteor.rsmap.Map.to_ccp4_map"><code class="name flex">
 <span>def <span class="ident">to_ccp4_map</span></span>(<span>self, *, map_sampling: int) ‑> gemmi.Ccp4Map</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_ccp4_map(self, *, map_sampling: int) -&gt; gemmi.Ccp4Map:
+    map_coefficients_gemmi_format = self.to_gemmi()
+    ccp4_map = gemmi.Ccp4Map()
+    ccp4_map.grid = map_coefficients_gemmi_format.transform_f_phi_to_map(
+        self._amplitude_column,
+        self._phase_column,
+        sample_rate=map_sampling,
+    )
+    ccp4_map.update_ccp4_header()
+    return ccp4_map</code></pre>
+</details>
 <div class="desc"></div>
 </dd>
 <dt id="meteor.rsmap.Map.to_structurefactor"><code class="name flex">
 <span>def <span class="ident">to_structurefactor</span></span>(<span>self) ‑> reciprocalspaceship.dataseries.DataSeries</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_structurefactor(self) -&gt; rs.DataSeries:
+    &#34;&#34;&#34;Return a DataSeries of complex structure factor amplitudes&#34;&#34;&#34;
+    return super().to_structurefactor(self._amplitude_column, self._phase_column)</code></pre>
+</details>
 <div class="desc"><p>Return a DataSeries of complex structure factor amplitudes</p></div>
 </dd>
 <dt id="meteor.rsmap.Map.write_mtz"><code class="name flex">
 <span>def <span class="ident">write_mtz</span></span>(<span>self, file_path: str | Path) ‑> None</span>
 </code></dt>
 <dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_mtz(self, file_path: str | Path) -&gt; None:
+    path_cast_to_str = str(file_path)
+    super().write_mtz(path_cast_to_str)</code></pre>
+</details>
 <div class="desc"><p>Write DataSet to MTZ file.</p>
 <p>If <code>DataSet.merged == False</code>, the reflections will be mapped to the
 reciprocal space ASU, and a M/ISYM column will be constructed.</p>
@@ -1016,13 +1268,13 @@ MTZ datatypes</dd>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Unspecified run-time error.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class MapMutabilityError(RuntimeError): ...</code></pre>
 </details>
+<div class="desc"><p>Unspecified run-time error.</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.RuntimeError</li>
@@ -1035,13 +1287,13 @@ MTZ datatypes</dd>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Attribute not found.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class MissingUncertaintiesError(AttributeError): ...</code></pre>
 </details>
+<div class="desc"><p>Attribute not found.</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.AttributeError</li>
@@ -1108,7 +1360,7 @@ MTZ datatypes</dd>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.3</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.5</a>.</p>
 </footer>
 </body>
 </html>
