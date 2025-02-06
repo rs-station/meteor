@@ -68,4 +68,4 @@ def test_script_produces_consistent_results(
     assert rho > 0.95
 
     # 4. regression, make sure no NaNs creep into metadata
-    assert not np.any(np.isnan(iterative_tv_metadata))
+    assert np.all(np.isfinite(iterative_tv_metadata))
