@@ -7,50 +7,28 @@ from typing import Any
 from unittest import mock
 
 import numpy as np
-import pandas as pd
 import pytest
 
+from meteor.metadata import EvaluatedPoint, TvScanMetadata
 from meteor.rsmap import Map
 from meteor.scripts import compute_iterative_tv_map
 from meteor.scripts.common import DiffMapSet
 from meteor.scripts.compute_iterative_tv_map import (
     IterativeTvArgParser,
 )
-from meteor.tv import TvDenoiseResult
 
 TV_WEIGHTS_TO_SCAN = [0.01, 0.05]
 
 
-def mock_compute_it_tv(
-    derivative: Map, native: Map, *, tv_weights_to_scan: list[float], verbose: bool
-) -> tuple[Map, pd.DataFrame]:
-    assert isinstance(derivative, Map)
-    assert isinstance(native, Map)
-    fake_map = derivative
-    fake_metadata = pd.DataFrame.from_dict(
-        {
-            "iteration": [0],
-            "tv_weight": [tv_weights_to_scan[0]],
-            "negentropy_after_tv": [0.1],
-            "average_phase_change": [0.0001],
-        }
-    )
-    return fake_map, fake_metadata
-
-
 def mock_tv_denoise_difference_map(
     diffmap: Map, *, full_output: bool, weights_to_scan: Sequence[float] | np.ndarray | None = None
-) -> tuple[Map, TvDenoiseResult]:
-    fake_metadata = TvDenoiseResult(
+) -> tuple[Map, TvScanMetadata]:
+    fake_metadata = TvScanMetadata(
         initial_negentropy=0.001,
-        optimal_tv_weight=0.1,
+        optimal_parameter_value=0.1,
         optimal_negentropy=1.0,
-        map_sampling_used_for_tv=3,
-        tv_weights_scanned=[0.1],
-        negentropy_at_weights=[
-            1.0,
-        ],
-        k_parameter_used=None,
+        map_sampling=3,
+        parameter_scan_results=[EvaluatedPoint(parameter_value=0.1, objective_value=0.1)],
     )
     return diffmap, fake_metadata
 
