@@ -13,12 +13,14 @@ from .settings import (
     ITERATIVE_TV_CONVERGENCE_TOLERANCE,
     ITERATIVE_TV_MAX_ITERATIONS,
 )
+
 from .tv import tv_denoise_difference_map
 from .utils import (
     CellType,
     SpacegroupType,
     assert_isomorphous,
     average_phase_diff_in_degrees,
+    filter_common_indices,
 )
 
 log = structlog.get_logger()
@@ -181,7 +183,10 @@ class IterativeTvDenoiser:
 
             # project onto the native amplitudes to obtain an "updated_derivative"
             #   Fh' = (D_F' + F) * [|Fh| / |D_F' + F|]
+            denoised_difference_sfs, native = filter_common_indices(denoised_difference_sfs, native)
             updated_derivative: rs.DataSeries = denoised_difference_sfs + native
+
+            updated_derivative, derivative = filter_common_indices(updated_derivative, derivative)
             updated_derivative *= np.abs(derivative) / np.abs(updated_derivative)
 
             # compute phase change, THEN set: derivative <- updated_derivative
