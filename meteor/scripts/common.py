@@ -17,7 +17,6 @@ from meteor.diffmaps import (
     compute_kweighted_difference_map,
     max_negentropy_kweighted_difference_map,
 )
-
 from meteor.metadata import KparameterScanMetadata
 from meteor.mtzio import find_observed_amplitude_column, find_observed_uncertainty_column
 from meteor.rsmap import Map

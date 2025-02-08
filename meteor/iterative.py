@@ -13,7 +13,6 @@ from .settings import (
     ITERATIVE_TV_CONVERGENCE_TOLERANCE,
     ITERATIVE_TV_MAX_ITERATIONS,
 )
-
 from .tv import tv_denoise_difference_map
 from .utils import (
     CellType,

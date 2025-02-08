@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import gemmi
 import numpy as np
@@ -92,3 +93,22 @@ def single_carbon_density(
     ccp4_map.update_ccp4_header()
 
     return ccp4_map
+
+
+def check_leaf_floats_are_finite(obj: Any, path: str = "root") -> list[str]:
+    issues = []
+
+    if isinstance(obj, float):
+        if not np.isfinite(obj):
+            issues.append(path)
+    elif isinstance(obj, dict):
+        for key, value in obj.items():
+            issues.extend(check_leaf_floats_are_finite(value, f"{path}.{key}"))
+    elif isinstance(obj, list | tuple | set):
+        for i, item in enumerate(obj):
+            issues.extend(check_leaf_floats_are_finite(item, f"{path}[{i}]"))
+    elif hasattr(obj, "__dict__"):  # Handle objects with attributes
+        for key, value in vars(obj).items():
+            issues.extend(check_leaf_floats_are_finite(value, f"{path}.{key}"))
+
+    return issues

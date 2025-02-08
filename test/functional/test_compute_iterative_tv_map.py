@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import numpy as np
@@ -7,6 +8,7 @@ from meteor import settings
 from meteor.metadata import IterativeDiffmapMetadata
 from meteor.rsmap import Map
 from meteor.scripts import compute_iterative_tv_map
+from meteor.testing import check_leaf_floats_are_finite
 from meteor.utils import filter_common_indices
 
 # faster tests
@@ -48,7 +50,8 @@ def test_script_produces_consistent_results(
     compute_iterative_tv_map.main(cli_args)
 
     with output_metadata.open("r") as f:
-        metadata = IterativeDiffmapMetadata.model_validate_json(f.read())
+        json_payload = json.loads(f.read())
+        metadata = IterativeDiffmapMetadata.model_validate_json(json_payload)
 
     result_map = Map.read_mtz_file(output_mtz)
 
@@ -71,4 +74,7 @@ def test_script_produces_consistent_results(
     assert rho > 0.95
 
     # 4. regression, make sure no NaNs creep into metadata
-    assert not np.any(np.isnan(iterative_tv_metadata))
+    issues = check_leaf_floats_are_finite(metadata)
+    if len(issues) != 0:
+        msg = f"non-finite values in metadata {issues}"
+        raise ValueError(msg)

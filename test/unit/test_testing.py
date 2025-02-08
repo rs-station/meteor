@@ -1,9 +1,15 @@
+
 import gemmi
 import numpy as np
 import pytest
 
 from meteor import testing as mt
 from meteor.rsmap import Map
+
+
+class AnyOldObject:
+    x: float = 0.0
+    y: list[float] = [1.0, 2.0]  # noqa: RUF012
 
 
 def test_map_columns_smoke() -> None:
@@ -43,7 +49,7 @@ def test_single_carbon_structure_smoke() -> None:
     assert isinstance(structure, gemmi.Structure)
 
 
-def single_carbon_density_smoke() -> None:
+def test_single_carbon_density_smoke() -> None:
     carbon_position = (4.0, 5.0, 6.0)
     space_group = gemmi.find_spacegroup_by_name("P212121")
     unit_cell = gemmi.UnitCell(a=9.0, b=10.0, c=11.0, alpha=90, beta=90, gamma=90)
@@ -52,4 +58,20 @@ def single_carbon_density_smoke() -> None:
         carbon_position, space_group, unit_cell, high_resolution_limit
     )
     assert isinstance(density, gemmi.Ccp4Map)
-    assert np.array(density.grid) > 0
+    epsilon = 1e-16
+    assert np.all(np.array(density.grid) > -epsilon)
+
+
+def test_check_leaf_floats_are_finite() -> None:
+    obj = AnyOldObject()
+
+    issues = mt.check_leaf_floats_are_finite(obj)
+    assert len(issues) == 0
+
+    obj.x = np.inf
+    issues = mt.check_leaf_floats_are_finite(obj)
+    assert len(issues) == 1
+
+    obj.y = [np.inf, np.nan, 1.0]
+    issues = mt.check_leaf_floats_are_finite(obj)
+    assert len(issues) == 3
