@@ -10,7 +10,7 @@ import pytest
 
 from meteor import tv
 from meteor.rsmap import Map
-from meteor.testing import diffmap_realspace_rms
+from meteor.testing import map_corrcoeff
 from meteor.validate import map_negentropy
 
 DEFAULT_WEIGHTS_TO_SCAN = np.logspace(-2, 0, 25)
@@ -87,13 +87,13 @@ def test_tv_denoise_map(
     noise_free_map: Map,
     noisy_map: Map,
 ) -> None:
-    def rms_to_noise_free(test_map: Map) -> float:
-        return diffmap_realspace_rms(test_map, noise_free_map)
+    def cc_to_noise_free(test_map: Map) -> float:
+        return map_corrcoeff(test_map, noise_free_map)
 
     # Normally, the `tv_denoise_difference_map` function only returns the best result -- since we
     # know the ground truth, work around this to test all possible results.
 
-    lowest_rms: float = np.inf
+    best_cc: float = 0.0
     best_weight: float = 0.0
 
     for trial_weight in DEFAULT_WEIGHTS_TO_SCAN:
@@ -104,9 +104,9 @@ def test_tv_denoise_map(
             ],
             full_output=True,
         )
-        rms = rms_to_noise_free(denoised_map)
-        if rms < lowest_rms:
-            lowest_rms = rms
+        cc = cc_to_noise_free(denoised_map)
+        if cc > best_cc:
+            best_cc = cc
             best_weight = trial_weight
 
     # now run the denoising algorithm and make sure we get a result that's close
@@ -117,7 +117,7 @@ def test_tv_denoise_map(
         full_output=True,
     )
 
-    assert rms_to_noise_free(denoised_map) < rms_to_noise_free(noisy_map), "error didnt drop"
+    assert cc_to_noise_free(denoised_map) > cc_to_noise_free(noisy_map)
     np.testing.assert_allclose(
         result.optimal_tv_weight, best_weight, rtol=0.5, err_msg="opt weight"
     )

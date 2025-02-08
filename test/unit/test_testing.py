@@ -22,17 +22,17 @@ def test_phases_allclose() -> None:
         mt.assert_phases_allclose(close1, far)
 
 
-def test_diffmap_realspace_rms(noise_free_map: Map) -> None:
-    assert mt.diffmap_realspace_rms(noise_free_map, noise_free_map) == 0.0
+def test_map_corrcoeff(noise_free_map: Map, np_rng: np.random.Generator) -> None:
+    assert mt.map_corrcoeff(noise_free_map, noise_free_map) == 1.0
 
-    map2 = noise_free_map.copy()
-    map2 += 1
-    map3 = noise_free_map.copy()
-    map3 += 2
+    noisy_map = noise_free_map.copy()
+    noise_free_map.amplitudes += np_rng.normal(size=len(noise_free_map))
+    noisier_map = noise_free_map.copy()
+    noise_free_map.amplitudes += np_rng.normal(size=len(noise_free_map))
 
-    dist12 = mt.diffmap_realspace_rms(noise_free_map, map2)
-    dist13 = mt.diffmap_realspace_rms(noise_free_map, map3)
-    assert dist13 > dist12
+    dist12 = mt.map_corrcoeff(noise_free_map, noisy_map)
+    dist13 = mt.map_corrcoeff(noise_free_map, noisier_map)
+    assert 1.0 > dist13 > dist12 > 0.0
 
 
 def test_single_carbon_structure_smoke() -> None:
