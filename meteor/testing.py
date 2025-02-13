@@ -9,6 +9,7 @@ import gemmi
 import numpy as np
 
 from .rsmap import Map
+from .settings import MAP_SAMPLING
 
 
 @dataclass
@@ -28,8 +29,8 @@ def assert_phases_allclose(array1: np.ndarray, array2: np.ndarray, atol: float =
 
 
 def map_corrcoeff(map1: Map, map2: Map) -> float:
-    map1_np = map1.to_numpy().flatten()
-    map2_np = map2.to_numpy().flatten()
+    map1_np = map1.to_3d_numpy_map(map_sampling=MAP_SAMPLING).flatten()
+    map2_np = map2.to_3d_numpy_map(map_sampling=MAP_SAMPLING).flatten()
     rho = np.corrcoef(map1_np, map2_np)
     return rho[0, 1]
 
