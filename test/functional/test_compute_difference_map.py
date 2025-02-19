@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 
 import numpy as np
@@ -33,7 +32,7 @@ def test_script_produces_consistent_results(
     output_mtz = tmp_path / "test-output.mtz"
     output_metadata_file = tmp_path / "test-output-metadata.csv"
 
-    cli_args = [
+    cli_args: list[str] = [
         str(testing_mtz_file),  # derivative
         "--derivative-amplitude-column",
         "F_on",
@@ -55,7 +54,7 @@ def test_script_produces_consistent_results(
         "--kweight-parameter",
         str(kweight_parameter),
         "--tv-denoise-mode",
-        tv_weight_mode,
+        str(tv_weight_mode),
         "--tv-weight",
         str(tv_weight),
     ]
@@ -63,8 +62,7 @@ def test_script_produces_consistent_results(
     compute_difference_map.main(cli_args)
 
     with output_metadata_file.open("r") as f:
-        json_payload = json.loads(f.read())
-        diffmap_metadata = DiffmapMetadata.model_validate_json(json_payload)
+        diffmap_metadata = DiffmapMetadata.model_validate_json(f.read())
 
     result_map = Map.read_mtz_file(output_mtz)
 

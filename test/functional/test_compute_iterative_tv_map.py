@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 
 import numpy as np
@@ -50,8 +49,7 @@ def test_script_produces_consistent_results(
     compute_iterative_tv_map.main(cli_args)
 
     with output_metadata.open("r") as f:
-        json_payload = json.loads(f.read())
-        metadata = IterativeDiffmapMetadata.model_validate_json(json_payload)
+        metadata = IterativeDiffmapMetadata.model_validate_json(f.read())
 
     result_map = Map.read_mtz_file(output_mtz)
 
