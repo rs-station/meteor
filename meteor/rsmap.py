@@ -426,6 +426,10 @@ class Map(rs.DataSet):
             uncertainty_column=uncertainty_column,
         )
 
+    def to_3d_numpy_map(self, *, map_sampling: int) -> np.ndarray:
+        realspace_map = self.to_ccp4_map(map_sampling=map_sampling)
+        return np.array(realspace_map.grid)
+
     @classmethod
     @cellify("cell")
     def from_3d_numpy_map(

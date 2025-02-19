@@ -11,7 +11,8 @@ from meteor.iterative import (
 )
 from meteor.metadata import TvIterationMetadata, TvScanMetadata
 from meteor.rsmap import Map
-from meteor.testing import diffmap_realspace_rms
+from meteor.testing import map_corrcoeff
+from meteor.tv import TvDenoiseResult
 
 
 @pytest.fixture
@@ -108,11 +109,11 @@ def test_iterative_tv_denoiser(
     assert isinstance(metadata, list)
 
     # test correctness by comparing denoised dataset to noise-free
-    noisy_error = diffmap_realspace_rms(very_noisy_map, noise_free_map)
-    denoised_error = diffmap_realspace_rms(denoised_map, noise_free_map)
+    noisy_cc = map_corrcoeff(very_noisy_map, noise_free_map)
+    denoised_cc = map_corrcoeff(denoised_map, noise_free_map)
 
     # insist on improvement
-    assert denoised_error < noisy_error
+    assert denoised_cc > noisy_cc
 
     # insist that the negentropy and phase change decrease (or stay approx same) at every iteration
     metadata_as_df = pd.DataFrame([row.model_dump() for row in metadata])

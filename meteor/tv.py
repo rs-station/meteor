@@ -113,8 +113,7 @@ def tv_denoise_difference_map(
     >>> denoised_map, result = tv_denoise_difference_map(coefficients, full_output=True)
     >>> print(f"Optimal: {result.optimal_tv_weight}, Negentropy: {result.optimal_negentropy}")
     """
-    realspace_map = difference_map.to_ccp4_map(map_sampling=MAP_SAMPLING)
-    realspace_map_array = np.array(realspace_map.grid)
+    realspace_map_array = difference_map.to_3d_numpy_map(map_sampling=MAP_SAMPLING)
 
     def negentropy_objective(tv_weight: float) -> float:
         denoised_map = _tv_denoise_array(map_as_array=realspace_map_array, weight=tv_weight)
