@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 import structlog
@@ -167,7 +166,7 @@ def main(command_line_arguments: list[str] | None = None) -> None:
 
     log.info("Writing metadata.", file=str(args.metadataout))
     with args.metadataout.open("w") as f:
-        json.dump(aggregate_metadata.model_dump_json(), f, indent=4)
+        f.write(aggregate_metadata.model_dump_json(round_trip=True, indent=4))
 
 
 if __name__ == "__main__":
