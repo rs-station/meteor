@@ -22,6 +22,7 @@ OBSERVED_INTENSITY_COLUMNS: list[str] = [
 OBSERVED_AMPLITUDE_COLUMNS: list[str] = [
     "F",  # generic
     "FP",  # CCP4 & GLPh native
+    "FW-F",  # reciprocalspaceship French-Wilson default
     r"FPH\d",  # CCP4 derivative
     "F-obs",  # phenix
     "F-obs-filtered",  # phenix
@@ -29,6 +30,7 @@ OBSERVED_AMPLITUDE_COLUMNS: list[str] = [
 OBSERVED_UNCERTAINTY_COLUMNS: list[str] = [
     "SIGF",  # generic
     "SIGFP",  # CCP4 & GLPh native
+    "FW-SIGF",  # reciprocalspaceship French-Wilson default
     r"SIGFPH\d",  # CCP4
     "SIGF-obs",  # phenix
     "SIGF-obs-filtered",  # phenix

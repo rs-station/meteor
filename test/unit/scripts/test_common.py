@@ -103,8 +103,8 @@ def test_diffmap_argparser_check_output_filepaths(
 @mock.patch("meteor.scripts.common.rs.read_mtz", mocked_read_mtz)
 @pytest.mark.parametrize("highres", [0.1, 2.0, 100.0, None])
 @pytest.mark.parametrize("lowres", [0.1, 30.0, 100.0, None])
-@pytest.mark.parametrize("amplitude_column", ["infer", "F"])
-@pytest.mark.parametrize("uncertainty_column", ["infer", "SIGF"])
+@pytest.mark.parametrize("amplitude_column", ["infer", "F", "doesnt-exist"])
+@pytest.mark.parametrize("uncertainty_column", ["infer", "SIGF", "doesnt-exist"])
 def test_contruct_map(
     highres: float | None, lowres: float | None, amplitude_column: str, uncertainty_column: str
 ) -> None:
@@ -115,8 +115,21 @@ def test_contruct_map(
     )
     calculated_map_phases.index = index
 
+    # note: the order of the following if/else clauses matters
     # the rescuts overlap, guarenteed no data left
-    if highres and lowres and highres >= lowres:
+    if (amplitude_column == "doesnt-exist") or (uncertainty_column == "doesnt-exist"):
+        with pytest.raises(KeyError, match="requested"):
+            _ = DiffmapArgParser._construct_map(
+                name="fake-name",
+                mtz_file=Path("function-is-mocked.mtz"),
+                calculated_map_phases=calculated_map_phases,
+                amplitude_column=amplitude_column,
+                uncertainty_column=uncertainty_column,
+                high_resolution_limit=highres,
+                low_resolution_limit=lowres,
+            )
+
+    elif highres and lowres and highres >= lowres:
         with pytest.raises(ResolutionCutOverlapError):
             _ = DiffmapArgParser._construct_map(
                 name="fake-name",

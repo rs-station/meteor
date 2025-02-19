@@ -215,6 +215,9 @@ class DiffmapArgParser(argparse.ArgumentParser):
             if amplitude_column is INFER_COLUMN_NAME
             else amplitude_column
         )
+        if found_amplitude_column not in mtz.columns:
+            msg = f"requested {found_amplitude_column} not in {mtz_file} columns, found: {mtz.columns}"
+            raise KeyError(msg)
         log.info("  amplitudes", sought=amplitude_column, found=found_amplitude_column)
 
         found_uncertainty_column = (
@@ -222,6 +225,9 @@ class DiffmapArgParser(argparse.ArgumentParser):
             if uncertainty_column is INFER_COLUMN_NAME
             else uncertainty_column
         )
+        if found_uncertainty_column not in mtz.columns:
+            msg = f"requested {found_uncertainty_column} not in {mtz_file} columns, found: {mtz.columns}"
+            raise KeyError(msg)
         log.info("  uncertainties", sought=uncertainty_column, found=found_uncertainty_column)
 
         mtz.dropna(axis="index", how="any", subset=found_amplitude_column, inplace=True)
