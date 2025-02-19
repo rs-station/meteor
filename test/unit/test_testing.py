@@ -1,4 +1,3 @@
-
 import gemmi
 import numpy as np
 import pytest
@@ -65,13 +64,13 @@ def test_single_carbon_density_smoke() -> None:
 def test_check_leaf_floats_are_finite() -> None:
     obj = AnyOldObject()
 
-    issues = mt.check_leaf_floats_are_finite(obj)
+    issues = meteortesting.check_leaf_floats_are_finite(obj)
     assert len(issues) == 0
 
     obj.x = np.inf
-    issues = mt.check_leaf_floats_are_finite(obj)
+    issues = meteortesting.check_leaf_floats_are_finite(obj)
     assert len(issues) == 1
 
     obj.y = [np.inf, np.nan, 1.0]
-    issues = mt.check_leaf_floats_are_finite(obj)
+    issues = meteortesting.check_leaf_floats_are_finite(obj)
     assert len(issues) == 3

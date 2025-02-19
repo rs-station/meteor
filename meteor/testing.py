@@ -33,7 +33,7 @@ def map_corrcoeff(map1: Map, map2: Map) -> float:
     map1_np = map1.to_3d_numpy_map(map_sampling=MAP_SAMPLING).flatten()
     map2_np = map2.to_3d_numpy_map(map_sampling=MAP_SAMPLING).flatten()
     rho = np.corrcoef(map1_np, map2_np)
-    return rho[0, 1]
+    return float(rho[0, 1])
 
 
 def check_test_file_exists(path: Path) -> None:

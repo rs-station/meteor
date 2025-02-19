@@ -12,7 +12,6 @@ from meteor.iterative import (
 from meteor.metadata import TvIterationMetadata, TvScanMetadata
 from meteor.rsmap import Map
 from meteor.testing import map_corrcoeff
-from meteor.tv import TvDenoiseResult
 
 
 @pytest.fixture
@@ -98,18 +97,18 @@ def test_iterative_tv_denoiser_different_indices(
 
 
 def test_iterative_tv_denoiser(
-    noise_free_map: Map, very_noisy_map: Map, testing_denoiser: IterativeTvDenoiser
+    noise_free_map: Map, noisy_map: Map, testing_denoiser: IterativeTvDenoiser
 ) -> None:
     # the test case is the denoising of a difference: between a noisy map and its noise-free origin
     # such a diffmap is ideally totally flat, so should have very low TV
 
-    denoised_map, metadata = testing_denoiser(derivative=very_noisy_map, native=noise_free_map)
+    denoised_map, metadata = testing_denoiser(derivative=noisy_map, native=noise_free_map)
 
     # make sure metadata exists
     assert isinstance(metadata, list)
 
     # test correctness by comparing denoised dataset to noise-free
-    noisy_cc = map_corrcoeff(very_noisy_map, noise_free_map)
+    noisy_cc = map_corrcoeff(noisy_map, noise_free_map)
     denoised_cc = map_corrcoeff(denoised_map, noise_free_map)
 
     # insist on improvement
