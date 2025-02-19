@@ -91,8 +91,7 @@ def map_negentropy(map_to_assess: Map, *, tolerance: float = 0.1) -> float:
     ValueError: If the computed negentropy is less than the negative tolerance,
                 indicating potential issues with the computation.
     """
-    realspace_map = map_to_assess.to_ccp4_map(map_sampling=MAP_SAMPLING)
-    realspace_map_array = np.array(realspace_map.grid)
+    realspace_map_array = map_to_assess.to_3d_numpy_map(map_sampling=MAP_SAMPLING)
     return negentropy(realspace_map_array, tolerance=tolerance)
 
 

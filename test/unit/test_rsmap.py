@@ -342,9 +342,19 @@ def test_from_ccp4_map(ccp4_map: gemmi.Ccp4Map) -> None:
     assert len(rsmap) > 0
 
 
-def test_from_numpy(noise_free_map: Map) -> None:
+def test_to_3d_numpy(noise_free_map: Map) -> None:
+    array = noise_free_map.to_3d_numpy_map(map_sampling=3)
+    assert array.shape == (30, 30, 30)
+
+    # consistency with gemmi
+    ccp4_map = noise_free_map.to_ccp4_map(map_sampling=3)
+    ccp4_array = np.array(ccp4_map.grid)
+    np.testing.assert_allclose(array, ccp4_array)
+
+
+def test_from_3d_numpy(noise_free_map: Map) -> None:
     _, resolution = noise_free_map.resolution_limits
-    array = np.array(noise_free_map.to_ccp4_map(map_sampling=3).grid)
+    array = noise_free_map.to_3d_numpy_map(map_sampling=3)
     new_map = Map.from_3d_numpy_map(
         array,
         spacegroup=noise_free_map.spacegroup,
