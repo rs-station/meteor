@@ -7,6 +7,7 @@ from typing import Any
 import structlog
 
 from meteor.iterative import IterativeTvDenoiser
+from meteor.metadata import IterativeDiffmapMetadata
 from meteor.settings import (
     DEFAULT_TV_WEIGHTS_TO_SCAN_AT_EACH_ITERATION,
     ITERATIVE_TV_CONVERGENCE_TOLERANCE,
@@ -14,7 +15,7 @@ from meteor.settings import (
 )
 from meteor.tv import tv_denoise_difference_map
 
-from .common import DiffmapArgParser, kweight_diffmap_according_to_mode, write_combined_metadata
+from .common import DiffmapArgParser, kweight_diffmap_according_to_mode
 
 log = structlog.get_logger()
 
@@ -83,7 +84,7 @@ def main(command_line_arguments: list[str] | None = None) -> None:
     mapset.derivative, it_tv_metadata = denoiser(derivative=mapset.derivative, native=mapset.native)
     log.info("Convergence.")
 
-    diffmap, kparameter_used = kweight_diffmap_according_to_mode(
+    diffmap, kparameter_metadata = kweight_diffmap_according_to_mode(
         kweight_mode=args.kweight_mode, kweight_parameter=args.kweight_parameter, mapset=mapset
     )
 
@@ -93,7 +94,7 @@ def main(command_line_arguments: list[str] | None = None) -> None:
 
     log.info(
         "Optimal TV weight found",
-        weight=f"{final_tv_metadata.optimal_tv_weight:.2e}",
+        weight=f"{final_tv_metadata.optimal_parameter_value:.2e}",
         final_negentropy=round(final_tv_metadata.optimal_negentropy, 4),
     )
 
@@ -101,12 +102,14 @@ def main(command_line_arguments: list[str] | None = None) -> None:
     final_map.write_mtz(args.mtzout)
 
     log.info("Writing metadata.", file=str(args.metadataout))
-    final_tv_metadata.k_parameter_used = kparameter_used
-    write_combined_metadata(
-        filename=args.metadataout,
-        it_tv_metadata=it_tv_metadata,
-        final_tv_metadata=final_tv_metadata,
+    combined_metadata = IterativeDiffmapMetadata(
+        kparameter_metadata=kparameter_metadata,
+        iterative_tv_iterations=it_tv_metadata,
+        final_tv_pass=final_tv_metadata,
     )
+
+    with args.metadataout.open("w") as f:
+        f.write(combined_metadata.model_dump_json(round_trip=True, indent=4))
 
 
 if __name__ == "__main__":

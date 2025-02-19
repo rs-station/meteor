@@ -1,7 +1,10 @@
+from pathlib import Path
+
 import numpy as np
 from numpy.testing import assert_almost_equal
 
 from meteor import validate
+from meteor.metadata import TvScanMetadata
 from meteor.rsmap import Map
 
 
@@ -35,6 +38,25 @@ def test_negentropy_zero() -> None:
 
 def test_map_negentropy(noise_free_map: Map, very_noisy_map: Map) -> None:
     assert validate.map_negentropy(noise_free_map) > validate.map_negentropy(very_noisy_map)
+
+
+def test_maximizer_metadata_smoke(tv_denoise_result_source_data: dict) -> None:
+    TvScanMetadata(**tv_denoise_result_source_data)
+
+
+def test_maximizer_metadata_read_write_roundtrip(
+    tv_denoise_result_source_data: dict, tmp_path: Path
+) -> None:
+    metadata = TvScanMetadata(**tv_denoise_result_source_data)
+    json_file = tmp_path / "metadata.json"
+
+    with json_file.open("w") as f:
+        f.write(metadata.model_dump_json(round_trip=True, indent=4))
+
+    with json_file.open("r") as f:
+        new_metadata = TvScanMetadata.model_validate_json(f.read())
+
+    assert new_metadata == metadata
 
 
 def test_negentropy_maximizer_explicit() -> None:

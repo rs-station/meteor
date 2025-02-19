@@ -4,9 +4,10 @@ import numpy as np
 import reciprocalspaceship as rs
 
 from meteor import settings
+from meteor.metadata import IterativeDiffmapMetadata
 from meteor.rsmap import Map
 from meteor.scripts import compute_iterative_tv_map
-from meteor.scripts.common import read_combined_metadata
+from meteor.testing import check_leaf_floats_are_finite
 from meteor.utils import filter_common_indices
 
 # faster tests
@@ -47,15 +48,18 @@ def test_script_produces_consistent_results(
 
     compute_iterative_tv_map.main(cli_args)
 
-    iterative_tv_metadata, final_tv_metadata = read_combined_metadata(filename=output_metadata)
+    with output_metadata.open("r") as f:
+        metadata = IterativeDiffmapMetadata.model_validate_json(f.read())
+
     result_map = Map.read_mtz_file(output_mtz)
 
     # 1. make sure the negentropy increased during iterative TV
-    negentropy_over_iterations = iterative_tv_metadata["negentropy_after_tv"].to_numpy()
-    assert negentropy_over_iterations[-1] > negentropy_over_iterations[0]
+    negentropy_at_first_iter = metadata.iterative_tv_iterations[0].negentropy_after_tv
+    negentropy_at_last_iter = metadata.iterative_tv_iterations[-1].negentropy_after_tv
+    assert negentropy_at_last_iter > negentropy_at_first_iter
 
     # 2. make sure negentropy increased in the final TV pass
-    assert final_tv_metadata.optimal_negentropy >= final_tv_metadata.initial_negentropy
+    assert metadata.final_tv_pass.optimal_negentropy >= metadata.final_tv_pass.initial_negentropy
 
     # 3. make sure computed DF are close to those stored on disk
     reference_dataset = rs.read_mtz(str(testing_mtz_file))
@@ -68,4 +72,7 @@ def test_script_produces_consistent_results(
     assert rho > 0.95
 
     # 4. regression, make sure no NaNs creep into metadata
-    assert np.all(np.isfinite(iterative_tv_metadata))
+    issues = check_leaf_floats_are_finite(metadata)
+    if len(issues) != 0:
+        msg = f"non-finite values in metadata {issues}"
+        raise ValueError(msg)

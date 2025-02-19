@@ -8,6 +8,7 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 from scipy.stats import differential_entropy
 
+from .metadata import EvaluatedPoint
 from .rsmap import Map
 from .settings import MAP_SAMPLING
 
@@ -139,6 +140,13 @@ class ScalarMaximizer:
             self.argument_optimum = argument_test_value
             self.objective_maximum = objective_value
         return float(objective_value)
+
+    @property
+    def parameter_scan_results(self) -> list[EvaluatedPoint]:
+        return [
+            EvaluatedPoint(parameter_value=pv, objective_value=ov)
+            for pv, ov in zip(self.values_evaluated, self.objective_at_values, strict=False)
+        ]
 
     def optimize_over_explicit_values(
         self, *, arguments_to_scan: Sequence[float] | np.ndarray

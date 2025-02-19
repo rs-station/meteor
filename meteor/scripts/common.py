@@ -3,15 +3,12 @@
 from __future__ import annotations
 
 import argparse
-import json
 from dataclasses import dataclass
 from enum import StrEnum, auto
-from io import StringIO
 from pathlib import Path
 from typing import Any
 
 import numpy as np
-import pandas as pd
 import reciprocalspaceship as rs
 import structlog
 
@@ -20,12 +17,15 @@ from meteor.diffmaps import (
     compute_kweighted_difference_map,
     max_negentropy_kweighted_difference_map,
 )
+from meteor.metadata import KparameterScanMetadata
 from meteor.mtzio import find_observed_amplitude_column, find_observed_uncertainty_column
 from meteor.rsmap import Map
 from meteor.scale import scale_maps
-from meteor.settings import COMPUTED_MAP_RESOLUTION_LIMIT, KWEIGHT_PARAMETER_DEFAULT
+from meteor.settings import (
+    COMPUTED_MAP_RESOLUTION_LIMIT,
+    KWEIGHT_PARAMETER_DEFAULT,
+)
 from meteor.sfcalc import structure_file_to_calculated_map
-from meteor.tv import TvDenoiseResult
 from meteor.utils import cut_resolution
 
 log = structlog.get_logger()
@@ -283,7 +283,7 @@ class DiffmapArgParser(argparse.ArgumentParser):
 
 def kweight_diffmap_according_to_mode(
     *, mapset: DiffMapSet, kweight_mode: WeightMode, kweight_parameter: float | None = None
-) -> tuple[Map, float | None]:
+) -> tuple[Map, KparameterScanMetadata | None]:
     """
     Make and k-weight a difference map using a specified `WeightMode`.
 
@@ -311,16 +311,17 @@ def kweight_diffmap_according_to_mode(
     diffmap: meteor.rsmap.Map
         The difference map, k-weighted if requested.
 
-    kweight_parameter: float | None
-        The `kweight_parameter` used. Only really interesting if WeightMode.optimize.
+    kparameter_metadata: KparameterScanMetadata | None
+        The information about the k_weight optimization used.
+        Only really interesting if WeightMode.optimize.
     """
     log.info("Computing difference map.")
 
     if kweight_mode == WeightMode.optimize:
-        diffmap, kweight_parameter = max_negentropy_kweighted_difference_map(
+        diffmap, kparameter_metadata = max_negentropy_kweighted_difference_map(
             mapset.derivative, mapset.native
         )
-        log.info("  using negentropy optimized", kparameter=kweight_parameter)
+        log.info("  using negentropy max.", kparameter=kparameter_metadata.optimal_parameter_value)
         if kweight_parameter is np.nan:
             msg = "determined `k-parameter` is NaN, something went wrong..."
             raise RuntimeError(msg)
@@ -333,34 +334,15 @@ def kweight_diffmap_according_to_mode(
         diffmap = compute_kweighted_difference_map(
             mapset.derivative, mapset.native, k_parameter=kweight_parameter
         )
-
+        kparameter_metadata = None
         log.info("  using fixed", kparameter=kweight_parameter)
 
     elif kweight_mode == WeightMode.none:
         diffmap = compute_difference_map(mapset.derivative, mapset.native)
-        kweight_parameter = None
+        kparameter_metadata = None
         log.info(" requested no k-weighting")
 
     else:
         raise InvalidWeightModeError(kweight_mode)
 
-    return diffmap, kweight_parameter
-
-
-def write_combined_metadata(
-    *, filename: Path, it_tv_metadata: pd.DataFrame, final_tv_metadata: TvDenoiseResult
-) -> None:
-    combined_metadata = {
-        "iterative_tv": it_tv_metadata.to_json(orient="records", indent=4),
-        "final_tv_pass": final_tv_metadata.json(),
-    }
-    with filename.open("w") as f:
-        json.dump(combined_metadata, f, indent=4)
-
-
-def read_combined_metadata(*, filename: Path) -> tuple[pd.DataFrame, TvDenoiseResult]:
-    with filename.open("r") as f:
-        combined_metadata = json.load(f)
-    it_tv_metadata = pd.read_json(StringIO(combined_metadata["iterative_tv"]))
-    final_tv_metadata = TvDenoiseResult.from_json(combined_metadata["final_tv_pass"])
-    return it_tv_metadata, final_tv_metadata
+    return diffmap, kparameter_metadata

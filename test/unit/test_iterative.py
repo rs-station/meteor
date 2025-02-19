@@ -9,9 +9,9 @@ from meteor.iterative import (
     IterativeTvDenoiser,
     _assert_are_dataseries,
 )
+from meteor.metadata import TvIterationMetadata, TvScanMetadata
 from meteor.rsmap import Map
 from meteor.testing import map_corrcoeff
-from meteor.tv import TvDenoiseResult
 
 
 @pytest.fixture
@@ -49,7 +49,7 @@ def test_tv_denoise_complex_difference_sf(
     )
 
     assert isinstance(denoised_sfs, rs.DataSeries)
-    assert isinstance(metadata, TvDenoiseResult)
+    assert isinstance(metadata, TvScanMetadata)
 
     # weak check, but makes sure something happened
     assert np.sum(np.abs(denoised_sfs)) < np.sum(np.abs(noise))
@@ -70,8 +70,9 @@ def test_iteratively_denoise_sf_amplitudes_smoke(
     assert isinstance(denoised_sfs, rs.DataSeries)
     assert np.issubdtype(denoised_sfs.dtype, np.complexfloating)
 
-    assert isinstance(metadata, pd.DataFrame)
+    assert isinstance(metadata, list)
     assert len(metadata) > 1
+    assert isinstance(metadata[0], TvIterationMetadata)
 
 
 def test_iterative_tv_denoiser_different_indices(
@@ -91,33 +92,35 @@ def test_iterative_tv_denoiser_different_indices(
     assert len(very_noisy_map) == n - 2
 
     denoised_map, metadata = testing_denoiser(derivative=very_noisy_map, native=noise_free_map)
-    assert isinstance(metadata, pd.DataFrame)
+    assert isinstance(metadata, list)
     assert isinstance(denoised_map, Map)
 
 
 def test_iterative_tv_denoiser(
-    noise_free_map: Map, very_noisy_map: Map, testing_denoiser: IterativeTvDenoiser
+    noise_free_map: Map, noisy_map: Map, testing_denoiser: IterativeTvDenoiser
 ) -> None:
     # the test case is the denoising of a difference: between a noisy map and its noise-free origin
     # such a diffmap is ideally totally flat, so should have very low TV
 
-    denoised_map, metadata = testing_denoiser(derivative=very_noisy_map, native=noise_free_map)
+    denoised_map, metadata = testing_denoiser(derivative=noisy_map, native=noise_free_map)
 
     # make sure metadata exists
-    assert isinstance(metadata, pd.DataFrame)
-    for expected_col in ["iteration", "tv_weight", "negentropy_after_tv", "average_phase_change"]:
-        assert expected_col in metadata.columns
+    assert isinstance(metadata, list)
 
     # test correctness by comparing denoised dataset to noise-free
-    noisy_cc = map_corrcoeff(very_noisy_map, noise_free_map)
+    noisy_cc = map_corrcoeff(noisy_map, noise_free_map)
     denoised_cc = map_corrcoeff(denoised_map, noise_free_map)
 
     # insist on improvement
     assert denoised_cc > noisy_cc
 
     # insist that the negentropy and phase change decrease (or stay approx same) at every iteration
-    negentropy_change = metadata["negentropy_after_tv"].diff().to_numpy()
+    metadata_as_df = pd.DataFrame([row.model_dump() for row in metadata])
+    for expected_col in ["iteration", "tv_weight", "negentropy_after_tv", "average_phase_change"]:
+        assert expected_col in metadata_as_df.columns
+
+    negentropy_change = metadata_as_df["negentropy_after_tv"].diff().to_numpy()
     assert (negentropy_change[1:-1] >= -0.01).all()
 
-    phase_change_change = metadata["average_phase_change"].diff().to_numpy()
+    phase_change_change = metadata_as_df["average_phase_change"].diff().to_numpy()
     assert (phase_change_change[1:-1] <= 0.1).all()
