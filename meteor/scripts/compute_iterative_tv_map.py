@@ -108,6 +108,12 @@ def main(command_line_arguments: list[str] | None = None) -> None:
         final_tv_pass=final_tv_metadata,
     )
 
+    if combined_metadata.final_tv_pass.optimal_negentropy <= 0.0:
+        log.warning(
+            "Final negentropy negative! Something has almost certainly gone wrong...",
+            final_negentropy=combined_metadata.final_tv_pass.optimal_negentropy,
+        )
+
     with args.metadataout.open("w") as f:
         f.write(combined_metadata.model_dump_json(round_trip=True, indent=4))
 
