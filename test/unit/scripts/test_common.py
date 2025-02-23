@@ -100,10 +100,9 @@ def test_diffmap_argparser_check_output_filepaths(
 @mock.patch("meteor.scripts.common.rs.read_mtz", mocked_read_mtz)
 @pytest.mark.parametrize("highres", [0.1, 2.0, 100.0, None])
 @pytest.mark.parametrize("lowres", [0.1, 30.0, 100.0, None])
-@pytest.mark.parametrize("amplitude_column", ["infer", "F"])
-@pytest.mark.parametrize("uncertainty_column", ["infer", "SIGF"])
-def test_contruct_map(
-    highres: float | None, lowres: float | None, amplitude_column: str, uncertainty_column: str
+def test_contruct_map_rescuts(
+    highres: float | None,
+    lowres: float | None,
 ) -> None:
     # map phases have an extra index
     calculated_map_phases = rs.DataSeries([60.0, 181.0, -91.0, 0.0])
@@ -112,40 +111,86 @@ def test_contruct_map(
     )
     calculated_map_phases.index = index
 
-    # the rescuts overlap, guarenteed no data left
+    amplitude_column_requested = "F"
+    uncertainty_column_requested = "SIGF"
+
+    # 1. the rescuts overlap, guarenteed no data left
     if highres and lowres and highres >= lowres:
         with pytest.raises(ResolutionCutOverlapError):
             _ = DiffmapArgParser._construct_map(
                 name="fake-name",
                 mtz_file=Path("function-is-mocked.mtz"),
                 calculated_map_phases=calculated_map_phases,
-                amplitude_column=amplitude_column,
-                uncertainty_column=uncertainty_column,
+                amplitude_column=amplitude_column_requested,
+                uncertainty_column=uncertainty_column_requested,
                 high_resolution_limit=highres,
                 low_resolution_limit=lowres,
             )
 
-    # rescuts remove all the data
+    # 2. rescuts remove all the data
     elif (highres and (highres > 10.0)) or (lowres and (lowres < 10.0)):
         with pytest.raises(RuntimeError, match="resolution cut removed all reflections"):
             _ = DiffmapArgParser._construct_map(
                 name="fake-name",
                 mtz_file=Path("function-is-mocked.mtz"),
                 calculated_map_phases=calculated_map_phases,
-                amplitude_column=amplitude_column,
-                uncertainty_column=uncertainty_column,
+                amplitude_column=amplitude_column_requested,
+                uncertainty_column=uncertainty_column_requested,
                 high_resolution_limit=highres,
                 low_resolution_limit=lowres,
             )
 
-    # we should have some reflections left
+    # 3. we should have some reflections left
     else:
         constructed_map = DiffmapArgParser._construct_map(
             name="fake-name",
             mtz_file=Path("function-is-mocked.mtz"),
             calculated_map_phases=calculated_map_phases,
-            amplitude_column=amplitude_column,
-            uncertainty_column=uncertainty_column,
+            amplitude_column=amplitude_column_requested,
+            uncertainty_column=uncertainty_column_requested,
+            high_resolution_limit=highres,
+            low_resolution_limit=lowres,
+        )
+        assert len(constructed_map) > 0
+        assert len(constructed_map) <= len(index)
+        assert constructed_map.has_uncertainties
+
+
+@mock.patch("meteor.scripts.common.rs.read_mtz", mocked_read_mtz)
+@pytest.mark.parametrize("amplitude_column_requested", ["infer", "F", "doesnt-exist"])
+@pytest.mark.parametrize("uncertainty_column_requested", ["infer", "SIGF", "doesnt-exist"])
+def test_contruct_map_column_lookup(
+    amplitude_column_requested: str, uncertainty_column_requested: str
+) -> None:
+    calculated_map_phases = rs.DataSeries([60.0, 181.0, -91.0, 0.0])
+    index = pd.MultiIndex.from_arrays(
+        [[1, 1, 5, 6], [0, 2, 5, 6], [0, 3, 5, 7]], names=("H", "K", "L")
+    )
+    calculated_map_phases.index = index
+    highres = 1.0
+    lowres = 10.0
+
+    # if the user requests a column not present in the MTZ to load, throw an exception
+    if (amplitude_column_requested == "doesnt-exist") or (
+        uncertainty_column_requested == "doesnt-exist"
+    ):
+        with pytest.raises(KeyError, match="requested"):
+            _ = DiffmapArgParser._construct_map(
+                name="fake-name",
+                mtz_file=Path("function-is-mocked.mtz"),
+                calculated_map_phases=calculated_map_phases,
+                amplitude_column=amplitude_column_requested,
+                uncertainty_column=uncertainty_column_requested,
+                high_resolution_limit=highres,
+                low_resolution_limit=lowres,
+            )
+    else:
+        constructed_map = DiffmapArgParser._construct_map(
+            name="fake-name",
+            mtz_file=Path("function-is-mocked.mtz"),
+            calculated_map_phases=calculated_map_phases,
+            amplitude_column=amplitude_column_requested,
+            uncertainty_column=uncertainty_column_requested,
             high_resolution_limit=highres,
             low_resolution_limit=lowres,
         )
