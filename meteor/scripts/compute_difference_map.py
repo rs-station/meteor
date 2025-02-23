@@ -161,6 +161,12 @@ def main(command_line_arguments: list[str] | None = None) -> None:
         k_parameter_optimization=kparameter_metadata, tv_weight_optmization=tv_metadata
     )
 
+    if aggregate_metadata.tv_weight_optmization.optimal_negentropy <= 0.0:
+        log.warning(
+            "Final negentropy negative! Something has almost certainly gone wrong...",
+            final_negentropy=aggregate_metadata.tv_weight_optmization.optimal_negentropy,
+        )
+
     log.info("Writing output.", file=str(args.mtzout))
     final_map.write_mtz(args.mtzout)
 
