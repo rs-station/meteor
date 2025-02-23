@@ -5,10 +5,10 @@ import pytest
 import reciprocalspaceship as rs
 
 from meteor import settings
+from meteor.metadata import DiffmapMetadata, KparameterScanMetadata
 from meteor.rsmap import Map
 from meteor.scripts import compute_difference_map
 from meteor.scripts.common import WeightMode
-from meteor.tv import TvDenoiseResult
 from meteor.utils import filter_common_indices
 
 # faster tests
@@ -30,9 +30,9 @@ def test_script_produces_consistent_results(
     tv_weight = 0.01
 
     output_mtz = tmp_path / "test-output.mtz"
-    output_metadata = tmp_path / "test-output-metadata.csv"
+    output_metadata_file = tmp_path / "test-output-metadata.csv"
 
-    cli_args = [
+    cli_args: list[str] = [
         str(testing_mtz_file),  # derivative
         "--derivative-amplitude-column",
         "F_on",
@@ -48,44 +48,51 @@ def test_script_produces_consistent_results(
         "-o",
         str(output_mtz),
         "-m",
-        str(output_metadata),
+        str(output_metadata_file),
         "--kweight-mode",
         kweight_mode,
         "--kweight-parameter",
         str(kweight_parameter),
         "--tv-denoise-mode",
-        tv_weight_mode,
+        str(tv_weight_mode),
         "--tv-weight",
         str(tv_weight),
     ]
 
     compute_difference_map.main(cli_args)
 
-    result_metadata = TvDenoiseResult.from_json_file(output_metadata)
+    with output_metadata_file.open("r") as f:
+        diffmap_metadata = DiffmapMetadata.model_validate_json(f.read())
+
     result_map = Map.read_mtz_file(output_mtz)
 
     # 1. make sure negentropy increased
-    if kweight_mode == WeightMode.none and tv_weight_mode == WeightMode.none:
+    if tv_weight_mode == WeightMode.none:
         np.testing.assert_allclose(
-            result_metadata.optimal_negentropy, result_metadata.initial_negentropy
+            diffmap_metadata.tv_weight_optmization.optimal_negentropy,
+            diffmap_metadata.tv_weight_optmization.initial_negentropy,
         )
     else:
-        assert result_metadata.optimal_negentropy >= result_metadata.initial_negentropy
+        assert (
+            diffmap_metadata.tv_weight_optmization.optimal_negentropy
+            >= diffmap_metadata.tv_weight_optmization.initial_negentropy
+        )
 
     # 2. make sure optimized weights close to expected
     if kweight_mode == WeightMode.optimize:
-        assert result_metadata.k_parameter_used is not None, "optimized kparameter is None"
+        assert isinstance(diffmap_metadata.k_parameter_optimization, KparameterScanMetadata)
         np.testing.assert_allclose(
             kweight_parameter,
-            result_metadata.k_parameter_used,
+            diffmap_metadata.k_parameter_optimization.optimal_parameter_value,
             err_msg="kweight optimium different from expected",
         )
+
     if tv_weight_mode == WeightMode.optimize:
         if kweight_mode == WeightMode.none:
             optimal_tv_no_kweighting = 0.025
             np.testing.assert_allclose(
                 optimal_tv_no_kweighting,
-                result_metadata.optimal_tv_weight,
+                diffmap_metadata.tv_weight_optmization.optimal_parameter_value,
                 rtol=0.1,
                 err_msg="tv weight optimium different from expected",
             )
@@ -93,7 +100,7 @@ def test_script_produces_consistent_results(
             optimal_tv_with_weighting = 0.00867
             np.testing.assert_allclose(
                 optimal_tv_with_weighting,
-                result_metadata.optimal_tv_weight,
+                diffmap_metadata.tv_weight_optmization.optimal_parameter_value,
                 rtol=0.1,
                 err_msg="tv weight optimium different from expected",
             )
