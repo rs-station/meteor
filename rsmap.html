@@ -464,6 +464,10 @@ el.replaceWith(d);
             uncertainty_column=uncertainty_column,
         )
 
+    def to_3d_numpy_map(self, *, map_sampling: int) -&gt; np.ndarray:
+        realspace_map = self.to_ccp4_map(map_sampling=map_sampling)
+        return np.array(realspace_map.grid)
+
     @classmethod
     @cellify(&#34;cell&#34;)
     def from_3d_numpy_map(
@@ -1193,6 +1197,20 @@ unless <code>allow_duplicates</code> is set to True.</p>
 </details>
 <div class="desc"></div>
 </dd>
+<dt id="meteor.rsmap.Map.to_3d_numpy_map"><code class="name flex">
+<span>def <span class="ident">to_3d_numpy_map</span></span>(<span>self, *, map_sampling: int) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_3d_numpy_map(self, *, map_sampling: int) -&gt; np.ndarray:
+    realspace_map = self.to_ccp4_map(map_sampling=map_sampling)
+    return np.array(realspace_map.grid)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
 <dt id="meteor.rsmap.Map.to_ccp4_map"><code class="name flex">
 <span>def <span class="ident">to_ccp4_map</span></span>(<span>self, *, map_sampling: int) ‑> gemmi.Ccp4Map</span>
 </code></dt>
@@ -1341,6 +1359,7 @@ MTZ datatypes</dd>
 <li><code><a title="meteor.rsmap.Map.read_mtz_file" href="#meteor.rsmap.Map.read_mtz_file">read_mtz_file</a></code></li>
 <li><code><a title="meteor.rsmap.Map.resolution_limits" href="#meteor.rsmap.Map.resolution_limits">resolution_limits</a></code></li>
 <li><code><a title="meteor.rsmap.Map.set_uncertainties" href="#meteor.rsmap.Map.set_uncertainties">set_uncertainties</a></code></li>
+<li><code><a title="meteor.rsmap.Map.to_3d_numpy_map" href="#meteor.rsmap.Map.to_3d_numpy_map">to_3d_numpy_map</a></code></li>
 <li><code><a title="meteor.rsmap.Map.to_ccp4_map" href="#meteor.rsmap.Map.to_ccp4_map">to_ccp4_map</a></code></li>
 <li><code><a title="meteor.rsmap.Map.to_structurefactor" href="#meteor.rsmap.Map.to_structurefactor">to_structurefactor</a></code></li>
 <li><code><a title="meteor.rsmap.Map.uncertainties" href="#meteor.rsmap.Map.uncertainties">uncertainties</a></code></li>

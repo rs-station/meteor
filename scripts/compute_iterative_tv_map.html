@@ -81,7 +81,7 @@ el.replaceWith(d);
     mapset.derivative, it_tv_metadata = denoiser(derivative=mapset.derivative, native=mapset.native)
     log.info(&#34;Convergence.&#34;)
 
-    diffmap, kparameter_used = kweight_diffmap_according_to_mode(
+    diffmap, kparameter_metadata = kweight_diffmap_according_to_mode(
         kweight_mode=args.kweight_mode, kweight_parameter=args.kweight_parameter, mapset=mapset
     )
 
@@ -91,7 +91,7 @@ el.replaceWith(d);
 
     log.info(
         &#34;Optimal TV weight found&#34;,
-        weight=f&#34;{final_tv_metadata.optimal_tv_weight:.2e}&#34;,
+        weight=f&#34;{final_tv_metadata.optimal_parameter_value:.2e}&#34;,
         final_negentropy=round(final_tv_metadata.optimal_negentropy, 4),
     )
 
@@ -99,12 +99,20 @@ el.replaceWith(d);
     final_map.write_mtz(args.mtzout)
 
     log.info(&#34;Writing metadata.&#34;, file=str(args.metadataout))
-    final_tv_metadata.k_parameter_used = kparameter_used
-    write_combined_metadata(
-        filename=args.metadataout,
-        it_tv_metadata=it_tv_metadata,
-        final_tv_metadata=final_tv_metadata,
-    )</code></pre>
+    combined_metadata = IterativeDiffmapMetadata(
+        kparameter_metadata=kparameter_metadata,
+        iterative_tv_iterations=it_tv_metadata,
+        final_tv_pass=final_tv_metadata,
+    )
+
+    if combined_metadata.final_tv_pass.optimal_negentropy &lt;= 0.0:
+        log.warning(
+            NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
+            final_negentropy=combined_metadata.final_tv_pass.optimal_negentropy,
+        )
+
+    with args.metadataout.open(&#34;w&#34;) as f:
+        f.write(combined_metadata.model_dump_json(round_trip=True, indent=4))</code></pre>
 </details>
 <div class="desc"></div>
 </dd>

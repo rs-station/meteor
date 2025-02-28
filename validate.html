@@ -80,8 +80,7 @@ el.replaceWith(d);
     ValueError: If the computed negentropy is less than the negative tolerance,
                 indicating potential issues with the computation.
     &#34;&#34;&#34;
-    realspace_map = map_to_assess.to_ccp4_map(map_sampling=MAP_SAMPLING)
-    realspace_map_array = np.array(realspace_map.grid)
+    realspace_map_array = map_to_assess.to_3d_numpy_map(map_sampling=MAP_SAMPLING)
     return negentropy(realspace_map_array, tolerance=tolerance)</code></pre>
 </details>
 <div class="desc"><p>Computes the negentropy of a crystallographic map.</p>
@@ -255,6 +254,13 @@ from Gaussianity.</p>
             self.objective_maximum = objective_value
         return float(objective_value)
 
+    @property
+    def parameter_scan_results(self) -&gt; list[EvaluatedPoint]:
+        return [
+            EvaluatedPoint(parameter_value=pv, objective_value=ov)
+            for pv, ov in zip(self.values_evaluated, self.objective_at_values, strict=False)
+        ]
+
     def optimize_over_explicit_values(
         self, *, arguments_to_scan: Sequence[float] | np.ndarray
     ) -&gt; None:
@@ -337,6 +343,24 @@ maximize over simple parameter choices, such as TV regularization strength or k-
 <dt><strong><code>objective</code></strong> :&ensp;<code>Callable[[float], float]</code></dt>
 <dd>The objective function to be maximized. It should map a single float to a float.</dd>
 </dl></div>
+<h3>Instance variables</h3>
+<dl>
+<dt id="meteor.validate.ScalarMaximizer.parameter_scan_results"><code class="name">prop <span class="ident">parameter_scan_results</span> : list[EvaluatedPoint]</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def parameter_scan_results(self) -&gt; list[EvaluatedPoint]:
+    return [
+        EvaluatedPoint(parameter_value=pv, objective_value=ov)
+        for pv, ov in zip(self.values_evaluated, self.objective_at_values, strict=False)
+    ]</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="meteor.validate.ScalarMaximizer.optimize_over_explicit_values"><code class="name flex">
@@ -461,6 +485,7 @@ for the optimum.</dd>
 <ul class="">
 <li><code><a title="meteor.validate.ScalarMaximizer.optimize_over_explicit_values" href="#meteor.validate.ScalarMaximizer.optimize_over_explicit_values">optimize_over_explicit_values</a></code></li>
 <li><code><a title="meteor.validate.ScalarMaximizer.optimize_with_golden_algorithm" href="#meteor.validate.ScalarMaximizer.optimize_with_golden_algorithm">optimize_with_golden_algorithm</a></code></li>
+<li><code><a title="meteor.validate.ScalarMaximizer.parameter_scan_results" href="#meteor.validate.ScalarMaximizer.parameter_scan_results">parameter_scan_results</a></code></li>
 </ul>
 </li>
 </ul>

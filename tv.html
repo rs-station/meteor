@@ -46,7 +46,7 @@ el.replaceWith(d);
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="meteor.tv.tv_denoise_difference_map"><code class="name flex">
-<span>def <span class="ident">tv_denoise_difference_map</span></span>(<span>difference_map: Map,<br>*,<br>full_output: bool = False,<br>weights_to_scan: Sequence[float] | np.ndarray | None = None) ‑> <a title="meteor.rsmap.Map" href="rsmap.html#meteor.rsmap.Map">Map</a> | tuple[<a title="meteor.rsmap.Map" href="rsmap.html#meteor.rsmap.Map">Map</a>, <a title="meteor.tv.TvDenoiseResult" href="#meteor.tv.TvDenoiseResult">TvDenoiseResult</a>]</span>
+<span>def <span class="ident">tv_denoise_difference_map</span></span>(<span>difference_map: Map,<br>*,<br>full_output: bool = False,<br>weights_to_scan: Sequence[float] | np.ndarray | None = None) ‑> <a title="meteor.rsmap.Map" href="rsmap.html#meteor.rsmap.Map">Map</a> | tuple[<a title="meteor.rsmap.Map" href="rsmap.html#meteor.rsmap.Map">Map</a>, <a title="meteor.metadata.TvScanMetadata" href="metadata.html#meteor.metadata.TvScanMetadata">TvScanMetadata</a>]</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -58,7 +58,7 @@ el.replaceWith(d);
     *,
     full_output: bool = False,
     weights_to_scan: Sequence[float] | np.ndarray | None = None,
-) -&gt; Map | tuple[Map, TvDenoiseResult]:
+) -&gt; Map | tuple[Map, TvScanMetadata]:
     &#34;&#34;&#34;Single-pass TV denoising of a difference map.
 
     Automatically selects the optimal level of regularization (the TV weight, aka lambda) by
@@ -77,7 +77,7 @@ el.replaceWith(d);
         that will be used to compute the difference map.
 
     full_output : bool, optional
-        If `True`, the function returns both the denoised map coefficients and a `TvDenoiseResult`
+        If `True`, the function returns both the denoised map coefficients and a `TvScanMetadata`
          object containing the optimal weight and the associated negentropy. If `False`, only
          the denoised map coefficients are returned. Default is `False`.
 
@@ -88,11 +88,11 @@ el.replaceWith(d);
 
     Returns
     -------
-    Map | tuple[Map, TvDenoiseResult]
+    Map | tuple[Map, TvScanMetadata]
         If `full_output` is `False`, returns a `Map`, the denoised map coefficients.
         If `full_output` is `True`, returns a tuple containing:
         - `Map`: The denoised map coefficients.
-        - `TvDenoiseResult`: An object w/ the optimal weight and the corresponding negentropy.
+        - `TvScanMetadata`: An object w/ the optimal weight and the corresponding negentropy.
 
     Raises
     ------
@@ -113,8 +113,7 @@ el.replaceWith(d);
     &gt;&gt;&gt; denoised_map, result = tv_denoise_difference_map(coefficients, full_output=True)
     &gt;&gt;&gt; print(f&#34;Optimal: {result.optimal_tv_weight}, Negentropy: {result.optimal_negentropy}&#34;)
     &#34;&#34;&#34;
-    realspace_map = difference_map.to_ccp4_map(map_sampling=MAP_SAMPLING)
-    realspace_map_array = np.array(realspace_map.grid)
+    realspace_map_array = difference_map.to_3d_numpy_map(map_sampling=MAP_SAMPLING)
 
     def negentropy_objective(tv_weight: float) -&gt; float:
         denoised_map = _tv_denoise_array(map_as_array=realspace_map_array, weight=tv_weight)
@@ -151,13 +150,12 @@ el.replaceWith(d);
 
     if full_output:
         initial_negentropy = negentropy(realspace_map_array)
-        tv_result = TvDenoiseResult(
+        tv_result = TvScanMetadata(
             initial_negentropy=float(initial_negentropy),
-            optimal_tv_weight=float(maximizer.argument_optimum),
+            optimal_parameter_value=float(maximizer.argument_optimum),
             optimal_negentropy=float(maximizer.objective_maximum),
-            map_sampling_used_for_tv=MAP_SAMPLING,
-            tv_weights_scanned=maximizer.values_evaluated,
-            negentropy_at_weights=maximizer.objective_at_values,
+            map_sampling=MAP_SAMPLING,
+            parameter_scan_results=maximizer.parameter_scan_results,
         )
         return final_map, tv_result
 
@@ -179,7 +177,7 @@ a weights value according to the bounds and convergence criteria set in meteor.s
 <dd>The input dataset containing the difference map coefficients (amplitude and phase)
 that will be used to compute the difference map.</dd>
 <dt><strong><code>full_output</code></strong> :&ensp;<code>bool</code>, optional</dt>
-<dd>If <code>True</code>, the function returns both the denoised map coefficients and a <code><a title="meteor.tv.TvDenoiseResult" href="#meteor.tv.TvDenoiseResult">TvDenoiseResult</a></code>
+<dd>If <code>True</code>, the function returns both the denoised map coefficients and a <code>TvScanMetadata</code>
 object containing the optimal weight and the associated negentropy. If <code>False</code>, only
 the denoised map coefficients are returned. Default is <code>False</code>.</dd>
 <dt><strong><code>weights_to_scan</code></strong> :&ensp;<code>Sequence[float] | None</code>, optional</dt>
@@ -189,11 +187,11 @@ weight. Default is <code>None</code>.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>Map | tuple[Map, TvDenoiseResult]</code></dt>
+<dt><code>Map | tuple[Map, TvScanMetadata]</code></dt>
 <dd>If <code>full_output</code> is <code>False</code>, returns a <code>Map</code>, the denoised map coefficients.
 If <code>full_output</code> is <code>True</code>, returns a tuple containing:
 - <code>Map</code>: The denoised map coefficients.
-- <code><a title="meteor.tv.TvDenoiseResult" href="#meteor.tv.TvDenoiseResult">TvDenoiseResult</a></code>: An object w/ the optimal weight and the corresponding negentropy.</dd>
+- <code>TvScanMetadata</code>: An object w/ the optimal weight and the corresponding negentropy.</dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
@@ -217,158 +215,6 @@ particularly suited for scenarios where an explicit list of candidate values is 
 </dl>
 </section>
 <section>
-<h2 class="section-title" id="header-classes">Classes</h2>
-<dl>
-<dt id="meteor.tv.TvDenoiseResult"><code class="flex name class">
-<span>class <span class="ident">TvDenoiseResult</span></span>
-<span>(</span><span>initial_negentropy: float,<br>optimal_tv_weight: float,<br>optimal_negentropy: float,<br>map_sampling_used_for_tv: float,<br>tv_weights_scanned: list[float],<br>negentropy_at_weights: list[float],<br>k_parameter_used: float | None = None)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@dataclass
-class TvDenoiseResult:
-    # constants for JSON format
-    _scan_name = &#34;scan&#34;
-    _weight_name = &#34;weight&#34;
-    _negentropy_name = &#34;negentropy&#34;
-
-    initial_negentropy: float
-    optimal_tv_weight: float
-    optimal_negentropy: float
-    map_sampling_used_for_tv: float
-    tv_weights_scanned: list[float]
-    negentropy_at_weights: list[float]
-    k_parameter_used: float | None = None
-
-    def json(self) -&gt; dict:
-        json_payload = asdict(self)
-        json_payload.pop(&#34;tv_weights_scanned&#34;)
-        json_payload.pop(&#34;negentropy_at_weights&#34;)
-        json_payload[self._scan_name] = [
-            {
-                self._weight_name: float(self.tv_weights_scanned[idx]),
-                self._negentropy_name: float(self.negentropy_at_weights[idx]),
-            }
-            for idx in range(len(self.tv_weights_scanned))
-        ]
-        return json_payload
-
-    def to_json_file(self, filename: Path) -&gt; None:
-        with filename.open(&#34;w&#34;) as f:
-            json.dump(self.json(), f, indent=4)
-
-    @classmethod
-    def from_json(cls, json_payload: dict) -&gt; TvDenoiseResult:
-        try:
-            data = json_payload.pop(cls._scan_name)
-            json_payload[&#34;tv_weights_scanned&#34;] = [float(point[cls._weight_name]) for point in data]
-            json_payload[&#34;negentropy_at_weights&#34;] = [
-                float(point[cls._negentropy_name]) for point in data
-            ]
-            return cls(**json_payload)
-
-        except Exception as exptn:
-            msg = &#34;could not load json payload; mis-formatted&#34;
-            raise ValueError(msg) from exptn
-
-    @classmethod
-    def from_json_file(cls, filename: Path) -&gt; TvDenoiseResult:
-        with filename.open(&#34;r&#34;) as f:
-            json_payload = json.load(f)
-        return cls.from_json(json_payload)</code></pre>
-</details>
-<div class="desc"><p>TvDenoiseResult(initial_negentropy: 'float', optimal_tv_weight: 'float', optimal_negentropy: 'float', map_sampling_used_for_tv: 'float', tv_weights_scanned: 'list[float]', negentropy_at_weights: 'list[float]', k_parameter_used: 'float | None' = None)</p></div>
-<h3>Class variables</h3>
-<dl>
-<dt id="meteor.tv.TvDenoiseResult.initial_negentropy"><code class="name">var <span class="ident">initial_negentropy</span> : float</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="meteor.tv.TvDenoiseResult.k_parameter_used"><code class="name">var <span class="ident">k_parameter_used</span> : float | None</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="meteor.tv.TvDenoiseResult.map_sampling_used_for_tv"><code class="name">var <span class="ident">map_sampling_used_for_tv</span> : float</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="meteor.tv.TvDenoiseResult.negentropy_at_weights"><code class="name">var <span class="ident">negentropy_at_weights</span> : list[float]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="meteor.tv.TvDenoiseResult.optimal_negentropy"><code class="name">var <span class="ident">optimal_negentropy</span> : float</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="meteor.tv.TvDenoiseResult.optimal_tv_weight"><code class="name">var <span class="ident">optimal_tv_weight</span> : float</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="meteor.tv.TvDenoiseResult.tv_weights_scanned"><code class="name">var <span class="ident">tv_weights_scanned</span> : list[float]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Static methods</h3>
-<dl>
-<dt id="meteor.tv.TvDenoiseResult.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>json_payload: dict) ‑> <a title="meteor.tv.TvDenoiseResult" href="#meteor.tv.TvDenoiseResult">TvDenoiseResult</a></span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="meteor.tv.TvDenoiseResult.from_json_file"><code class="name flex">
-<span>def <span class="ident">from_json_file</span></span>(<span>filename: Path) ‑> <a title="meteor.tv.TvDenoiseResult" href="#meteor.tv.TvDenoiseResult">TvDenoiseResult</a></span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="meteor.tv.TvDenoiseResult.json"><code class="name flex">
-<span>def <span class="ident">json</span></span>(<span>self) ‑> dict</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def json(self) -&gt; dict:
-    json_payload = asdict(self)
-    json_payload.pop(&#34;tv_weights_scanned&#34;)
-    json_payload.pop(&#34;negentropy_at_weights&#34;)
-    json_payload[self._scan_name] = [
-        {
-            self._weight_name: float(self.tv_weights_scanned[idx]),
-            self._negentropy_name: float(self.negentropy_at_weights[idx]),
-        }
-        for idx in range(len(self.tv_weights_scanned))
-    ]
-    return json_payload</code></pre>
-</details>
-<div class="desc"></div>
-</dd>
-<dt id="meteor.tv.TvDenoiseResult.to_json_file"><code class="name flex">
-<span>def <span class="ident">to_json_file</span></span>(<span>self, filename: Path) ‑> None</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def to_json_file(self, filename: Path) -&gt; None:
-    with filename.open(&#34;w&#34;) as f:
-        json.dump(self.json(), f, indent=4)</code></pre>
-</details>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
-</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -384,26 +230,6 @@ class TvDenoiseResult:
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="meteor.tv.tv_denoise_difference_map" href="#meteor.tv.tv_denoise_difference_map">tv_denoise_difference_map</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-classes">Classes</a></h3>
-<ul>
-<li>
-<h4><code><a title="meteor.tv.TvDenoiseResult" href="#meteor.tv.TvDenoiseResult">TvDenoiseResult</a></code></h4>
-<ul class="">
-<li><code><a title="meteor.tv.TvDenoiseResult.from_json" href="#meteor.tv.TvDenoiseResult.from_json">from_json</a></code></li>
-<li><code><a title="meteor.tv.TvDenoiseResult.from_json_file" href="#meteor.tv.TvDenoiseResult.from_json_file">from_json_file</a></code></li>
-<li><code><a title="meteor.tv.TvDenoiseResult.initial_negentropy" href="#meteor.tv.TvDenoiseResult.initial_negentropy">initial_negentropy</a></code></li>
-<li><code><a title="meteor.tv.TvDenoiseResult.json" href="#meteor.tv.TvDenoiseResult.json">json</a></code></li>
-<li><code><a title="meteor.tv.TvDenoiseResult.k_parameter_used" href="#meteor.tv.TvDenoiseResult.k_parameter_used">k_parameter_used</a></code></li>
-<li><code><a title="meteor.tv.TvDenoiseResult.map_sampling_used_for_tv" href="#meteor.tv.TvDenoiseResult.map_sampling_used_for_tv">map_sampling_used_for_tv</a></code></li>
-<li><code><a title="meteor.tv.TvDenoiseResult.negentropy_at_weights" href="#meteor.tv.TvDenoiseResult.negentropy_at_weights">negentropy_at_weights</a></code></li>
-<li><code><a title="meteor.tv.TvDenoiseResult.optimal_negentropy" href="#meteor.tv.TvDenoiseResult.optimal_negentropy">optimal_negentropy</a></code></li>
-<li><code><a title="meteor.tv.TvDenoiseResult.optimal_tv_weight" href="#meteor.tv.TvDenoiseResult.optimal_tv_weight">optimal_tv_weight</a></code></li>
-<li><code><a title="meteor.tv.TvDenoiseResult.to_json_file" href="#meteor.tv.TvDenoiseResult.to_json_file">to_json_file</a></code></li>
-<li><code><a title="meteor.tv.TvDenoiseResult.tv_weights_scanned" href="#meteor.tv.TvDenoiseResult.tv_weights_scanned">tv_weights_scanned</a></code></li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>

@@ -63,6 +63,34 @@ el.replaceWith(d);
 </details>
 <div class="desc"></div>
 </dd>
+<dt id="meteor.testing.check_leaf_floats_are_finite"><code class="name flex">
+<span>def <span class="ident">check_leaf_floats_are_finite</span></span>(<span>obj: Any, path: str = 'root') ‑> list[str]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_leaf_floats_are_finite(obj: Any, path: str = &#34;root&#34;) -&gt; list[str]:
+    issues = []
+
+    if isinstance(obj, float):
+        if not np.isfinite(obj):
+            issues.append(path)
+    elif isinstance(obj, dict):
+        for key, value in obj.items():
+            issues.extend(check_leaf_floats_are_finite(value, f&#34;{path}.{key}&#34;))
+    elif isinstance(obj, list | tuple | set):
+        for i, item in enumerate(obj):
+            issues.extend(check_leaf_floats_are_finite(item, f&#34;{path}[{i}]&#34;))
+    elif hasattr(obj, &#34;__dict__&#34;):  # Handle objects with attributes
+        for key, value in vars(obj).items():
+            issues.extend(check_leaf_floats_are_finite(value, f&#34;{path}.{key}&#34;))
+
+    return issues</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
 <dt id="meteor.testing.check_test_file_exists"><code class="name flex">
 <span>def <span class="ident">check_test_file_exists</span></span>(<span>path: Path) ‑> None</span>
 </code></dt>
@@ -78,23 +106,19 @@ el.replaceWith(d);
 </details>
 <div class="desc"></div>
 </dd>
-<dt id="meteor.testing.diffmap_realspace_rms"><code class="name flex">
-<span>def <span class="ident">diffmap_realspace_rms</span></span>(<span>map1: Map, map2: Map) ‑> float</span>
+<dt id="meteor.testing.map_corrcoeff"><code class="name flex">
+<span>def <span class="ident">map_corrcoeff</span></span>(<span>map1: Map, map2: Map) ‑> float</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def diffmap_realspace_rms(map1: Map, map2: Map) -&gt; float:
-    map1_array = np.array(map1.to_ccp4_map(map_sampling=MAP_SAMPLING).grid)
-    map2_array = np.array(map2.to_ccp4_map(map_sampling=MAP_SAMPLING).grid)
-
-    # standardize
-    map1_array /= map1_array.std()
-    map2_array /= map2_array.std()
-
-    return float(np.linalg.norm(map2_array - map1_array))</code></pre>
+<pre><code class="python">def map_corrcoeff(map1: Map, map2: Map) -&gt; float:
+    map1_np = map1.to_3d_numpy_map(map_sampling=MAP_SAMPLING).flatten()
+    map2_np = map2.to_3d_numpy_map(map_sampling=MAP_SAMPLING).flatten()
+    rho = np.corrcoef(map1_np, map2_np)
+    return float(rho[0, 1])</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -218,8 +242,9 @@ class MapColumns:
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="meteor.testing.assert_phases_allclose" href="#meteor.testing.assert_phases_allclose">assert_phases_allclose</a></code></li>
+<li><code><a title="meteor.testing.check_leaf_floats_are_finite" href="#meteor.testing.check_leaf_floats_are_finite">check_leaf_floats_are_finite</a></code></li>
 <li><code><a title="meteor.testing.check_test_file_exists" href="#meteor.testing.check_test_file_exists">check_test_file_exists</a></code></li>
-<li><code><a title="meteor.testing.diffmap_realspace_rms" href="#meteor.testing.diffmap_realspace_rms">diffmap_realspace_rms</a></code></li>
+<li><code><a title="meteor.testing.map_corrcoeff" href="#meteor.testing.map_corrcoeff">map_corrcoeff</a></code></li>
 <li><code><a title="meteor.testing.single_carbon_density" href="#meteor.testing.single_carbon_density">single_carbon_density</a></code></li>
 <li><code><a title="meteor.testing.single_carbon_structure" href="#meteor.testing.single_carbon_structure">single_carbon_structure</a></code></li>
 </ul>

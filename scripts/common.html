@@ -46,7 +46,7 @@ el.replaceWith(d);
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="meteor.scripts.common.kweight_diffmap_according_to_mode"><code class="name flex">
-<span>def <span class="ident">kweight_diffmap_according_to_mode</span></span>(<span>*,<br>mapset: <a title="meteor.scripts.common.DiffMapSet" href="#meteor.scripts.common.DiffMapSet">DiffMapSet</a>,<br>kweight_mode: <a title="meteor.scripts.common.WeightMode" href="#meteor.scripts.common.WeightMode">WeightMode</a>,<br>kweight_parameter: float | None = None) ‑> tuple[<a title="meteor.rsmap.Map" href="../rsmap.html#meteor.rsmap.Map">Map</a>, float | None]</span>
+<span>def <span class="ident">kweight_diffmap_according_to_mode</span></span>(<span>*,<br>mapset: <a title="meteor.scripts.common.DiffMapSet" href="#meteor.scripts.common.DiffMapSet">DiffMapSet</a>,<br>kweight_mode: <a title="meteor.scripts.common.WeightMode" href="#meteor.scripts.common.WeightMode">WeightMode</a>,<br>kweight_parameter: float | None = None) ‑> tuple[<a title="meteor.rsmap.Map" href="../rsmap.html#meteor.rsmap.Map">Map</a>, <a title="meteor.metadata.KparameterScanMetadata" href="../metadata.html#meteor.metadata.KparameterScanMetadata">KparameterScanMetadata</a> | None]</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -55,7 +55,7 @@ el.replaceWith(d);
 </summary>
 <pre><code class="python">def kweight_diffmap_according_to_mode(
     *, mapset: DiffMapSet, kweight_mode: WeightMode, kweight_parameter: float | None = None
-) -&gt; tuple[Map, float | None]:
+) -&gt; tuple[Map, KparameterScanMetadata | None]:
     &#34;&#34;&#34;
     Make and k-weight a difference map using a specified `WeightMode`.
 
@@ -83,16 +83,17 @@ el.replaceWith(d);
     diffmap: meteor.rsmap.Map
         The difference map, k-weighted if requested.
 
-    kweight_parameter: float | None
-        The `kweight_parameter` used. Only really interesting if WeightMode.optimize.
+    kparameter_metadata: KparameterScanMetadata | None
+        The information about the k_weight optimization used.
+        Only really interesting if WeightMode.optimize.
     &#34;&#34;&#34;
     log.info(&#34;Computing difference map.&#34;)
 
     if kweight_mode == WeightMode.optimize:
-        diffmap, kweight_parameter = max_negentropy_kweighted_difference_map(
+        diffmap, kparameter_metadata = max_negentropy_kweighted_difference_map(
             mapset.derivative, mapset.native
         )
-        log.info(&#34;  using negentropy optimized&#34;, kparameter=kweight_parameter)
+        log.info(&#34;  using negentropy max.&#34;, kparameter=kparameter_metadata.optimal_parameter_value)
         if kweight_parameter is np.nan:
             msg = &#34;determined `k-parameter` is NaN, something went wrong...&#34;
             raise RuntimeError(msg)
@@ -105,18 +106,18 @@ el.replaceWith(d);
         diffmap = compute_kweighted_difference_map(
             mapset.derivative, mapset.native, k_parameter=kweight_parameter
         )
-
+        kparameter_metadata = None
         log.info(&#34;  using fixed&#34;, kparameter=kweight_parameter)
 
     elif kweight_mode == WeightMode.none:
         diffmap = compute_difference_map(mapset.derivative, mapset.native)
-        kweight_parameter = None
+        kparameter_metadata = None
         log.info(&#34; requested no k-weighting&#34;)
 
     else:
         raise InvalidWeightModeError(kweight_mode)
 
-    return diffmap, kweight_parameter</code></pre>
+    return diffmap, kparameter_metadata</code></pre>
 </details>
 <div class="desc"><p>Make and k-weight a difference map using a specified <code><a title="meteor.scripts.common.WeightMode" href="#meteor.scripts.common.WeightMode">WeightMode</a></code>.</p>
 <p>Three modes are possible to pick the k-parameter:
@@ -139,46 +140,10 @@ k-parameter to use.</dd>
 <dl>
 <dt><strong><code>diffmap</code></strong> :&ensp;<code><a title="meteor.rsmap.Map" href="../rsmap.html#meteor.rsmap.Map">Map</a></code></dt>
 <dd>The difference map, k-weighted if requested.</dd>
-<dt><strong><code>kweight_parameter</code></strong> :&ensp;<code>float | None</code></dt>
-<dd>The <code>kweight_parameter</code> used. Only really interesting if WeightMode.optimize.</dd>
+<dt><strong><code>kparameter_metadata</code></strong> :&ensp;<code>KparameterScanMetadata | None</code></dt>
+<dd>The information about the k_weight optimization used.
+Only really interesting if WeightMode.optimize.</dd>
 </dl></div>
-</dd>
-<dt id="meteor.scripts.common.read_combined_metadata"><code class="name flex">
-<span>def <span class="ident">read_combined_metadata</span></span>(<span>*, filename: Path) ‑> tuple[pandas.core.frame.DataFrame, <a title="meteor.tv.TvDenoiseResult" href="../tv.html#meteor.tv.TvDenoiseResult">TvDenoiseResult</a>]</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def read_combined_metadata(*, filename: Path) -&gt; tuple[pd.DataFrame, TvDenoiseResult]:
-    with filename.open(&#34;r&#34;) as f:
-        combined_metadata = json.load(f)
-    it_tv_metadata = pd.read_json(StringIO(combined_metadata[&#34;iterative_tv&#34;]))
-    final_tv_metadata = TvDenoiseResult.from_json(combined_metadata[&#34;final_tv_pass&#34;])
-    return it_tv_metadata, final_tv_metadata</code></pre>
-</details>
-<div class="desc"></div>
-</dd>
-<dt id="meteor.scripts.common.write_combined_metadata"><code class="name flex">
-<span>def <span class="ident">write_combined_metadata</span></span>(<span>*,<br>filename: Path,<br>it_tv_metadata: pd.DataFrame,<br>final_tv_metadata: TvDenoiseResult) ‑> None</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def write_combined_metadata(
-    *, filename: Path, it_tv_metadata: pd.DataFrame, final_tv_metadata: TvDenoiseResult
-) -&gt; None:
-    combined_metadata = {
-        &#34;iterative_tv&#34;: it_tv_metadata.to_json(orient=&#34;records&#34;, indent=4),
-        &#34;final_tv_pass&#34;: final_tv_metadata.json(),
-    }
-    with filename.open(&#34;w&#34;) as f:
-        json.dump(combined_metadata, f, indent=4)</code></pre>
-</details>
-<div class="desc"></div>
 </dd>
 </dl>
 </section>
@@ -423,6 +388,9 @@ class DiffMapSet:
             if amplitude_column is INFER_COLUMN_NAME
             else amplitude_column
         )
+        if found_amplitude_column not in mtz.columns:
+            msg = f&#34;requested {found_amplitude_column} not in {mtz_file} columns, found: {mtz.columns}&#34;
+            raise KeyError(msg)
         log.info(&#34;  amplitudes&#34;, sought=amplitude_column, found=found_amplitude_column)
 
         found_uncertainty_column = (
@@ -430,6 +398,9 @@ class DiffMapSet:
             if uncertainty_column is INFER_COLUMN_NAME
             else uncertainty_column
         )
+        if found_uncertainty_column not in mtz.columns:
+            msg = f&#34;requested {found_uncertainty_column} not in {mtz_file} columns, found: {mtz.columns}&#34;
+            raise KeyError(msg)
         log.info(&#34;  uncertainties&#34;, sought=uncertainty_column, found=found_uncertainty_column)
 
         mtz.dropna(axis=&#34;index&#34;, how=&#34;any&#34;, subset=found_amplitude_column, inplace=True)
@@ -659,8 +630,6 @@ def load_difference_maps(args: argparse.Namespace) -&gt; DiffMapSet:
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="meteor.scripts.common.kweight_diffmap_according_to_mode" href="#meteor.scripts.common.kweight_diffmap_according_to_mode">kweight_diffmap_according_to_mode</a></code></li>
-<li><code><a title="meteor.scripts.common.read_combined_metadata" href="#meteor.scripts.common.read_combined_metadata">read_combined_metadata</a></code></li>
-<li><code><a title="meteor.scripts.common.write_combined_metadata" href="#meteor.scripts.common.write_combined_metadata">write_combined_metadata</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

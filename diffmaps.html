@@ -250,7 +250,7 @@ lower weights.</dd>
 0.77, 0.78, 0.79, 0.8 , 0.81, 0.82, 0.83, 0.84, 0.85, 0.86, 0.87,
 0.88, 0.89, 0.9 , 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98,
 0.99, 1.
-]),<br>check_isomorphous: bool = True) ‑> reciprocalspaceship.dataset.DataSet</span>
+]),<br>check_isomorphous: bool = True) ‑> tuple[reciprocalspaceship.dataset.DataSet, <a title="meteor.metadata.KparameterScanMetadata" href="metadata.html#meteor.metadata.KparameterScanMetadata">KparameterScanMetadata</a>]</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -263,7 +263,7 @@ lower weights.</dd>
     *,
     k_parameter_values_to_scan: np.ndarray | Sequence[float] = DEFAULT_KPARAMS_TO_SCAN,
     check_isomorphous: bool = True,
-) -&gt; rs.DataSet:
+) -&gt; tuple[rs.DataSet, KparameterScanMetadata]:
     &#34;&#34;&#34;
     Compute k-weighted differences between native and derivative amplitudes and phases.
 
@@ -290,8 +290,8 @@ lower weights.</dd>
     kweighted_dataset: rs.DataSet
         dataset with added columns
 
-    opt_k_parameter: float
-        optimized k-weighting parameter
+    kparameter_metadata: KparameterScanMetadata
+        metadata detailing k-weight scan
     &#34;&#34;&#34;
     assert_is_map(derivative, require_uncertainties=True)
     assert_is_map(native, require_uncertainties=True)
@@ -318,7 +318,18 @@ lower weights.</dd>
         check_isomorphous=check_isomorphous,
     )
 
-    return kweighted_dataset, opt_k_parameter</code></pre>
+    unweighted_diffmap = compute_difference_map(
+        derivative, native, check_isomorphous=check_isomorphous
+    )
+
+    kparameter_metadata = KparameterScanMetadata(
+        initial_negentropy=map_negentropy(unweighted_diffmap),
+        optimal_parameter_value=float(maximizer.argument_optimum),
+        optimal_negentropy=float(maximizer.objective_maximum),
+        parameter_scan_results=maximizer.parameter_scan_results,
+    )
+
+    return kweighted_dataset, kparameter_metadata</code></pre>
 </details>
 <div class="desc"><p>Compute k-weighted differences between native and derivative amplitudes and phases.</p>
 <p>Determines an "optimal" k_parameter, between 0.0 and 1.0, that maximizes the resulting
@@ -339,8 +350,8 @@ before calling this function.</p>
 <dl>
 <dt><strong><code>kweighted_dataset</code></strong> :&ensp;<code>rs.DataSet</code></dt>
 <dd>dataset with added columns</dd>
-<dt><strong><code>opt_k_parameter</code></strong> :&ensp;<code>float</code></dt>
-<dd>optimized k-weighting parameter</dd>
+<dt><strong><code>kparameter_metadata</code></strong> :&ensp;<code>KparameterScanMetadata</code></dt>
+<dd>metadata detailing k-weight scan</dd>
 </dl></div>
 </dd>
 </dl>
