@@ -13,6 +13,7 @@ from meteor.tv import tv_denoise_difference_map
 from meteor.validate import map_negentropy
 
 from .common import (
+    NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
     DiffmapArgParser,
     InvalidWeightModeError,
     WeightMode,
@@ -160,6 +161,12 @@ def main(command_line_arguments: list[str] | None = None) -> None:
     aggregate_metadata = DiffmapMetadata(
         k_parameter_optimization=kparameter_metadata, tv_weight_optmization=tv_metadata
     )
+
+    if aggregate_metadata.tv_weight_optmization.optimal_negentropy <= 0.0:
+        log.warning(
+            NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
+            final_negentropy=aggregate_metadata.tv_weight_optmization.optimal_negentropy,
+        )
 
     log.info("Writing output.", file=str(args.mtzout))
     final_map.write_mtz(args.mtzout)
