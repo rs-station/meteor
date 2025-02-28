@@ -36,9 +36,8 @@ DEFAULT_OUTPUT_MTZ: Path = Path("meteor_difference_map.mtz")
 DEFAULT_OUTPUT_METADATA_FILE: Path = Path("meteor_metadata.json")
 NEGATIVE_NEGENTROPY_WARNING_MESSAGE: str = """\
 Negentropy estimate is negative, but by definition negentropy is a positive value. This indicates
-the map is very close to Gaussian and the true negentropy value is close to zero, but due to
-imprefect estimation appears zero. Your map has too little non-Gaussian signal for `meteor`
-optimize."""
+the map is very close to Gaussian and the true negentropy is close to zero. Your map may have too
+little non-Gaussian signal for `meteor` to optimize."""
 
 
 class InvalidWeightModeError(ValueError): ...
