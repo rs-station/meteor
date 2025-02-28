@@ -13,6 +13,7 @@ from meteor.tv import tv_denoise_difference_map
 from meteor.validate import map_negentropy
 
 from .common import (
+    NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
     DiffmapArgParser,
     InvalidWeightModeError,
     WeightMode,
@@ -163,7 +164,7 @@ def main(command_line_arguments: list[str] | None = None) -> None:
 
     if aggregate_metadata.tv_weight_optmization.optimal_negentropy <= 0.0:
         log.warning(
-            "Final negentropy negative! Something has almost certainly gone wrong...",
+            NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
             final_negentropy=aggregate_metadata.tv_weight_optmization.optimal_negentropy,
         )
 

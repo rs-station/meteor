@@ -15,7 +15,11 @@ from meteor.settings import (
 )
 from meteor.tv import tv_denoise_difference_map
 
-from .common import DiffmapArgParser, kweight_diffmap_according_to_mode
+from .common import (
+    NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
+    DiffmapArgParser,
+    kweight_diffmap_according_to_mode,
+)
 
 log = structlog.get_logger()
 
@@ -110,7 +114,7 @@ def main(command_line_arguments: list[str] | None = None) -> None:
 
     if combined_metadata.final_tv_pass.optimal_negentropy <= 0.0:
         log.warning(
-            "Final negentropy negative! Something has almost certainly gone wrong...",
+            NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
             final_negentropy=combined_metadata.final_tv_pass.optimal_negentropy,
         )
 
