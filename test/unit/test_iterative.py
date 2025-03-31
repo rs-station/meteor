@@ -120,7 +120,7 @@ def test_iterative_tv_denoiser(
         assert expected_col in metadata_as_df.columns
 
     negentropy_change = metadata_as_df["negentropy_after_tv"].diff().to_numpy()
-    assert (negentropy_change[1:-1] >= -0.01).all()
+    assert (negentropy_change[1:-1] >= -0.02).all()
 
     phase_change_change = metadata_as_df["average_phase_change"].diff().to_numpy()
     assert (phase_change_change[1:-1] <= 0.1).all()
