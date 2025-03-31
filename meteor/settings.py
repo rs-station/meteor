@@ -18,7 +18,7 @@ OBSERVED_INTENSITY_COLUMNS: list[str] = [
     "I",  # generic
     "IMEAN",  # CCP4
     "I-obs",  # phenix
-    "IBOS",  # phenix
+    "IOBS",  # phenix
 ]
 OBSERVED_AMPLITUDE_COLUMNS: list[str] = [
     "F",  # generic
