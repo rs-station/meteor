@@ -53,6 +53,12 @@ TV_STOP_TOLERANCE: float = 0.00000005  # inner loop; not for iterative-tv phase 
 TV_MAX_NUM_ITER: int = 50  # inner loop; not for iterative-tv phase retrieval
 TV_WEIGHT_PARAMETER_NAME: str = "tv_weight"
 
+# lp Gaussian
+GAUSSIAN_BRACKET_FOR_GOLDEN_OPTIMIZATION: tuple[float, float] = (0.0, 5.0)  # the braket can expand
+GAUSSIAN_SIGMA_MIN: float = 0.01
+GAUSSIAN_SIGMA_MAX: float = 0.5
+GAUSSIAN_SIGMA_PARAMETER_NAME: str = "lpG_sigma"
+
 # iterative tv
 ITERATIVE_TV_CONVERGENCE_TOLERANCE: float = 0.001
 ITERATIVE_TV_MAX_ITERATIONS: int = 100

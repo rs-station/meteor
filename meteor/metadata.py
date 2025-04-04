@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from .settings import K_PARAMETER_NAME, TV_WEIGHT_PARAMETER_NAME
+from .settings import K_PARAMETER_NAME, TV_WEIGHT_PARAMETER_NAME, GAUSSIAN_SIGMA_PARAMETER_NAME
 
 
 class EvaluatedPoint(BaseModel):
@@ -23,6 +23,12 @@ class KparameterScanMetadata(MaximizerScanMetadata):
 class TvScanMetadata(MaximizerScanMetadata):
     parameter_name: str = TV_WEIGHT_PARAMETER_NAME
     map_sampling: float
+
+
+class GaussianScanMetadata(MaximizerScanMetadata):
+    parameter_name: str = GAUSSIAN_SIGMA_PARAMETER_NAME
+    map_sampling: float
+    normalised_sigma: float
 
 
 class DiffmapMetadata(BaseModel):
