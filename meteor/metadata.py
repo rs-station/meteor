@@ -23,12 +23,16 @@ class KparameterScanMetadata(MaximizerScanMetadata):
 class TvScanMetadata(MaximizerScanMetadata):
     parameter_name: str = TV_WEIGHT_PARAMETER_NAME
     map_sampling: float
+    negentropy_gain: float
+    negentropy_gain_ratio: float
 
 
 class GaussianScanMetadata(MaximizerScanMetadata):
     parameter_name: str = GAUSSIAN_SIGMA_PARAMETER_NAME
     map_sampling: float
     normalised_sigma: float
+    negentropy_gain: float
+    negentropy_gain_ratio: float
 
 
 class DiffmapMetadata(BaseModel):

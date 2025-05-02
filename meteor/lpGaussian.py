@@ -47,8 +47,16 @@ def low_pass_denoise_difference_map(
 
     realspace_map_array = difference_map.to_3d_numpy_map(map_sampling=MAP_SAMPLING)
     # Compute voxel size (assuming difference_map.cell is a tuple (a, b, c) in Å)
-    voxel_size = np.array(difference_map.cell.parameters) / MAP_SAMPLING
-    avg_voxel_size = np.mean(voxel_size)  # Average voxel size for isotropic filtering
+ 
+    cell_lengths = np.array([difference_map.cell.a, difference_map.cell.b, difference_map.cell.c])
+    print("Difference map cell paratemers are: ")
+    print(difference_map.cell.parameters)
+
+
+    voxel_size = cell_lengths / MAP_SAMPLING  # if MAP_SAMPLING is a scalar
+    print("Voxel size")
+    print(voxel_size)
+    avg_voxel_size = np.mean(voxel_size)
 
 
     def negentropy_objective(lp_weight: float) -> float:
@@ -105,6 +113,8 @@ def low_pass_denoise_difference_map(
         high_resolution_limit=difference_map.resolution_limits[1],
     )
 
+
+
     # propogate uncertainties
     if difference_map.has_uncertainties:
         final_map.set_uncertainties(difference_map.uncertainties)
@@ -116,14 +126,15 @@ def low_pass_denoise_difference_map(
             initial_negentropy=float(initial_negentropy),
             optimal_parameter_value=float(maximizer.argument_optimum),
             optimal_negentropy=float(maximizer.objective_maximum),
+            negentropy_gain=float(maximizer.objective_maximum - initial_negentropy),
+            negentropy_gain_ratio=float((maximizer.objective_maximum - initial_negentropy) / initial_negentropy),
             map_sampling=MAP_SAMPLING,
             normalised_sigma=float(normalised_sigma),
             parameter_scan_results=maximizer.parameter_scan_results,
         )
         return final_map, lp_result
 
-    return final_map
-
+    return final_ma
 
 
 

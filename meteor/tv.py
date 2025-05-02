@@ -154,6 +154,8 @@ def tv_denoise_difference_map(
             initial_negentropy=float(initial_negentropy),
             optimal_parameter_value=float(maximizer.argument_optimum),
             optimal_negentropy=float(maximizer.objective_maximum),
+            negentropy_gain=float(maximizer.objective_maximum - initial_negentropy),
+            negentropy_gain_ratio=float((maximizer.objective_maximum - initial_negentropy) / initial_negentropy),
             map_sampling=MAP_SAMPLING,
             parameter_scan_results=maximizer.parameter_scan_results,
         )
