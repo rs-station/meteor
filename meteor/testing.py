@@ -47,7 +47,7 @@ def single_carbon_structure(
     space_group: gemmi.SpaceGroup,
     unit_cell: gemmi.UnitCell,
 ) -> gemmi.Structure:
-    model = gemmi.Model(0)
+    model = gemmi.Model("model0")
     chain = gemmi.Chain("A")
 
     residue = gemmi.Residue()
