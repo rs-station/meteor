@@ -252,6 +252,7 @@ class DiffmapArgParser(argparse.ArgumentParser):
             uncertainty_column=found_uncertainty_column,
         )
 
+    # TODO: expose this as an isolated function
     @staticmethod
     def load_difference_maps(args: argparse.Namespace) -> DiffMapSet:
         # note: method accepts `args`, in case the passed arguments are mutable

@@ -7,6 +7,8 @@ from unittest import mock
 
 import pytest
 
+from meteor.metadata import DiffmapMetadata
+from meteor.rsmap import Map
 from meteor.scripts import compute_difference_map
 from meteor.scripts.common import DiffMapSet, WeightMode
 from meteor.scripts.compute_difference_map import (
@@ -36,6 +38,19 @@ def parsed_tv_cli_args(tv_cli_arguments: list[str]) -> argparse.Namespace:
 def test_tv_diffmap_parser(parsed_tv_cli_args: argparse.Namespace) -> None:
     assert parsed_tv_cli_args.tv_denoise_mode == WeightMode.fixed
     assert parsed_tv_cli_args.tv_weight == TV_WEIGHT
+
+
+def test_compute_meteor_difference_map(diffmap_set: DiffMapSet, fixed_kparameter: float):
+    final_map, final_metadata = compute_difference_map.compute_meteor_difference_map(
+        diffmap_set=diffmap_set,
+        kweight_mode=WeightMode.fixed,
+        tv_denoise_mode=WeightMode.fixed,
+        kweight_parameter=fixed_kparameter,
+        tv_weight=TV_WEIGHT,
+    )
+    assert isinstance(final_map, Map)
+    assert isinstance(final_metadata, DiffmapMetadata)
+    assert len(final_map > 0)
 
 
 def test_main(diffmap_set: DiffMapSet, tmp_path: Path, fixed_kparameter: float) -> None:
