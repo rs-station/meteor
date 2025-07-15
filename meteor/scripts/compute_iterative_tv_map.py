@@ -140,7 +140,6 @@ def main(command_line_arguments: list[str] | None = None) -> None:
         tv_weights_to_scan=args.tv_weights_to_scan,
         convergence_tolerance=args.convergence_tolerance,
         max_iterations=args.max_iterations,
-        verbose=True,
     )
 
     log.info("Writing output.", file=str(args.mtzout))

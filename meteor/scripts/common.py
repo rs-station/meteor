@@ -281,13 +281,11 @@ class DiffmapArgParser(argparse.ArgumentParser):
             low_resolution_limit=args.lowres,
         )
 
-        mapset = DiffMapSet(
+        return DiffMapSet(
             native=native_map,
             derivative=derivative_map,
             calculated=calculated_map,
         )
-        
-        return mapset
 
 
 def kweight_diffmap_according_to_mode(
