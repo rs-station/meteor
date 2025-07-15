@@ -12,10 +12,8 @@ import pytest
 from meteor.metadata import EvaluatedPoint, TvScanMetadata
 from meteor.rsmap import Map
 from meteor.scripts import compute_iterative_tv_map
-from meteor.scripts.common import DiffMapSet
-from meteor.scripts.compute_iterative_tv_map import (
-    IterativeTvArgParser,
-)
+from meteor.scripts.common import DiffMapSet, WeightMode
+from meteor.scripts.compute_iterative_tv_map import IterativeDiffmapMetadata, IterativeTvArgParser
 
 TV_WEIGHTS_TO_SCAN = [0.01, 0.05]
 
@@ -54,6 +52,28 @@ def parsed_tv_cli_args(tv_cli_arguments: list[str]) -> argparse.Namespace:
 
 def test_tv_diffmap_parser(parsed_tv_cli_args: argparse.Namespace) -> None:
     assert parsed_tv_cli_args.tv_weights_to_scan == TV_WEIGHTS_TO_SCAN
+
+
+@pytest.mark.parametrize("verbose", [False, True])
+def test_compute_meteor_iteratively_phased_difference_map(
+    diffmap_set: DiffMapSet, verbose: bool, fixed_kparameter: float
+) -> None:
+    patch = mock.patch(
+        "meteor.scripts.compute_iterative_tv_map.tv_denoise_difference_map",
+        mock_tv_denoise_difference_map,
+    )
+
+    with patch:
+        final_map, combined_metadata = compute_iterative_tv_map.compute_iterative_difference_map(
+            diffmap_set=diffmap_set,
+            kweight_mode=WeightMode.fixed,
+            kweight_parameter=fixed_kparameter,
+            verbose=verbose,
+        )
+
+    assert isinstance(final_map, Map)
+    assert isinstance(combined_metadata, IterativeDiffmapMetadata)
+    assert len(final_map > 0)
 
 
 def test_main(diffmap_set: DiffMapSet, tmp_path: Path, fixed_kparameter: float) -> None:

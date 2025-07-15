@@ -8,6 +8,7 @@ import structlog
 
 from meteor.iterative import IterativeTvDenoiser
 from meteor.metadata import IterativeDiffmapMetadata
+from meteor.rsmap import Map
 from meteor.settings import (
     DEFAULT_TV_WEIGHTS_TO_SCAN_AT_EACH_ITERATION,
     ITERATIVE_TV_CONVERGENCE_TOLERANCE,
@@ -18,6 +19,8 @@ from meteor.tv import tv_denoise_difference_map
 from .common import (
     NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
     DiffmapArgParser,
+    DiffMapSet,
+    WeightMode,
     kweight_diffmap_according_to_mode,
 )
 
@@ -60,6 +63,62 @@ class IterativeTvArgParser(DiffmapArgParser):
         )
 
 
+def compute_iterative_difference_map(  # noqa: PLR0913
+    *,
+    diffmap_set: DiffMapSet,
+    kweight_mode: WeightMode,
+    kweight_parameter: float | None = None,
+    tv_weights_to_scan: list[float] = DEFAULT_TV_WEIGHTS_TO_SCAN_AT_EACH_ITERATION,
+    convergence_tolerance: float = ITERATIVE_TV_CONVERGENCE_TOLERANCE,
+    max_iterations: int = ITERATIVE_TV_MAX_ITERATIONS,
+    verbose: bool = False,
+) -> tuple[Map, IterativeDiffmapMetadata]:
+    if verbose:
+        log.info("Launching iterative TV phase retrieval", tv_weights_to_scan=tv_weights_to_scan)
+        log.info("This will take time, typically minutes...")
+
+    denoiser = IterativeTvDenoiser(
+        tv_weights_to_scan=tv_weights_to_scan,
+        convergence_tolerance=convergence_tolerance,
+        max_iterations=max_iterations,
+        verbose=True,
+    )
+    diffmap_set.derivative, it_tv_metadata = denoiser(
+        derivative=diffmap_set.derivative, native=diffmap_set.native
+    )
+    if verbose:
+        log.info("Convergence.")
+
+    diffmap, kparameter_metadata = kweight_diffmap_according_to_mode(
+        kweight_mode=kweight_mode, kweight_parameter=kweight_parameter, mapset=diffmap_set
+    )
+
+    if verbose:
+        log.info("Final real-space TV denoising pass...", method="golden-section search")
+        log.info("This may take some time (up to a few minutes)...")
+    final_map, final_tv_metadata = tv_denoise_difference_map(diffmap, full_output=True)
+
+    if verbose:
+        log.info(
+            "Optimal TV weight found",
+            weight=f"{final_tv_metadata.optimal_parameter_value:.2e}",
+            final_negentropy=round(final_tv_metadata.optimal_negentropy, 4),
+        )
+
+    combined_metadata = IterativeDiffmapMetadata(
+        kparameter_metadata=kparameter_metadata,
+        iterative_tv_iterations=it_tv_metadata,
+        final_tv_pass=final_tv_metadata,
+    )
+    if combined_metadata.final_tv_pass.optimal_negentropy <= 0.0:
+        log.warning(
+            NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
+            final_negentropy=combined_metadata.final_tv_pass.optimal_negentropy,
+        )
+
+    return final_map, combined_metadata
+
+
 def main(command_line_arguments: list[str] | None = None) -> None:
     parser = IterativeTvArgParser(
         description=(
@@ -77,47 +136,20 @@ def main(command_line_arguments: list[str] | None = None) -> None:
     parser.check_output_filepaths(args)
     mapset = parser.load_difference_maps(args)
 
-    log.info("Launching iterative TV phase retrieval", tv_weights_to_scan=args.tv_weights_to_scan)
-    log.info("This will take time, typically minutes...")
-    denoiser = IterativeTvDenoiser(
+    final_map, combined_metadata = compute_iterative_difference_map(
+        diffmap_set=mapset,
+        kweight_mode=args.kweight_mode,
+        kweight_parameter=args.kweight_parameter,
         tv_weights_to_scan=args.tv_weights_to_scan,
         convergence_tolerance=args.convergence_tolerance,
         max_iterations=args.max_iterations,
         verbose=True,
-    )
-    mapset.derivative, it_tv_metadata = denoiser(derivative=mapset.derivative, native=mapset.native)
-    log.info("Convergence.")
-
-    diffmap, kparameter_metadata = kweight_diffmap_according_to_mode(
-        kweight_mode=args.kweight_mode, kweight_parameter=args.kweight_parameter, mapset=mapset
-    )
-
-    log.info("Final real-space TV denoising pass...", method="golden-section search")
-    log.info("This may take some time (up to a few minutes)...")
-    final_map, final_tv_metadata = tv_denoise_difference_map(diffmap, full_output=True)
-
-    log.info(
-        "Optimal TV weight found",
-        weight=f"{final_tv_metadata.optimal_parameter_value:.2e}",
-        final_negentropy=round(final_tv_metadata.optimal_negentropy, 4),
     )
 
     log.info("Writing output.", file=str(args.mtzout))
     final_map.write_mtz(args.mtzout)
 
     log.info("Writing metadata.", file=str(args.metadataout))
-    combined_metadata = IterativeDiffmapMetadata(
-        kparameter_metadata=kparameter_metadata,
-        iterative_tv_iterations=it_tv_metadata,
-        final_tv_pass=final_tv_metadata,
-    )
-
-    if combined_metadata.final_tv_pass.optimal_negentropy <= 0.0:
-        log.warning(
-            NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
-            final_negentropy=combined_metadata.final_tv_pass.optimal_negentropy,
-        )
-
     with args.metadataout.open("w") as f:
         f.write(combined_metadata.model_dump_json(round_trip=True, indent=4))
 
