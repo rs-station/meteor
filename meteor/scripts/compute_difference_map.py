@@ -87,6 +87,7 @@ def denoise_diffmap_according_to_mode(
     metadata: meteor.metadata.TvScanMetadata
         Information regarding the denoising process.
     """
+    
     if tv_denoise_mode == WeightMode.optimize:
         log.info("Searching for max-negentropy TV denoising weight", method="golden-section search")
         log.info("This may take some time...")
@@ -139,13 +140,15 @@ def denoise_diffmap_according_to_mode(
 
 
 def compute_meteor_difference_map(
-    *,
     diffmap_set: DiffMapSet,
-    kweight_mode: WeightMode,
-    tv_denoise_mode: WeightMode,
+    *,
+    kweight_mode: WeightMode = WeightMode.optimize,
+    tv_denoise_mode: WeightMode = WeightMode.optimize,
     kweight_parameter: float | None = None,
     tv_weight: float | None = None,
 ) -> tuple[Map, DiffmapMetadata]:
+    diffmap_set.scale()
+    
     diffmap, kparameter_metadata = kweight_diffmap_according_to_mode(
         kweight_mode=kweight_mode,
         kweight_parameter=kweight_parameter,

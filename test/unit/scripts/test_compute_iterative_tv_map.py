@@ -54,9 +54,8 @@ def test_tv_diffmap_parser(parsed_tv_cli_args: argparse.Namespace) -> None:
     assert parsed_tv_cli_args.tv_weights_to_scan == TV_WEIGHTS_TO_SCAN
 
 
-@pytest.mark.parametrize("verbose", [False, True])
 def test_compute_meteor_iteratively_phased_difference_map(
-    diffmap_set: DiffMapSet, verbose: bool, fixed_kparameter: float
+    diffmap_set: DiffMapSet, fixed_kparameter: float
 ) -> None:
     patch = mock.patch(
         "meteor.scripts.compute_iterative_tv_map.tv_denoise_difference_map",
@@ -68,7 +67,6 @@ def test_compute_meteor_iteratively_phased_difference_map(
             diffmap_set=diffmap_set,
             kweight_mode=WeightMode.fixed,
             kweight_parameter=fixed_kparameter,
-            verbose=verbose,
         )
 
     assert isinstance(final_map, Map)

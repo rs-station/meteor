@@ -64,18 +64,18 @@ class IterativeTvArgParser(DiffmapArgParser):
 
 
 def compute_iterative_difference_map(  # noqa: PLR0913
-    *,
     diffmap_set: DiffMapSet,
-    kweight_mode: WeightMode,
+    *,
+    kweight_mode: WeightMode = WeightMode.optimize,
     kweight_parameter: float | None = None,
     tv_weights_to_scan: list[float] = DEFAULT_TV_WEIGHTS_TO_SCAN_AT_EACH_ITERATION,
     convergence_tolerance: float = ITERATIVE_TV_CONVERGENCE_TOLERANCE,
     max_iterations: int = ITERATIVE_TV_MAX_ITERATIONS,
-    verbose: bool = False,
 ) -> tuple[Map, IterativeDiffmapMetadata]:
-    if verbose:
-        log.info("Launching iterative TV phase retrieval", tv_weights_to_scan=tv_weights_to_scan)
-        log.info("This will take time, typically minutes...")
+    log.info("Launching iterative TV phase retrieval", tv_weights_to_scan=tv_weights_to_scan)
+    log.info("This will take time, typically minutes...")
+
+    diffmap_set.scale()
 
     denoiser = IterativeTvDenoiser(
         tv_weights_to_scan=tv_weights_to_scan,
@@ -86,24 +86,21 @@ def compute_iterative_difference_map(  # noqa: PLR0913
     diffmap_set.derivative, it_tv_metadata = denoiser(
         derivative=diffmap_set.derivative, native=diffmap_set.native
     )
-    if verbose:
-        log.info("Convergence.")
+    log.info("Convergence.")
 
     diffmap, kparameter_metadata = kweight_diffmap_according_to_mode(
         kweight_mode=kweight_mode, kweight_parameter=kweight_parameter, mapset=diffmap_set
     )
 
-    if verbose:
-        log.info("Final real-space TV denoising pass...", method="golden-section search")
-        log.info("This may take some time (up to a few minutes)...")
+    log.info("Final real-space TV denoising pass...", method="golden-section search")
+    log.info("This may take some time (up to a few minutes)...")
     final_map, final_tv_metadata = tv_denoise_difference_map(diffmap, full_output=True)
 
-    if verbose:
-        log.info(
-            "Optimal TV weight found",
-            weight=f"{final_tv_metadata.optimal_parameter_value:.2e}",
-            final_negentropy=round(final_tv_metadata.optimal_negentropy, 4),
-        )
+    log.info(
+        "Optimal TV weight found",
+        weight=f"{final_tv_metadata.optimal_parameter_value:.2e}",
+        final_negentropy=round(final_tv_metadata.optimal_negentropy, 4),
+    )
 
     combined_metadata = IterativeDiffmapMetadata(
         kparameter_metadata=kparameter_metadata,
