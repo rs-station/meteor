@@ -329,7 +329,7 @@ def kweight_diffmap_according_to_mode(
             mapset.derivative, mapset.native
         )
         log.info("  using negentropy max.", kparameter=kparameter_metadata.optimal_parameter_value)
-        if kweight_parameter is np.nan:
+        if np.isnan(kparameter_metadata.optimal_parameter_value):
             msg = "determined `k-parameter` is NaN, something went wrong..."
             raise RuntimeError(msg)
 
