@@ -40,11 +40,18 @@ def test_tv_diffmap_parser(parsed_tv_cli_args: argparse.Namespace) -> None:
     assert parsed_tv_cli_args.tv_weight == TV_WEIGHT
 
 
-def test_compute_meteor_difference_map(diffmap_set: DiffMapSet, fixed_kparameter: float) -> None:
+@pytest.mark.parametrize("kweight_mode", list(WeightMode))
+@pytest.mark.parametrize("tv_denoise_mode", list(WeightMode))
+def test_compute_meteor_difference_map(
+    diffmap_set: DiffMapSet,
+    fixed_kparameter: float,
+    kweight_mode: WeightMode,
+    tv_denoise_mode: WeightMode,
+) -> None:
     final_map, final_metadata = compute_difference_map.compute_meteor_difference_map(
         diffmap_set=diffmap_set,
-        kweight_mode=WeightMode.fixed,
-        tv_denoise_mode=WeightMode.fixed,
+        kweight_mode=kweight_mode,
+        tv_denoise_mode=tv_denoise_mode,
         kweight_parameter=fixed_kparameter,
         tv_weight=TV_WEIGHT,
     )
