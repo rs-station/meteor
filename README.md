@@ -16,18 +16,17 @@
 
 ## quickstart
 
-❗ `meteor` is currently **in beta**. We re-wrote everything recently, moving from a research code to something that can be robustly used as a tool. If you are willing to put up with a few sharp edges, it would be great if you give it a spin and then send us feedback: on how easy/not it was to use and what kinds of scientific results you obtain. Raise an issue or email us if you notice anything or hit any problems. Expect changes in the coming weeks as we stress test the code. You might want to consider this before publishing any results with `meteor` until we exit `beta`. 
-
-First, meteor needs a python `3.11` or `3.12` environment. To be sure things work, we recommend [installing conda](https://docs.anaconda.com/miniconda/) and creating a fresh environment,
+Meteor needs a python `3.11` or `3.12` environment. We recommend [installing conda](https://docs.anaconda.com/miniconda/) and creating a fresh environment,
 ```
-conda create --name meteor python==3.11 --yes
+conda create --name meteor python==3.12 --yes
 conda activate meteor
 ```
 
-Then install `meteor` using pip
+Then install `meteor` 
 ```
 pip install meteor-maps
 ```
+alternatively, use conda: `conda install meteor-maps -c conda-forge`.
 
 Once installed, you will have two command-line scripts. Ask for more info using `-h`:
 ```
