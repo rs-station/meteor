@@ -9,9 +9,9 @@ import pytest
 
 from meteor.metadata import DiffmapMetadata
 from meteor.rsmap import Map
-from meteor.scripts import compute_difference_map
+from meteor.scripts import diffmap
 from meteor.scripts.common import DiffMapSet, WeightMode
-from meteor.scripts.compute_difference_map import (
+from meteor.scripts.diffmap import (
     TvDiffmapArgParser,
 )
 
@@ -48,7 +48,7 @@ def test_compute_meteor_difference_map(
     kweight_mode: WeightMode,
     tv_denoise_mode: WeightMode,
 ) -> None:
-    final_map, final_metadata = compute_difference_map.compute_meteor_difference_map(
+    final_map, final_metadata = diffmap.compute_meteor_difference_map(
         diffmap_set=diffmap_set,
         kweight_mode=kweight_mode,
         tv_denoise_mode=tv_denoise_mode,
@@ -86,9 +86,9 @@ def test_main(diffmap_set: DiffMapSet, tmp_path: Path, fixed_kparameter: float) 
         str(TV_WEIGHT),
     ]
 
-    fxn_to_mock = "meteor.scripts.compute_difference_map.TvDiffmapArgParser.load_difference_maps"
+    fxn_to_mock = "meteor.scripts.diffmap.TvDiffmapArgParser.load_difference_maps"
     with mock.patch(fxn_to_mock, mock_load_difference_maps):
-        compute_difference_map.main(cli_arguments)
+        diffmap.main(cli_arguments)
 
     assert output_mtz_path.exists()
     assert output_metadata_path.exists()

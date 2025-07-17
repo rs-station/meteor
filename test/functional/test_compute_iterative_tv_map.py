@@ -6,7 +6,7 @@ import reciprocalspaceship as rs
 from meteor import settings
 from meteor.metadata import IterativeDiffmapMetadata
 from meteor.rsmap import Map
-from meteor.scripts import compute_iterative_tv_map
+from meteor.scripts import phaseboost
 from meteor.testing import check_leaf_floats_are_finite
 from meteor.utils import filter_common_indices
 
@@ -46,7 +46,7 @@ def test_script_produces_consistent_results(
         "5",
     ]
 
-    compute_iterative_tv_map.main(cli_args)
+    phaseboost.main(cli_args)
 
     with output_metadata.open("r") as f:
         metadata = IterativeDiffmapMetadata.model_validate_json(f.read())

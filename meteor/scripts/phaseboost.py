@@ -63,7 +63,7 @@ class IterativeTvArgParser(DiffmapArgParser):
         )
 
 
-def compute_iterative_difference_map(  # noqa: PLR0913
+def compute_meteor_phaseboost_map(  # noqa: PLR0913
     diffmap_set: DiffMapSet,
     *,
     kweight_mode: WeightMode = WeightMode.optimize,
@@ -119,7 +119,7 @@ def compute_iterative_difference_map(  # noqa: PLR0913
 def main(command_line_arguments: list[str] | None = None) -> None:
     parser = IterativeTvArgParser(
         description=(
-            "Compute an difference map, where the phases of the derivative structure are estimated "
+            "Compute a difference map, where the phases of the derivative structure are estimated "
             "using the assumption that the resulting map should have a low total variation. Phases "
             "are estimated using a crystallographic analog of the Gerchberg-Saxton algorithm, with "
             "TV denoising as the real-space constraint.\n\n K-weighting can optionally be used to "
@@ -133,7 +133,7 @@ def main(command_line_arguments: list[str] | None = None) -> None:
     parser.check_output_filepaths(args)
     mapset = parser.load_difference_maps(args)
 
-    final_map, combined_metadata = compute_iterative_difference_map(
+    final_map, combined_metadata = compute_meteor_phaseboost_map(
         diffmap_set=mapset,
         kweight_mode=args.kweight_mode,
         kweight_parameter=args.kweight_parameter,

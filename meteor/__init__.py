@@ -2,12 +2,12 @@
 
 __all__ = [
     "__version__",
-    "compute_iterative_difference_map",
     "compute_meteor_difference_map",
+    "compute_meteor_phaseboost_map",
     "version",
 ]
 
-from meteor.scripts.compute_difference_map import compute_meteor_difference_map
-from meteor.scripts.compute_iterative_tv_map import compute_iterative_difference_map
+from meteor.scripts.diffmap import compute_meteor_difference_map
+from meteor.scripts.phaseboost import compute_meteor_phaseboost_map
 
 from ._version import __version__, version
