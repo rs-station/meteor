@@ -40,8 +40,8 @@ notebooks = [
 ]
 
 [project.scripts]
-"meteor.diffmap" = "meteor.scripts.compute_difference_map:main"
-"meteor.phaseboost" = "meteor.scripts.compute_iterative_tv_map:main"
+"meteor.diffmap" = "meteor.scripts.diffmap:main"
+"meteor.phaseboost" = "meteor.scripts.phaseboost:main"
 
 [project.urls]
 Homepage = "https://github.com/rs-station/meteor"

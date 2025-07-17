@@ -7,7 +7,7 @@ import reciprocalspaceship as rs
 from meteor import settings
 from meteor.metadata import DiffmapMetadata, KparameterScanMetadata
 from meteor.rsmap import Map
-from meteor.scripts import compute_difference_map
+from meteor.scripts import diffmap
 from meteor.scripts.common import WeightMode
 from meteor.utils import filter_common_indices
 
@@ -59,7 +59,7 @@ def test_script_produces_consistent_results(
         str(tv_weight),
     ]
 
-    compute_difference_map.main(cli_args)
+    diffmap.main(cli_args)
 
     with output_metadata_file.open("r") as f:
         diffmap_metadata = DiffmapMetadata.model_validate_json(f.read())

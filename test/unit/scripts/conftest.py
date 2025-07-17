@@ -8,9 +8,11 @@ from meteor.scripts.common import DiffMapSet
 
 @pytest.fixture
 def diffmap_set(random_difference_map: Map) -> DiffMapSet:
+    derivative = random_difference_map.copy()
+    derivative["F"] += 1.0  # ensure there is some change
     return DiffMapSet(
         native=random_difference_map.copy(),
-        derivative=random_difference_map.copy(),
+        derivative=derivative,
         calculated=random_difference_map.copy(),
     )
 
