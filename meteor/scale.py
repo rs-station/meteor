@@ -208,7 +208,7 @@ def scale_maps(
 
     scaled_map: Map = map_to_scale.copy()
     scaled_map = scaled_map[~np.isnan(scaled_map.amplitudes)]
-    if not len(scaled_map) == len(scale_factors):
+    if len(scaled_map) != len(scale_factors):
         msg = f"map (len: {scaled_map}) and scale_factors (len: {scale_factors}) do not have a "
         msg += "common size -- something went wrong, contact the developers"
         raise RuntimeError(msg)
