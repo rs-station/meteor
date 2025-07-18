@@ -206,9 +206,21 @@ def scale_maps(
             reference_values=reference_map.amplitudes, values_to_scale=map_to_scale.amplitudes
         )
 
+    number_of_non_nan_values_to_scale = np.sum(np.isfinite(map_to_scale.amplitudes))
+    if number_of_non_nan_values_to_scale != len(scale_factors):
+        msg = f"map (number of non-nan values: {number_of_non_nan_values_to_scale}) and  "
+        msg += f"scale_factors (len: {scale_factors}) do not have a common size -- something went "
+        msg += "wrong, contact the developers"
+        raise RuntimeError(msg)
+
     scaled_map: Map = map_to_scale.copy()
-    scaled_map.amplitudes *= scale_factors
+    scaled_map.loc[np.isfinite(scaled_map.amplitudes), scaled_map.amplitude_column_name] *= (
+        scale_factors
+    )
+
     if scaled_map.has_uncertainties:
-        scaled_map.uncertainties *= scale_factors
+        scaled_map.loc[
+            np.isfinite(scaled_map.amplitudes), scaled_map.uncertainties_column_name
+        ] *= scale_factors
 
     return scaled_map
