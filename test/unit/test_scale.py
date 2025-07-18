@@ -111,6 +111,18 @@ def test_scale_maps(random_difference_map: Map, use_uncertainties: bool) -> None
     )
 
 
+@pytest.mark.parametrize("use_uncertainties", [False, True])
+def test_scale_maps_nans_in_input(random_difference_map: Map, use_uncertainties: bool) -> None:
+    another_difference_map = random_difference_map.copy()
+    another_difference_map.loc[0, another_difference_map.amplitude_column_name] = np.nan
+
+    scale.scale_maps(
+        reference_map=random_difference_map,
+        map_to_scale=another_difference_map,
+        weight_using_uncertainties=use_uncertainties,
+    )
+
+
 def test_scale_maps_uncertainty_weighting() -> None:
     x = np.array([1, 2, 3])
     y = np.array([4, 8, 2])
