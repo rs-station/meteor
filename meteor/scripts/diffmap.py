@@ -15,6 +15,7 @@ from meteor.validate import map_negentropy
 from .common import (
     NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
     DiffmapArgParser,
+    DiffMapSet,
     InvalidWeightModeError,
     WeightMode,
     kweight_diffmap_according_to_mode,
@@ -137,6 +138,37 @@ def denoise_diffmap_according_to_mode(
     return final_map, metadata
 
 
+def compute_meteor_difference_map(
+    diffmap_set: DiffMapSet,
+    *,
+    kweight_mode: WeightMode = WeightMode.optimize,
+    tv_denoise_mode: WeightMode = WeightMode.optimize,
+    kweight_parameter: float | None = None,
+    tv_weight: float | None = None,
+) -> tuple[Map, DiffmapMetadata]:
+    diffmap_set.scale()
+
+    diffmap, kparameter_metadata = kweight_diffmap_according_to_mode(
+        kweight_mode=kweight_mode,
+        kweight_parameter=kweight_parameter,
+        mapset=diffmap_set,
+    )
+    final_map, tv_metadata = denoise_diffmap_according_to_mode(
+        tv_denoise_mode=tv_denoise_mode, tv_weight=tv_weight, diffmap=diffmap
+    )
+    aggregate_metadata = DiffmapMetadata(
+        k_parameter_optimization=kparameter_metadata, tv_weight_optmization=tv_metadata
+    )
+
+    if aggregate_metadata.tv_weight_optmization.optimal_negentropy <= 0.0:
+        log.warning(
+            NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
+            final_negentropy=aggregate_metadata.tv_weight_optmization.optimal_negentropy,
+        )
+
+    return final_map, aggregate_metadata
+
+
 def main(command_line_arguments: list[str] | None = None) -> None:
     parser = TvDiffmapArgParser(
         description=(
@@ -151,22 +183,13 @@ def main(command_line_arguments: list[str] | None = None) -> None:
     parser.check_output_filepaths(args)
     mapset = parser.load_difference_maps(args)
 
-    diffmap, kparameter_metadata = kweight_diffmap_according_to_mode(
-        kweight_mode=args.kweight_mode, kweight_parameter=args.kweight_parameter, mapset=mapset
+    final_map, aggregate_metadata = compute_meteor_difference_map(
+        diffmap_set=mapset,
+        kweight_mode=args.kweight_mode,
+        tv_denoise_mode=args.tv_denoise_mode,
+        kweight_parameter=args.kweight_parameter,
+        tv_weight=args.tv_weight,
     )
-    final_map, tv_metadata = denoise_diffmap_according_to_mode(
-        tv_denoise_mode=args.tv_denoise_mode, tv_weight=args.tv_weight, diffmap=diffmap
-    )
-
-    aggregate_metadata = DiffmapMetadata(
-        k_parameter_optimization=kparameter_metadata, tv_weight_optmization=tv_metadata
-    )
-
-    if aggregate_metadata.tv_weight_optmization.optimal_negentropy <= 0.0:
-        log.warning(
-            NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
-            final_negentropy=aggregate_metadata.tv_weight_optmization.optimal_negentropy,
-        )
 
     log.info("Writing output.", file=str(args.mtzout))
     final_map.write_mtz(args.mtzout)

@@ -39,14 +39,18 @@ def test_diffmap_set_smoke(diffmap_set: DiffMapSet) -> None:
 
 
 @pytest.mark.parametrize("use_uncertainties", [False, True])
-def test_diffmap_set_scale(diffmap_set: DiffMapSet, use_uncertainties: bool) -> None:
-    diffmap_set.calculated["F"] *= 2
+def test_diffmap_set_scale(random_difference_map: Map, use_uncertainties: bool) -> None:
+    diffmap_set = DiffMapSet(
+        native=random_difference_map.copy(),
+        derivative=random_difference_map.copy(),
+        calculated=random_difference_map.copy() * 2.0,
+    )
 
     # upon scale, both native and derivative should also become 2x bigger
     native_amps_before = diffmap_set.native["F"].to_numpy()
     derivative_amps_before = diffmap_set.native["F"].to_numpy()
 
-    diffmap_set.scale()
+    diffmap_set.scale(weight_using_uncertainties=use_uncertainties)
 
     assert np.all(native_amps_before * 2 == diffmap_set.native["F"].to_numpy())
     assert np.all(derivative_amps_before * 2 == diffmap_set.derivative["F"].to_numpy())
