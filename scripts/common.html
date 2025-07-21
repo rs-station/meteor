@@ -94,7 +94,7 @@ el.replaceWith(d);
             mapset.derivative, mapset.native
         )
         log.info(&#34;  using negentropy max.&#34;, kparameter=kparameter_metadata.optimal_parameter_value)
-        if kweight_parameter is np.nan:
+        if np.isnan(kparameter_metadata.optimal_parameter_value):
             msg = &#34;determined `k-parameter` is NaN, something went wrong...&#34;
             raise RuntimeError(msg)
 
@@ -450,14 +450,11 @@ class DiffMapSet:
             low_resolution_limit=args.lowres,
         )
 
-        mapset = DiffMapSet(
+        return DiffMapSet(
             native=native_map,
             derivative=derivative_map,
             calculated=calculated_map,
-        )
-
-        mapset.scale()
-        return mapset</code></pre>
+        )</code></pre>
 </details>
 <div class="desc"><p>Object for parsing command line strings into Python objects.</p>
 <p>Keyword Arguments:
@@ -485,8 +482,8 @@ error info when an error occurs</p></div>
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="meteor.scripts.compute_difference_map.TvDiffmapArgParser" href="compute_difference_map.html#meteor.scripts.compute_difference_map.TvDiffmapArgParser">TvDiffmapArgParser</a></li>
-<li><a title="meteor.scripts.compute_iterative_tv_map.IterativeTvArgParser" href="compute_iterative_tv_map.html#meteor.scripts.compute_iterative_tv_map.IterativeTvArgParser">IterativeTvArgParser</a></li>
+<li><a title="meteor.scripts.diffmap.TvDiffmapArgParser" href="diffmap.html#meteor.scripts.diffmap.TvDiffmapArgParser">TvDiffmapArgParser</a></li>
+<li><a title="meteor.scripts.phaseboost.IterativeTvArgParser" href="phaseboost.html#meteor.scripts.phaseboost.IterativeTvArgParser">IterativeTvArgParser</a></li>
 </ul>
 <h3>Static methods</h3>
 <dl>
@@ -544,14 +541,11 @@ def load_difference_maps(args: argparse.Namespace) -&gt; DiffMapSet:
         low_resolution_limit=args.lowres,
     )
 
-    mapset = DiffMapSet(
+    return DiffMapSet(
         native=native_map,
         derivative=derivative_map,
         calculated=calculated_map,
-    )
-
-    mapset.scale()
-    return mapset</code></pre>
+    )</code></pre>
 </details>
 <div class="desc"></div>
 </dd>

@@ -46,14 +46,14 @@ el.replaceWith(d);
 <p><code><a title="meteor" href="#meteor">meteor</a></code> is a tool for computing crystallographic difference maps. </p>
 <p><code><a title="meteor" href="#meteor">meteor</a></code> specializes the robust identification of weak signals arising from minor but scientifically interesting populations, such as bound ligands or changes that occur in time-resolved experiments. That said, if you need an difference map, <code><a title="meteor" href="#meteor">meteor</a></code> can do it!</p>
 <h2 id="quickstart">quickstart</h2>
-<p>❗ <code><a title="meteor" href="#meteor">meteor</a></code> is currently <strong>in beta</strong>. We re-wrote everything recently, moving from a research code to something that can be robustly used as a tool. If you are willing to put up with a few sharp edges, it would be great if you give it a spin and then send us feedback: on how easy/not it was to use and what kinds of scientific results you obtain. Raise an issue or email us if you notice anything or hit any problems. Expect changes in the coming weeks as we stress test the code. You might want to consider this before publishing any results with <code><a title="meteor" href="#meteor">meteor</a></code> until we exit <code>beta</code>. </p>
-<p>First, meteor needs a python <code>3.11</code> or <code>3.12</code> environment. To be sure things work, we recommend <a href="https://docs.anaconda.com/miniconda/">installing conda</a> and creating a fresh environment,</p>
-<pre><code>conda create --name meteor python==3.11 --yes
+<p>Meteor needs a python <code>3.11</code> or <code>3.12</code> environment. We recommend <a href="https://docs.anaconda.com/miniconda/">installing conda</a> and creating a fresh environment,</p>
+<pre><code>conda create --name meteor python==3.12 --yes
 conda activate meteor
 </code></pre>
-<p>Then install <code><a title="meteor" href="#meteor">meteor</a></code> using pip</p>
+<p>Then install <code><a title="meteor" href="#meteor">meteor</a></code> </p>
 <pre><code>pip install meteor-maps
 </code></pre>
+<p>alternatively, use conda: <code>conda install meteor-maps -c conda-forge</code>.</p>
 <p>Once installed, you will have two command-line scripts. Ask for more info using <code>-h</code>:</p>
 <pre><code>meteor.diffmap -h
 meteor.phaseboost -h
@@ -168,6 +168,111 @@ meteor.phaseboost -h
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="meteor.compute_meteor_difference_map"><code class="name flex">
+<span>def <span class="ident">compute_meteor_difference_map</span></span>(<span>diffmap_set: DiffMapSet,<br>*,<br>kweight_mode: WeightMode = optimize,<br>tv_denoise_mode: WeightMode = optimize,<br>kweight_parameter: float | None = None,<br>tv_weight: float | None = None) ‑> tuple[<a title="meteor.rsmap.Map" href="rsmap.html#meteor.rsmap.Map">Map</a>, <a title="meteor.metadata.DiffmapMetadata" href="metadata.html#meteor.metadata.DiffmapMetadata">DiffmapMetadata</a>]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_meteor_difference_map(
+    diffmap_set: DiffMapSet,
+    *,
+    kweight_mode: WeightMode = WeightMode.optimize,
+    tv_denoise_mode: WeightMode = WeightMode.optimize,
+    kweight_parameter: float | None = None,
+    tv_weight: float | None = None,
+) -&gt; tuple[Map, DiffmapMetadata]:
+    diffmap_set.scale()
+
+    diffmap, kparameter_metadata = kweight_diffmap_according_to_mode(
+        kweight_mode=kweight_mode,
+        kweight_parameter=kweight_parameter,
+        mapset=diffmap_set,
+    )
+    final_map, tv_metadata = denoise_diffmap_according_to_mode(
+        tv_denoise_mode=tv_denoise_mode, tv_weight=tv_weight, diffmap=diffmap
+    )
+    aggregate_metadata = DiffmapMetadata(
+        k_parameter_optimization=kparameter_metadata, tv_weight_optmization=tv_metadata
+    )
+
+    if aggregate_metadata.tv_weight_optmization.optimal_negentropy &lt;= 0.0:
+        log.warning(
+            NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
+            final_negentropy=aggregate_metadata.tv_weight_optmization.optimal_negentropy,
+        )
+
+    return final_map, aggregate_metadata</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+<dt id="meteor.compute_meteor_phaseboost_map"><code class="name flex">
+<span>def <span class="ident">compute_meteor_phaseboost_map</span></span>(<span>diffmap_set: DiffMapSet,<br>*,<br>kweight_mode: WeightMode = optimize,<br>kweight_parameter: float | None = None,<br>tv_weights_to_scan: list[float] = [0.001, 0.01, 0.1],<br>convergence_tolerance: float = 0.001,<br>max_iterations: int = 100) ‑> tuple[<a title="meteor.rsmap.Map" href="rsmap.html#meteor.rsmap.Map">Map</a>, <a title="meteor.metadata.IterativeDiffmapMetadata" href="metadata.html#meteor.metadata.IterativeDiffmapMetadata">IterativeDiffmapMetadata</a>]</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_meteor_phaseboost_map(  # noqa: PLR0913
+    diffmap_set: DiffMapSet,
+    *,
+    kweight_mode: WeightMode = WeightMode.optimize,
+    kweight_parameter: float | None = None,
+    tv_weights_to_scan: list[float] = DEFAULT_TV_WEIGHTS_TO_SCAN_AT_EACH_ITERATION,
+    convergence_tolerance: float = ITERATIVE_TV_CONVERGENCE_TOLERANCE,
+    max_iterations: int = ITERATIVE_TV_MAX_ITERATIONS,
+) -&gt; tuple[Map, IterativeDiffmapMetadata]:
+    log.info(&#34;Launching iterative TV phase retrieval&#34;, tv_weights_to_scan=tv_weights_to_scan)
+    log.info(&#34;This will take time, typically minutes...&#34;)
+
+    diffmap_set.scale()
+
+    denoiser = IterativeTvDenoiser(
+        tv_weights_to_scan=tv_weights_to_scan,
+        convergence_tolerance=convergence_tolerance,
+        max_iterations=max_iterations,
+        verbose=True,
+    )
+    diffmap_set.derivative, it_tv_metadata = denoiser(
+        derivative=diffmap_set.derivative, native=diffmap_set.native
+    )
+    log.info(&#34;Convergence.&#34;)
+
+    diffmap, kparameter_metadata = kweight_diffmap_according_to_mode(
+        kweight_mode=kweight_mode, kweight_parameter=kweight_parameter, mapset=diffmap_set
+    )
+
+    log.info(&#34;Final real-space TV denoising pass...&#34;, method=&#34;golden-section search&#34;)
+    log.info(&#34;This may take some time (up to a few minutes)...&#34;)
+    final_map, final_tv_metadata = tv_denoise_difference_map(diffmap, full_output=True)
+
+    log.info(
+        &#34;Optimal TV weight found&#34;,
+        weight=f&#34;{final_tv_metadata.optimal_parameter_value:.2e}&#34;,
+        final_negentropy=round(final_tv_metadata.optimal_negentropy, 4),
+    )
+
+    combined_metadata = IterativeDiffmapMetadata(
+        kparameter_metadata=kparameter_metadata,
+        iterative_tv_iterations=it_tv_metadata,
+        final_tv_pass=final_tv_metadata,
+    )
+    if combined_metadata.final_tv_pass.optimal_negentropy &lt;= 0.0:
+        log.warning(
+            NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
+            final_negentropy=combined_metadata.final_tv_pass.optimal_negentropy,
+        )
+
+    return final_map, combined_metadata</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+</dl>
 </section>
 <section>
 </section>
@@ -209,6 +314,12 @@ meteor.phaseboost -h
 <li><code><a title="meteor.tv" href="tv.html">meteor.tv</a></code></li>
 <li><code><a title="meteor.utils" href="utils.html">meteor.utils</a></code></li>
 <li><code><a title="meteor.validate" href="validate.html">meteor.validate</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="meteor.compute_meteor_difference_map" href="#meteor.compute_meteor_difference_map">compute_meteor_difference_map</a></code></li>
+<li><code><a title="meteor.compute_meteor_phaseboost_map" href="#meteor.compute_meteor_phaseboost_map">compute_meteor_phaseboost_map</a></code></li>
 </ul>
 </li>
 </ul>
