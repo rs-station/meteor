@@ -88,6 +88,8 @@ def compute_scale_factors(
     [1] SCALEIT https://www.ccp4.ac.uk/html/scaleit.html
     """
     reference_values.dropna(axis="index", how="any", inplace=True)
+    # keep all indices to ensure we scale all values
+    v2s_all_indices = values_to_scale.index.copy()
     values_to_scale.dropna(axis="index", how="any", inplace=True)
 
     common_miller_indices: pd.Index = reference_values.index.intersection(values_to_scale.index)
@@ -128,13 +130,13 @@ def compute_scale_factors(
 
     # now be sure to compute the scale factors for all miller indices in `values_to_scale`
     optimized_scale_factors = _compute_anisotropic_scale_factors(
-        values_to_scale.index,
+        v2s_all_indices,
         optimized_parameters,
     )
-
-    if len(optimized_scale_factors) != len(values_to_scale):
+    print("hi", len(optimized_scale_factors)
+    if len(optimized_scale_factors) != len(v2s_all_indices):
         msg1 = "length mismatch: `optimized_scale_factors`"
-        msg2 = f"({len(optimized_scale_factors)}) vs `values_to_scale` ({len(values_to_scale)})"
+        msg2 = f"({len(optimized_scale_factors)}) vs `values_to_scale` ({len(v2s_all_indices)})"
         raise RuntimeError(msg1, msg2)
 
     return optimized_scale_factors
