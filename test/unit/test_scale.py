@@ -57,6 +57,7 @@ def test_compute_scale_factors_nans(miller_dataseries: rs.DataSeries) -> None:
     with_nans = miller_dataseries.copy()
     with_nans.iloc[0] = np.nan
     miller_dataseries.iloc[1] = np.nan
+    miller_dataseries.iloc[2] = np.nan
     scale_factors = scale.compute_scale_factors(
         reference_values=miller_dataseries,
         values_to_scale=with_nans,
