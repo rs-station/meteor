@@ -89,7 +89,9 @@ def compute_scale_factors(
     """
     reference_values.dropna(axis="index", how="any", inplace=True)
     # keep all indices to ensure we scale all values
-    v2s_all_indices = values_to_scale.index.copy()
+    index_locations = np.isfinite(values_to_scale)
+    all_finite_indices = values_to_scale[index_locations].index.copy()
+
     values_to_scale.dropna(axis="index", how="any", inplace=True)
 
     common_miller_indices: pd.Index = reference_values.index.intersection(values_to_scale.index)
@@ -130,13 +132,12 @@ def compute_scale_factors(
 
     # now be sure to compute the scale factors for all miller indices in `values_to_scale`
     optimized_scale_factors = _compute_anisotropic_scale_factors(
-        v2s_all_indices,
+        all_finite_indices,
         optimized_parameters,
     )
-    print("hi", len(optimized_scale_factors)
-    if len(optimized_scale_factors) != len(v2s_all_indices):
+    if len(optimized_scale_factors) != len(all_finite_indices):
         msg1 = "length mismatch: `optimized_scale_factors`"
-        msg2 = f"({len(optimized_scale_factors)}) vs `values_to_scale` ({len(v2s_all_indices)})"
+        msg2 = f"({len(optimized_scale_factors)}) vs `values_to_scale` ({len(all_finite_indices)})"
         raise RuntimeError(msg1, msg2)
 
     return optimized_scale_factors
@@ -211,7 +212,7 @@ def scale_maps(
     number_of_non_nan_values_to_scale = np.sum(np.isfinite(map_to_scale.amplitudes))
     if number_of_non_nan_values_to_scale != len(scale_factors):
         msg = f"map (number of non-nan values: {number_of_non_nan_values_to_scale}) and  "
-        msg += f"scale_factors (len: {scale_factors}) do not have a common size -- something went "
+        msg += f"scale_factors (len: {len(scale_factors)}) do not have a common size -- something went "
         msg += "wrong, contact the developers"
         raise RuntimeError(msg)
 
