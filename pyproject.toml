@@ -20,7 +20,7 @@ classifiers = [
 dependencies = [
     "numpy >= 1.26",
     "scipy >= 1.14.0",
-    "gemmi == 0.6.6",
+    "gemmi >= 0.7.3",
     "scikit-image >= 0.24.0",
     "reciprocalspaceship >= 1.0.2",
     "structlog >= 24.4.0",
@@ -40,8 +40,8 @@ notebooks = [
 ]
 
 [project.scripts]
-"meteor.diffmap" = "meteor.scripts.compute_difference_map:main"
-"meteor.phaseboost" = "meteor.scripts.compute_iterative_tv_map:main"
+"meteor.diffmap" = "meteor.scripts.diffmap:main"
+"meteor.phaseboost" = "meteor.scripts.phaseboost:main"
 
 [project.urls]
 Homepage = "https://github.com/rs-station/meteor"
