@@ -47,7 +47,8 @@ def compute_scale_factors(
     values_to_scale: rs.DataSeries,
     reference_uncertainties: rs.DataSeries | None = None,
     to_scale_uncertainties: rs.DataSeries | None = None,
-) -> rs.DataSeries:
+    only_global_constant: bool = False,
+) -> rs.DataSeries | float:
     """
     Compute anisotropic scale factors to modify `values_to_scale` to be on the same scale as
     `reference_values`.
@@ -59,6 +60,9 @@ def compute_scale_factors(
                     2hk B12 + 2hl  B13 +  2kl B23) }
 
     The parameters Bxy are fit using least squares, optionally with uncertainty weighting.
+
+    If `only_global_constant` is set to True, the function will compute a single global scale rather 
+    than the anisotropic model described above.
 
     Parameters
     ----------
@@ -125,6 +129,24 @@ def compute_scale_factors(
             raise TypeError(msg)
 
         return residuals
+
+    def compute_constant(scale_factor: float):
+        difference_after_scaling = scale_factor * common_values_to_scale - common_reference_values
+        residuals = inverse_variance * difference_after_scaling
+
+        if not isinstance(residuals, np.ndarray):
+            msg = "scipy optimizers' behavior is unstable unless `np.ndarray`s are used"
+            raise TypeError(msg)
+
+        return residuals
+
+    if only_global_constant:
+        initial_scaling_parameter = 1.0
+        optimization_result = opt.least_squares(
+            compute_constant, initial_scaling_parameter
+        )
+        optimized_parameter = optimization_result.x
+        return optimized_parameter
 
     initial_scaling_parameters: ScaleParameters = (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     optimization_result = opt.least_squares(compute_residuals, initial_scaling_parameters)
