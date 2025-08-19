@@ -47,6 +47,7 @@ def compute_scale_factors(
     values_to_scale: rs.DataSeries,
     reference_uncertainties: rs.DataSeries | None = None,
     to_scale_uncertainties: rs.DataSeries | None = None,
+    only_global_constant: bool = False,
 ) -> rs.DataSeries:
     """
     Compute anisotropic scale factors to modify `values_to_scale` to be on the same scale as
@@ -60,6 +61,9 @@ def compute_scale_factors(
 
     The parameters Bxy are fit using least squares, optionally with uncertainty weighting.
 
+    If `only_global_constant` is set to True, the function will compute a single global scale rather
+    than the anisotropic model described above.
+
     Parameters
     ----------
     reference_values : rs.DataSeries
@@ -72,15 +76,19 @@ def compute_scale_factors(
     to_scale_uncertainties : rs.DataSeries, optional
         Uncertainty values associated with `values_to_scale`. If provided, they are used in
         weighting the scaling process. Must have the same index as `values_to_scale`.
+    only_global_constant : bool, optional (default: False)
+        If True, compute a single global scale factor instead of an anisotropic model.
 
     Returns
     -------
-    rs.DataSeries
+    rs.DataSeries | float
         The computed anisotropic scale factors for each Miller index in `values_to_scale`.
+        If `only_global_constant` is True, scale factors will be an rs.DataSeries consisting
+        of a single float value, which is the global scale factor.
 
     See Also
     --------
-    scale_datasets : higher-level interface that operates on entire DataSets, typically more
+    scale_maps : higher-level interface that operates on entire DataSets, typically more
     convienent.
 
     Citations:
@@ -126,19 +134,36 @@ def compute_scale_factors(
 
         return residuals
 
-    initial_scaling_parameters: ScaleParameters = (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-    optimization_result = opt.least_squares(compute_residuals, initial_scaling_parameters)
-    optimized_parameters: ScaleParameters = optimization_result.x
+    def compute_constant(scale_factor: float) -> np.ndarray:
+        difference_after_scaling = scale_factor * common_values_to_scale - common_reference_values
+        residuals = inverse_variance * difference_after_scaling
 
-    # now be sure to compute the scale factors for all miller indices in `values_to_scale`
-    optimized_scale_factors = _compute_anisotropic_scale_factors(
-        all_finite_indices,
-        optimized_parameters,
-    )
-    if len(optimized_scale_factors) != len(all_finite_indices):
-        msg1 = "length mismatch: `optimized_scale_factors`"
-        msg2 = f"({len(optimized_scale_factors)}) vs `values_to_scale` ({len(all_finite_indices)})"
-        raise RuntimeError(msg1, msg2)
+        if not isinstance(residuals, np.ndarray):
+            msg = "scipy optimizers' behavior is unstable unless `np.ndarray`s are used"
+            raise TypeError(msg)
+
+        return residuals
+
+    if only_global_constant:
+        initial_scaling_parameter = 1.0
+        optimization_result = opt.least_squares(
+            compute_constant, initial_scaling_parameter
+        )
+        optimized_scale_factors = optimization_result.x[0] + 0 * all_finite_indices
+    else:
+        initial_scaling_parameters: ScaleParameters = (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        optimization_result = opt.least_squares(compute_residuals, initial_scaling_parameters)
+        optimized_parameters: ScaleParameters = optimization_result.x
+
+        # now be sure to compute the scale factors for all miller indices in `values_to_scale`
+        optimized_scale_factors = _compute_anisotropic_scale_factors(
+            all_finite_indices,
+            optimized_parameters,
+        )
+        if len(optimized_scale_factors) != len(all_finite_indices):
+            msg1 = "length mismatch: `optimized_scale_factors`"
+            msg2 = f"({len(optimized_scale_factors)}) vs `values_to_scale` ({len(all_finite_indices)})"
+            raise RuntimeError(msg1, msg2)
 
     return optimized_scale_factors
 
@@ -148,6 +173,7 @@ def scale_maps(
     reference_map: Map,
     map_to_scale: Map,
     weight_using_uncertainties: bool = True,
+    only_global_constant: bool = False,
 ) -> Map:
     """
     Scale a dataset to align it with a reference dataset using anisotropic scaling.
@@ -166,6 +192,9 @@ def scale_maps(
     modified (scaled). To access the scale parameters directly, use
     `meteor.scale.compute_scale_factors`.
 
+    If `only_global_constant` is set to True, the function will compute a single global scale rather
+    than the anisotropic model described above.
+
     Parameters
     ----------
     reference_map : Map
@@ -175,6 +204,8 @@ def scale_maps(
     weight_using_uncertainties : bool, optional (default: True)
         Whether or not to weight the scaling by uncertainty values. If True, uncertainty values are
         extracted from the `uncertainty_column` in both datasets.
+    only_global_constant : bool, optional (default: False)
+        If True, compute a single global scale factor instead of an anisotropic model.
 
     Returns
     -------
@@ -203,16 +234,18 @@ def scale_maps(
             to_scale_uncertainties=(
                 map_to_scale.uncertainties if map_to_scale.has_uncertainties else None
             ),
+            only_global_constant=only_global_constant,
         )
     else:
         scale_factors = compute_scale_factors(
-            reference_values=reference_map.amplitudes, values_to_scale=map_to_scale.amplitudes
+            reference_values=reference_map.amplitudes,
+            values_to_scale=map_to_scale.amplitudes,
+            only_global_constant=only_global_constant,
         )
 
     number_of_non_nan_values_to_scale = np.sum(np.isfinite(map_to_scale.amplitudes))
     if number_of_non_nan_values_to_scale != len(scale_factors):
         msg = f"map (number of non-nan values: {number_of_non_nan_values_to_scale}) and  "
-
         msg += f"scale_factors (len: {len(scale_factors)}) do not have a common size -- something went "
         msg += "wrong, contact the developers"
         raise RuntimeError(msg)
