@@ -76,11 +76,14 @@ def compute_scale_factors(
     to_scale_uncertainties : rs.DataSeries, optional
         Uncertainty values associated with `values_to_scale`. If provided, they are used in
         weighting the scaling process. Must have the same index as `values_to_scale`.
+    only_global_constant : bool, optional (default: False)
+        If True, compute a single global scale factor instead of an anisotropic model.
 
     Returns
     -------
-    rs.DataSeries
+    rs.DataSeries | float
         The computed anisotropic scale factors for each Miller index in `values_to_scale`.
+        If `only_global_constant` is True, a single global scale factor is returned instead.
 
     See Also
     --------
@@ -170,6 +173,7 @@ def scale_maps(
     reference_map: Map,
     map_to_scale: Map,
     weight_using_uncertainties: bool = True,
+    only_global_constant: bool = False,
 ) -> Map:
     """
     Scale a dataset to align it with a reference dataset using anisotropic scaling.
@@ -188,6 +192,9 @@ def scale_maps(
     modified (scaled). To access the scale parameters directly, use
     `meteor.scale.compute_scale_factors`.
 
+    If `only_global_constant` is set to True, the function will compute a single global scale rather 
+    than the anisotropic model described above.
+
     Parameters
     ----------
     reference_map : Map
@@ -197,6 +204,8 @@ def scale_maps(
     weight_using_uncertainties : bool, optional (default: True)
         Whether or not to weight the scaling by uncertainty values. If True, uncertainty values are
         extracted from the `uncertainty_column` in both datasets.
+    only_global_constant : bool, optional (default: False)
+        If True, compute a single global scale factor instead of an anisotropic model.
 
     Returns
     -------
@@ -224,11 +233,13 @@ def scale_maps(
             ),
             to_scale_uncertainties=(
                 map_to_scale.uncertainties if map_to_scale.has_uncertainties else None
+            only_global_constant=only_global_constant,
             ),
         )
     else:
         scale_factors = compute_scale_factors(
             reference_values=reference_map.amplitudes, values_to_scale=map_to_scale.amplitudes
+            only_global_constant=only_global_constant,
         )
 
     number_of_non_nan_values_to_scale = np.sum(np.isfinite(map_to_scale.amplitudes))
