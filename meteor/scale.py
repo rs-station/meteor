@@ -48,7 +48,7 @@ def compute_scale_factors(
     reference_uncertainties: rs.DataSeries | None = None,
     to_scale_uncertainties: rs.DataSeries | None = None,
     only_global_constant: bool = False,
-) -> rs.DataSeries | float:
+) -> rs.DataSeries:
     """
     Compute anisotropic scale factors to modify `values_to_scale` to be on the same scale as
     `reference_values`.
@@ -83,7 +83,8 @@ def compute_scale_factors(
     -------
     rs.DataSeries | float
         The computed anisotropic scale factors for each Miller index in `values_to_scale`.
-        If `only_global_constant` is True, a single global scale factor is returned instead.
+        If `only_global_constant` is True, scale factors will be an rs.DataSeries consisting
+        of a single float value, which is the global scale factor.
 
     See Also
     --------
@@ -148,22 +149,21 @@ def compute_scale_factors(
         optimization_result = opt.least_squares(
             compute_constant, initial_scaling_parameter
         )
-        return optimization_result.x[0]
-        
+        optimized_scale_factors = optimization_result.x[0] + 0 * all_finite_indices
+    else:
+        initial_scaling_parameters: ScaleParameters = (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+        optimization_result = opt.least_squares(compute_residuals, initial_scaling_parameters)
+        optimized_parameters: ScaleParameters = optimization_result.x
 
-    initial_scaling_parameters: ScaleParameters = (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-    optimization_result = opt.least_squares(compute_residuals, initial_scaling_parameters)
-    optimized_parameters: ScaleParameters = optimization_result.x
-
-    # now be sure to compute the scale factors for all miller indices in `values_to_scale`
-    optimized_scale_factors = _compute_anisotropic_scale_factors(
-        all_finite_indices,
-        optimized_parameters,
-    )
-    if len(optimized_scale_factors) != len(all_finite_indices):
-        msg1 = "length mismatch: `optimized_scale_factors`"
-        msg2 = f"({len(optimized_scale_factors)}) vs `values_to_scale` ({len(all_finite_indices)})"
-        raise RuntimeError(msg1, msg2)
+        # now be sure to compute the scale factors for all miller indices in `values_to_scale`
+        optimized_scale_factors = _compute_anisotropic_scale_factors(
+            all_finite_indices,
+            optimized_parameters,
+        )
+        if len(optimized_scale_factors) != len(all_finite_indices):
+            msg1 = "length mismatch: `optimized_scale_factors`"
+            msg2 = f"({len(optimized_scale_factors)}) vs `values_to_scale` ({len(all_finite_indices)})"
+            raise RuntimeError(msg1, msg2)
 
     return optimized_scale_factors
 
@@ -244,7 +244,7 @@ def scale_maps(
         )
 
     number_of_non_nan_values_to_scale = np.sum(np.isfinite(map_to_scale.amplitudes))
-    if not only_global_constant and number_of_non_nan_values_to_scale != len(scale_factors):
+    if number_of_non_nan_values_to_scale != len(scale_factors):
         msg = f"map (number of non-nan values: {number_of_non_nan_values_to_scale}) and  "
         msg += f"scale_factors (len: {len(scale_factors)}) do not have a common size -- something went "
         msg += "wrong, contact the developers"
