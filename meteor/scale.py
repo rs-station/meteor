@@ -61,7 +61,7 @@ def compute_scale_factors(
 
     The parameters Bxy are fit using least squares, optionally with uncertainty weighting.
 
-    If `only_global_constant` is set to True, the function will compute a single global scale rather 
+    If `only_global_constant` is set to True, the function will compute a single global scale rather
     than the anisotropic model described above.
 
     Parameters
@@ -148,8 +148,8 @@ def compute_scale_factors(
         optimization_result = opt.least_squares(
             compute_constant, initial_scaling_parameter
         )
-        optimized_parameter = optimization_result.x
-        return optimized_parameter
+        return optimization_result.x[0]
+        
 
     initial_scaling_parameters: ScaleParameters = (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     optimization_result = opt.least_squares(compute_residuals, initial_scaling_parameters)
@@ -192,7 +192,7 @@ def scale_maps(
     modified (scaled). To access the scale parameters directly, use
     `meteor.scale.compute_scale_factors`.
 
-    If `only_global_constant` is set to True, the function will compute a single global scale rather 
+    If `only_global_constant` is set to True, the function will compute a single global scale rather
     than the anisotropic model described above.
 
     Parameters
@@ -238,15 +238,14 @@ def scale_maps(
         )
     else:
         scale_factors = compute_scale_factors(
-            reference_values=reference_map.amplitudes, 
+            reference_values=reference_map.amplitudes,
             values_to_scale=map_to_scale.amplitudes,
             only_global_constant=only_global_constant,
         )
 
     number_of_non_nan_values_to_scale = np.sum(np.isfinite(map_to_scale.amplitudes))
-    if number_of_non_nan_values_to_scale != len(scale_factors):
+    if not only_global_constant and number_of_non_nan_values_to_scale != len(scale_factors):
         msg = f"map (number of non-nan values: {number_of_non_nan_values_to_scale}) and  "
-
         msg += f"scale_factors (len: {len(scale_factors)}) do not have a common size -- something went "
         msg += "wrong, contact the developers"
         raise RuntimeError(msg)
