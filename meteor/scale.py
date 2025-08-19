@@ -134,7 +134,7 @@ def compute_scale_factors(
 
         return residuals
 
-    def compute_constant(scale_factor: float):
+    def compute_constant(scale_factor: float) -> np.ndarray:
         difference_after_scaling = scale_factor * common_values_to_scale - common_reference_values
         residuals = inverse_variance * difference_after_scaling
 
