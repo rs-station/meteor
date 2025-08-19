@@ -233,12 +233,13 @@ def scale_maps(
             ),
             to_scale_uncertainties=(
                 map_to_scale.uncertainties if map_to_scale.has_uncertainties else None
-            only_global_constant=only_global_constant,
             ),
+            only_global_constant=only_global_constant,
         )
     else:
         scale_factors = compute_scale_factors(
-            reference_values=reference_map.amplitudes, values_to_scale=map_to_scale.amplitudes
+            reference_values=reference_map.amplitudes, 
+            values_to_scale=map_to_scale.amplitudes,
             only_global_constant=only_global_constant,
         )
 
