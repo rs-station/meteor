@@ -87,7 +87,7 @@ def compute_scale_factors(
 
     See Also
     --------
-    scale_datasets : higher-level interface that operates on entire DataSets, typically more
+    scale_maps : higher-level interface that operates on entire DataSets, typically more
     convienent.
 
     Citations:
