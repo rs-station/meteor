@@ -107,6 +107,10 @@ el.replaceWith(d);
     [1] SCALEIT https://www.ccp4.ac.uk/html/scaleit.html
     &#34;&#34;&#34;
     reference_values.dropna(axis=&#34;index&#34;, how=&#34;any&#34;, inplace=True)
+    # keep all indices to ensure we scale all values
+    index_locations = np.isfinite(values_to_scale)
+    all_finite_indices = values_to_scale[index_locations].index.copy()
+
     values_to_scale.dropna(axis=&#34;index&#34;, how=&#34;any&#34;, inplace=True)
 
     common_miller_indices: pd.Index = reference_values.index.intersection(values_to_scale.index)
@@ -147,13 +151,12 @@ el.replaceWith(d);
 
     # now be sure to compute the scale factors for all miller indices in `values_to_scale`
     optimized_scale_factors = _compute_anisotropic_scale_factors(
-        values_to_scale.index,
+        all_finite_indices,
         optimized_parameters,
     )
-
-    if len(optimized_scale_factors) != len(values_to_scale):
+    if len(optimized_scale_factors) != len(all_finite_indices):
         msg1 = &#34;length mismatch: `optimized_scale_factors`&#34;
-        msg2 = f&#34;({len(optimized_scale_factors)}) vs `values_to_scale` ({len(values_to_scale)})&#34;
+        msg2 = f&#34;({len(optimized_scale_factors)}) vs `values_to_scale` ({len(all_finite_indices)})&#34;
         raise RuntimeError(msg1, msg2)
 
     return optimized_scale_factors</code></pre>
@@ -270,7 +273,8 @@ weighting the scaling process. Must have the same index as <code>values_to_scale
     number_of_non_nan_values_to_scale = np.sum(np.isfinite(map_to_scale.amplitudes))
     if number_of_non_nan_values_to_scale != len(scale_factors):
         msg = f&#34;map (number of non-nan values: {number_of_non_nan_values_to_scale}) and  &#34;
-        msg += f&#34;scale_factors (len: {scale_factors}) do not have a common size -- something went &#34;
+
+        msg += f&#34;scale_factors (len: {len(scale_factors)}) do not have a common size -- something went &#34;
         msg += &#34;wrong, contact the developers&#34;
         raise RuntimeError(msg)
 
