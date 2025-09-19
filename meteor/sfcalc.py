@@ -8,10 +8,12 @@ from .rsmap import Map
 
 
 def gemmi_structure_to_calculated_map(
-    structure: gemmi.Structure, *, high_resolution_limit: float
+    structure: gemmi.Structure, *, high_resolution_limit: float, map_sampling: float = 3.0,
+
 ) -> Map:
     density_map = gemmi.DensityCalculatorX()
     density_map.d_min = high_resolution_limit
+    density_map.rate = map_sampling/2
     density_map.grid.setup_from(structure)
     for i, _ in enumerate(structure):
         density_map.put_model_density_on_grid(structure[i])
