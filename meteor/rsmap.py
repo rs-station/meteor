@@ -497,6 +497,7 @@ class Map(rs.DataSet):
         data = gemmi_structure_factors.prepare_asu_data(
             dmin=high_resolution_limit - GEMMI_HIGH_RESOLUTION_BUFFER,
             with_sys_abs=True,
+            # with_000=True,
         )
 
         mtz = gemmi.Mtz(with_base=True)
