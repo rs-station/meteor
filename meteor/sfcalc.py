@@ -20,8 +20,8 @@ def gemmi_structure_to_calculated_map(
         The high resolution limit for the map.
     map_sampling : float, optional
         The map sampling rate, by default 3.0.
-        It does not affect the size of the generated structure but can affect 
-        the quality of the generated map. We advise lower map_sampling when generating 
+        It does not affect the size of the generated structure but can affect
+        the quality of the generated map. We advise lower map_sampling when generating
         for very high resolutions. Otherwise leave as is
 
     Returns
@@ -43,7 +43,9 @@ def gemmi_structure_to_calculated_map(
     return Map.from_ccp4_map(ccp4_map, high_resolution_limit=high_resolution_limit)
 
 
-def structure_file_to_calculated_map(cif_or_pdb_file: Path, *, high_resolution_limit: float, map_sampling: float = 3.0) -> Map:
+def structure_file_to_calculated_map(
+        cif_or_pdb_file: Path, *, high_resolution_limit: float, map_sampling: float = 3.0
+        ) -> Map:
     if not cif_or_pdb_file.exists():
         msg = f"could not find file: {cif_or_pdb_file}"
         raise OSError(msg)
