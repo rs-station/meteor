@@ -493,11 +493,12 @@ class Map(rs.DataSet):
         phase_column: str = "PHI",
     ) -> Map:
         # to ensure we include the final shell of reflections, add a small buffer to the resolution
+        mean_is_nonzero = bool(np.abs(np.mean(ccp4_map.grid)) > 1e-6)
         gemmi_structure_factors = gemmi.transform_map_to_f_phi(ccp4_map.grid, half_l=False)
         data = gemmi_structure_factors.prepare_asu_data(
             dmin=high_resolution_limit - GEMMI_HIGH_RESOLUTION_BUFFER,
             with_sys_abs=True,
-            with_000=True,
+            with_000=mean_is_nonzero,
         )
 
         mtz = gemmi.Mtz(with_base=True)
