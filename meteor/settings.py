@@ -8,6 +8,7 @@ import numpy as np
 COMPUTED_MAP_RESOLUTION_LIMIT: float = 1.0
 GEMMI_HIGH_RESOLUTION_BUFFER: float = 1e-6
 MAP_SAMPLING: int = 3
+MEAN_IS_CLOSE_TO_ZERO_LIMIT: float = 1e-5
 
 
 # known map labels, see:

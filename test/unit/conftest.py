@@ -44,6 +44,7 @@ def single_atom_map_coefficients(*, noise_sigma: float, np_rng: np.random.Genera
     density_map = single_carbon_density(CARBON1_POSITION, SPACE_GROUP, UNIT_CELL, RESOLUTION)
     density_array = np.array(density_map.grid)
     grid_values = density_array + noise_sigma * np_rng.normal(size=density_array.shape)
+    grid_values -= np.mean(grid_values)
     ccp4_map = numpy_array_to_map(grid_values, spacegroup=SPACE_GROUP, cell=UNIT_CELL)
 
     map_coefficients = Map.from_ccp4_map(ccp4_map=ccp4_map, high_resolution_limit=RESOLUTION)
