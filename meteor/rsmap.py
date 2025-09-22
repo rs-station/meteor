@@ -12,7 +12,7 @@ import pandas as pd
 import reciprocalspaceship as rs
 from reciprocalspaceship.decorators import cellify, spacegroupify
 
-from .settings import GEMMI_HIGH_RESOLUTION_BUFFER
+from .settings import GEMMI_HIGH_RESOLUTION_BUFFER, MEAN_IS_CLOSE_TO_ZERO_LIMIT
 from .utils import (
     CellType,
     ShapeMismatchError,
@@ -493,7 +493,7 @@ class Map(rs.DataSet):
         phase_column: str = "PHI",
     ) -> Map:
         # to ensure we include the final shell of reflections, add a small buffer to the resolution
-        mean_is_nonzero = bool(np.abs(np.mean(ccp4_map.grid)) > 1e-6)
+        mean_is_nonzero = bool(np.abs(np.mean(ccp4_map.grid)) > MEAN_IS_CLOSE_TO_ZERO_LIMIT)
         gemmi_structure_factors = gemmi.transform_map_to_f_phi(ccp4_map.grid, half_l=False)
         data = gemmi_structure_factors.prepare_asu_data(
             dmin=high_resolution_limit - GEMMI_HIGH_RESOLUTION_BUFFER,
