@@ -69,13 +69,13 @@ def test_script_produces_consistent_results(
     # 1. make sure negentropy increased
     if tv_weight_mode == WeightMode.none:
         np.testing.assert_allclose(
-            diffmap_metadata.tv_weight_optmization.optimal_negentropy,
-            diffmap_metadata.tv_weight_optmization.initial_negentropy,
+            diffmap_metadata.tv_weight_optimization.optimal_negentropy,
+            diffmap_metadata.tv_weight_optimization.initial_negentropy,
         )
     else:
         assert (
-            diffmap_metadata.tv_weight_optmization.optimal_negentropy
-            >= diffmap_metadata.tv_weight_optmization.initial_negentropy
+            diffmap_metadata.tv_weight_optimization.optimal_negentropy
+            >= diffmap_metadata.tv_weight_optimization.initial_negentropy
         )
 
     # 2. make sure optimized weights close to expected
@@ -92,7 +92,7 @@ def test_script_produces_consistent_results(
             optimal_tv_no_kweighting = 0.025
             np.testing.assert_allclose(
                 optimal_tv_no_kweighting,
-                diffmap_metadata.tv_weight_optmization.optimal_parameter_value,
+                diffmap_metadata.tv_weight_optimization.optimal_parameter_value,
                 rtol=0.1,
                 err_msg="tv weight optimium different from expected",
             )
@@ -100,7 +100,7 @@ def test_script_produces_consistent_results(
             optimal_tv_with_weighting = 0.00867
             np.testing.assert_allclose(
                 optimal_tv_with_weighting,
-                diffmap_metadata.tv_weight_optmization.optimal_parameter_value,
+                diffmap_metadata.tv_weight_optimization.optimal_parameter_value,
                 rtol=0.1,
                 err_msg="tv weight optimium different from expected",
             )

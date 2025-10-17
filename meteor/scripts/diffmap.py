@@ -157,13 +157,13 @@ def compute_meteor_difference_map(
         tv_denoise_mode=tv_denoise_mode, tv_weight=tv_weight, diffmap=diffmap
     )
     aggregate_metadata = DiffmapMetadata(
-        k_parameter_optimization=kparameter_metadata, tv_weight_optmization=tv_metadata
+        k_parameter_optimization=kparameter_metadata, tv_weight_optimization=tv_metadata
     )
 
-    if aggregate_metadata.tv_weight_optmization.optimal_negentropy <= 0.0:
+    if aggregate_metadata.tv_weight_optimization.optimal_negentropy <= 0.0:
         log.warning(
             NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
-            final_negentropy=aggregate_metadata.tv_weight_optmization.optimal_negentropy,
+            final_negentropy=aggregate_metadata.tv_weight_optimization.optimal_negentropy,
         )
 
     return final_map, aggregate_metadata

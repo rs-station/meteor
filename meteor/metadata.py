@@ -27,7 +27,7 @@ class TvScanMetadata(MaximizerScanMetadata):
 
 class DiffmapMetadata(BaseModel):
     k_parameter_optimization: KparameterScanMetadata | None
-    tv_weight_optmization: TvScanMetadata
+    tv_weight_optimization: TvScanMetadata
 
 
 class TvIterationMetadata(BaseModel):
