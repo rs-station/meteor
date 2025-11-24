@@ -2,6 +2,7 @@
 
 **Map Enhancement Tools for Ephemeral Occupancy Refinement**
 
+[![DOI: 10.1038/s42003-025-09031-6](https://img.shields.io/badge/DOI-10.1038/s42003--025--09031--6-blue)](https://doi.org/10.1038/s42003-025-09031-6)
 [![Pytest](https://github.com/rs-station/meteor/actions/workflows/tests.yml/badge.svg)](https://github.com/rs-station/meteor/actions/workflows/tests.yml)
 [![Mypy](https://github.com/rs-station/meteor/actions/workflows/mypy.yml/badge.svg)](https://github.com/rs-station/meteor/actions/workflows/mypy.yml)
 [![Ruff](https://github.com/rs-station/meteor/actions/workflows/lint.yml/badge.svg)](https://github.com/rs-station/meteor/actions/workflows/lint.yml)
@@ -45,7 +46,7 @@ these scripts compute denoised difference maps using the constant-phase approxim
 2. be objective and reproducible (minimize user choice & bias)
 3. be easy to use
 
-Aim 1 is met using structure factor amplitude weighting (e.g. k-weighting, existing art) and [TV denoising](https://en.wikipedia.org/wiki/Total_variation_denoising) (new in the context of crystallography). Aims 2 and 3 are met through automatically setting parameters using negentropy maximization (as in [ICA](https://en.wikipedia.org/wiki/Independent_component_analysis)). For all the details, [see our preprint](https://www.biorxiv.org/content/10.1101/2024.11.06.622276v1.full).
+Aim 1 is met using structure factor amplitude weighting (e.g. k-weighting, existing art) and [TV denoising](https://en.wikipedia.org/wiki/Total_variation_denoising) (new in the context of crystallography). Aims 2 and 3 are met through automatically setting parameters using negentropy maximization (as in [ICA](https://en.wikipedia.org/wiki/Independent_component_analysis)). For all the details, [see our paper in _Comms Bio_](https://doi.org/10.1038/s42003-025-09031-6).
 
 
 ### isomorphous data, please
