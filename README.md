@@ -2,7 +2,7 @@
 
 **Map Enhancement Tools for Ephemeral Occupancy Refinement**
 
-[![DOI: 10.1038/s42003-025-09031-6](https://img.shields.io/badge/Publication-Comms--Bio-blue)](https://doi.org/10.1038/s42003-025-09031-6)
+[![DOI: 10.1038/s42003-025-09031-6](https://img.shields.io/badge/Publication-Comms_Bio-blue)](https://doi.org/10.1038/s42003-025-09031-6)
 [![Pytest](https://github.com/rs-station/meteor/actions/workflows/tests.yml/badge.svg)](https://github.com/rs-station/meteor/actions/workflows/tests.yml)
 [![Mypy](https://github.com/rs-station/meteor/actions/workflows/mypy.yml/badge.svg)](https://github.com/rs-station/meteor/actions/workflows/mypy.yml)
 [![Ruff](https://github.com/rs-station/meteor/actions/workflows/lint.yml/badge.svg)](https://github.com/rs-station/meteor/actions/workflows/lint.yml)
