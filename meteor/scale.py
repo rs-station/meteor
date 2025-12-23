@@ -119,7 +119,7 @@ def scale_maps(
         difference_after_scaling = (
             scale_factors * map_to_scale.amplitudes - reference_map.amplitudes
         )
-        residuals = np.array(inverse_variance * difference_after_scaling)
+        residuals = np.array(inverse_variance * difference_after_scaling, dtype=np.float64)
 
         # filter NaNs in input -- are simply missing values
         residuals = residuals[np.isfinite(residuals)]
