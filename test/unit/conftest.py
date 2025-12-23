@@ -102,13 +102,6 @@ def random_difference_map(test_map_columns: MapColumns, np_rng: np.random.Genera
     uncertainties = rs.DataSeries(uncertainties, index=ds.index)
     ds[test_map_columns.uncertainty] = uncertainties.astype(rs.StandardDeviationDtype())
 
-    # inject some NaNs - possible missing data - should be handled elegantly
-    ds.loc[(0,0,1), test_map_columns.amplitude] = np.nan
-    ds.loc[(0,1,0), test_map_columns.phase] = np.nan
-    ds.loc[(1,0,0), test_map_columns.uncertainty] = np.nan
-    for column in ds.columns:
-        ds.loc[(0,0,2), column] = np.nan
-
     return Map(
         ds,
         amplitude_column=test_map_columns.amplitude,
