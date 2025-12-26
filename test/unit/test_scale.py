@@ -36,8 +36,8 @@ def test_scale_maps_identical(random_difference_map: Map, use_uncertainties: boo
 
 
 @pytest.mark.parametrize("use_uncertainties", [False, True])
-def test_scale_maps(random_difference_map: Map, use_uncertainties: bool) -> None:
-    multiple = 2.0
+@pytest.mark.parametrize("multiple", [0.4, 1.0, 2.5, 13.324])
+def test_scale_maps(random_difference_map: Map, use_uncertainties: bool, multiple: float) -> None:
     doubled_difference_map: Map = random_difference_map.copy()
     doubled_difference_map.amplitudes /= multiple
 
@@ -56,6 +56,32 @@ def test_scale_maps(random_difference_map: Map, use_uncertainties: bool) -> None
     )
     np.testing.assert_array_almost_equal(
         scaled.uncertainties / multiple,
+        random_difference_map.uncertainties,
+    )
+
+
+@pytest.mark.parametrize("multiple", [0.4, 1.0, 2.5, 13.324])
+def test_scale_uncertainties_invariant_global_scale(
+    random_difference_map: Map, multiple: float
+) -> None:
+    doubled_difference_map: Map = random_difference_map.copy()
+    doubled_difference_map.uncertainties /= multiple
+
+    scaled = scale.scale_maps(
+        reference_map=random_difference_map,
+        map_to_scale=doubled_difference_map,
+        weight_using_uncertainties=True,
+    )
+    np.testing.assert_array_almost_equal(
+        scaled.amplitudes,
+        random_difference_map.amplitudes,
+    )
+    np.testing.assert_array_almost_equal(
+        scaled.phases,
+        random_difference_map.phases,
+    )
+    np.testing.assert_array_almost_equal(
+        scaled.uncertainties * multiple,
         random_difference_map.uncertainties,
     )
 
