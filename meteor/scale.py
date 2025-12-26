@@ -75,7 +75,8 @@ def scale_maps(
         The map dataset to be scaled.
     weight_using_uncertainties : bool, optional (default: True)
         Whether or not to weight the scaling by uncertainty values. If True, uncertainty values are
-        extracted from the `uncertainty_column` in both datasets.
+        extracted from the `uncertainty_column` in both datasets, and robust (Huber) inverse
+        variance weighting is used in the LSQ procedure.
 
     Returns
     -------
@@ -131,10 +132,12 @@ def scale_maps(
         return residuals
 
     initial_scaling_parameters: ScaleParameters = (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    loss = "huber" if weight_using_uncertainties else "linear"
+
     optimization_result = opt.least_squares(
         compute_residuals,
         initial_scaling_parameters,
-        loss="huber",
+        loss=loss,
     )
     optimized_parameters: ScaleParameters = optimization_result.x
 
