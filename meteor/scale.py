@@ -131,7 +131,11 @@ def scale_maps(
         return residuals
 
     initial_scaling_parameters: ScaleParameters = (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-    optimization_result = opt.least_squares(compute_residuals, initial_scaling_parameters)
+    optimization_result = opt.least_squares(
+        compute_residuals, 
+        initial_scaling_parameters,
+        loss="huber",
+    )
     optimized_parameters: ScaleParameters = optimization_result.x
 
     optimized_scale_factors = _compute_anisotropic_scale_factors(
