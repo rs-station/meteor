@@ -132,7 +132,7 @@ def scale_maps(
 
     initial_scaling_parameters: ScaleParameters = (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
     optimization_result = opt.least_squares(
-        compute_residuals, 
+        compute_residuals,
         initial_scaling_parameters,
         loss="huber",
     )
