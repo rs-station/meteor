@@ -27,7 +27,7 @@ def test_script_produces_consistent_results(
 ) -> None:
     # for when WeightMode.fixed; these maximized negentropy in coarse manual testing
     # and should provide consistent results with the values on disk
-    kweight_parameter = 0.0
+    kweight_parameter = 0.01
     tv_weight = 0.01
 
     output_mtz = tmp_path / "test-output.mtz"

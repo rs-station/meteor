@@ -109,7 +109,7 @@ def scale_maps(
         if (map_to_scale.has_uncertainties and weight_using_uncertainties)
         else one
     )
-    inverse_variance = 2.0 / (ref_variance + to_scale_variance)
+    sqrt_inverse_variance = 1.0 / np.sqrt(ref_variance + to_scale_variance)
 
     def compute_residuals(scaling_parameters: ScaleParameters) -> np.ndarray:
         scale_factors = _compute_anisotropic_scale_factors(
@@ -120,7 +120,7 @@ def scale_maps(
         difference_after_scaling = (
             scale_factors * map_to_scale.amplitudes - reference_map.amplitudes
         )
-        residuals = np.array(inverse_variance * difference_after_scaling, dtype=np.float64)
+        residuals = np.array(sqrt_inverse_variance * difference_after_scaling, dtype=np.float64)
 
         # filter NaNs in input -- are simply missing values
         residuals = residuals[np.isfinite(residuals)]
