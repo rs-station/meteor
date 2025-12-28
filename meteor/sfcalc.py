@@ -22,8 +22,8 @@ def gemmi_structure_to_calculated_map(
     high_resolution_limit : float
         The high resolution limit for the map.
     map_sampling : float, optional
-        The map sampling rate, by default 3.0. It does not affect the size of the generated 
-        structure but can affect the quality of the generated map. We advise lower map_sampling 
+        The map sampling rate, by default 3.0. It does not affect the size of the generated
+        structure but can affect the quality of the generated map. We advise lower map_sampling
         when generating for very high resolutions. Otherwise leave as is.
 
     Returns
