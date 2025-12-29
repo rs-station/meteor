@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import numpy as np
 import pandas as pd
 import scipy.optimize as opt
@@ -49,6 +51,7 @@ def scale_maps(
     reference_map: Map,
     map_to_scale: Map,
     weight_using_uncertainties: bool = True,
+    least_squares_loss: str | Callable = "huber",
 ) -> Map:
     """
     Scale a dataset to align it with a reference dataset using anisotropic scaling.
@@ -61,7 +64,7 @@ def scale_maps(
                     2hk B12 + 2hl  B13 +  2kl B23) }
 
     The parameters Bxy are fit using least squares, optionally with uncertainty (inverse variance)
-    weighting.
+    weighting. Any of `scipy`'s loss functions can be employed; the Huber loss is the default.
 
     NB! All intensity, amplitude, and standard deviation columns in `map_to_scale` will be
     modified (scaled). To access the scale parameters directly, use
@@ -77,6 +80,11 @@ def scale_maps(
         Whether or not to weight the scaling by uncertainty values. If True, uncertainty values are
         extracted from the `uncertainty_column` in both datasets, and robust (Huber) inverse
         variance weighting is used in the LSQ procedure.
+    least_squares_loss: str, optional (default: "huber")
+        This value is passed directly to the `loss` argument in scipy.optimize.least_squares. Refer
+        to the documentation for `scipy.optimize.least_squares` [2]. The default value ("huber")
+        should be a good choice for just about any situation. If you want to more directly replicate
+        SCALEIT's behavior, use "linear" instead.
 
     Returns
     -------
@@ -91,6 +99,8 @@ def scale_maps(
     Citations:
     ----------
     [1] SCALEIT https://www.ccp4.ac.uk/html/scaleit.html
+    [2] scipy.optimize.least_squares
+      https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html
     """
     # we want to compute the scaling factors (scalars) on the common set of indices,
     # but then apply the scaling operation to the entire set of `map_to_scale.amplitudes``,
@@ -132,12 +142,10 @@ def scale_maps(
         return residuals
 
     initial_scaling_parameters: ScaleParameters = (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-    loss = "huber" if weight_using_uncertainties else "linear"
-
     optimization_result = opt.least_squares(
         compute_residuals,
         initial_scaling_parameters,
-        loss=loss,
+        loss=least_squares_loss,
     )
     optimized_parameters: ScaleParameters = optimization_result.x
 

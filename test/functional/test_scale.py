@@ -28,10 +28,16 @@ def test_scaling_regression(testing_mtz_file: Path) -> None:
     )
 
     scaled_on = scale_maps(
-        map_to_scale=on, reference_map=calculated, weight_using_uncertainties=False
+        map_to_scale=on,
+        reference_map=calculated,
+        weight_using_uncertainties=False,
+        least_squares_loss="linear",
     )
     scaled_off = scale_maps(
-        map_to_scale=off, reference_map=calculated, weight_using_uncertainties=False
+        map_to_scale=off,
+        reference_map=calculated,
+        weight_using_uncertainties=False,
+        least_squares_loss="linear",
     )
 
     npt.assert_allclose(scaled_on.amplitudes, scaled_on_truth.amplitudes, atol=1e-3)
