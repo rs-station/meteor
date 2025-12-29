@@ -44,6 +44,7 @@ def single_atom_map_coefficients(*, noise_sigma: float, np_rng: np.random.Genera
     density_map = single_carbon_density(CARBON1_POSITION, SPACE_GROUP, UNIT_CELL, RESOLUTION)
     density_array = np.array(density_map.grid)
     grid_values = density_array + noise_sigma * np_rng.normal(size=density_array.shape)
+    grid_values -= np.mean(grid_values)
     ccp4_map = numpy_array_to_map(grid_values, spacegroup=SPACE_GROUP, cell=UNIT_CELL)
 
     map_coefficients = Map.from_ccp4_map(ccp4_map=ccp4_map, high_resolution_limit=RESOLUTION)
@@ -79,28 +80,28 @@ def very_noisy_map(np_rng: np.random.Generator) -> Map:
 def random_difference_map(test_map_columns: MapColumns, np_rng: np.random.Generator) -> Map:
     hall = rs.utils.generate_reciprocal_asu(UNIT_CELL, SPACE_GROUP, RESOLUTION, anomalous=False)
     sigma = 1.0
-
-    h, k, l = hall.T  # noqa: E741
-    number_of_reflections = len(h)
+    number_of_reflections = hall.shape[0]
 
     ds = rs.DataSet(
         {
-            "H": h,
-            "K": k,
-            "L": l,
+            "H": hall[:, 0],
+            "K": hall[:, 1],
+            "L": hall[:, 2],
             test_map_columns.amplitude: sigma * np_rng.normal(size=number_of_reflections),
             test_map_columns.phase: np_rng.uniform(-180, 180, size=number_of_reflections),
+            test_map_columns.uncertainty: sigma * np.ones_like(number_of_reflections),
         },
         spacegroup=SPACE_GROUP,
         cell=UNIT_CELL,
     ).infer_mtz_dtypes()
 
     ds = ds.set_index(["H", "K", "L"])
-    ds[test_map_columns.amplitude] = ds[test_map_columns.amplitude].astype("SFAmplitude")
-
-    uncertainties = sigma * np.ones_like(ds[test_map_columns.amplitude])
-    uncertainties = rs.DataSeries(uncertainties, index=ds.index)
-    ds[test_map_columns.uncertainty] = uncertainties.astype(rs.StandardDeviationDtype())
+    ds[test_map_columns.amplitude] = ds[test_map_columns.amplitude].astype(
+        rs.StructureFactorAmplitudeDtype()
+    )
+    ds[test_map_columns.uncertainty] = ds[test_map_columns.uncertainty].astype(
+        rs.StandardDeviationDtype()
+    )
 
     return Map(
         ds,
