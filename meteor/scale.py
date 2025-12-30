@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import numpy as np
 import pandas as pd
-import reciprocalspaceship as rs
 import scipy.optimize as opt
+import structlog
 
 from .rsmap import Map
+from .utils import filter_common_indices
 
 ScaleParameters = tuple[float, float, float, float, float, float, float]
 """ 7x float tuple to hold anisotropic scaling parameters """
+
+log = structlog.get_logger()
 
 
 def _compute_anisotropic_scale_factors(
@@ -41,113 +46,12 @@ def _compute_anisotropic_scale_factors(
     return anisotropic_scale_parameters[0] * np.exp(exponential_argument)
 
 
-def compute_scale_factors(
-    *,
-    reference_values: rs.DataSeries,
-    values_to_scale: rs.DataSeries,
-    reference_uncertainties: rs.DataSeries | None = None,
-    to_scale_uncertainties: rs.DataSeries | None = None,
-) -> rs.DataSeries:
-    """
-    Compute anisotropic scale factors to modify `values_to_scale` to be on the same scale as
-    `reference_values`.
-
-    Following SCALEIT, the scaling model is an anisotropic model, applying a transformation of the
-    form:
-
-        C * exp{ -(h**2 B11 + k**2 B22 + l**2 B33 +
-                    2hk B12 + 2hl  B13 +  2kl B23) }
-
-    The parameters Bxy are fit using least squares, optionally with uncertainty weighting.
-
-    Parameters
-    ----------
-    reference_values : rs.DataSeries
-        The reference dataset against which scaling is performed, indexed by Miller indices.
-    values_to_scale : rs.DataSeries
-        The dataset to be scaled, also Miller indexed.
-    reference_uncertainties : rs.DataSeries, optional
-        Uncertainty values associated with `reference_values`. If provided, they are used in
-        weighting the scaling process. Must have the same index as `reference_values`.
-    to_scale_uncertainties : rs.DataSeries, optional
-        Uncertainty values associated with `values_to_scale`. If provided, they are used in
-        weighting the scaling process. Must have the same index as `values_to_scale`.
-
-    Returns
-    -------
-    rs.DataSeries
-        The computed anisotropic scale factors for each Miller index in `values_to_scale`.
-
-    See Also
-    --------
-    scale_datasets : higher-level interface that operates on entire DataSets, typically more
-    convienent.
-
-    Citations:
-    ----------
-    [1] SCALEIT https://www.ccp4.ac.uk/html/scaleit.html
-    """
-    reference_values.dropna(axis="index", how="any", inplace=True)
-    # keep all indices to ensure we scale all values
-    index_locations = np.isfinite(values_to_scale)
-    all_finite_indices = values_to_scale[index_locations].index.copy()
-
-    values_to_scale.dropna(axis="index", how="any", inplace=True)
-
-    common_miller_indices: pd.Index = reference_values.index.intersection(values_to_scale.index)
-    common_reference_values: np.ndarray = reference_values.loc[common_miller_indices].to_numpy()
-    common_values_to_scale: np.ndarray = values_to_scale.loc[common_miller_indices].to_numpy()
-
-    half_root_two = np.array(np.sqrt(2) / 2.0)  # weights are one if no uncertainties provided
-    ref_variance: np.ndarray = (
-        np.square(reference_uncertainties.loc[common_miller_indices].to_numpy())
-        if reference_uncertainties is not None
-        else half_root_two
-    )
-    to_scale_variance: np.ndarray = (
-        to_scale_uncertainties.loc[common_miller_indices].to_numpy()
-        if to_scale_uncertainties is not None
-        else half_root_two
-    )
-    inverse_variance = 1.0 / (ref_variance + to_scale_variance)
-
-    def compute_residuals(scaling_parameters: ScaleParameters) -> np.ndarray:
-        scale_factors = _compute_anisotropic_scale_factors(
-            common_miller_indices,
-            scaling_parameters,
-        )
-
-        difference_after_scaling = scale_factors * common_values_to_scale - common_reference_values
-        residuals = inverse_variance * difference_after_scaling
-
-        if not isinstance(residuals, np.ndarray):
-            msg = "scipy optimizers' behavior is unstable unless `np.ndarray`s are used"
-            raise TypeError(msg)
-
-        return residuals
-
-    initial_scaling_parameters: ScaleParameters = (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-    optimization_result = opt.least_squares(compute_residuals, initial_scaling_parameters)
-    optimized_parameters: ScaleParameters = optimization_result.x
-
-    # now be sure to compute the scale factors for all miller indices in `values_to_scale`
-    optimized_scale_factors = _compute_anisotropic_scale_factors(
-        all_finite_indices,
-        optimized_parameters,
-    )
-    if len(optimized_scale_factors) != len(all_finite_indices):
-        msg1 = "length mismatch: `optimized_scale_factors`"
-        msg2 = f"({len(optimized_scale_factors)}) vs `values_to_scale` ({len(all_finite_indices)})"
-        raise RuntimeError(msg1, msg2)
-
-    return optimized_scale_factors
-
-
 def scale_maps(
     *,
     reference_map: Map,
     map_to_scale: Map,
     weight_using_uncertainties: bool = True,
+    least_squares_loss: str | Callable = "huber",
 ) -> Map:
     """
     Scale a dataset to align it with a reference dataset using anisotropic scaling.
@@ -160,7 +64,7 @@ def scale_maps(
                     2hk B12 + 2hl  B13 +  2kl B23) }
 
     The parameters Bxy are fit using least squares, optionally with uncertainty (inverse variance)
-    weighting.
+    weighting. Any of `scipy`'s loss functions can be employed; the Huber loss is the default.
 
     NB! All intensity, amplitude, and standard deviation columns in `map_to_scale` will be
     modified (scaled). To access the scale parameters directly, use
@@ -174,7 +78,13 @@ def scale_maps(
         The map dataset to be scaled.
     weight_using_uncertainties : bool, optional (default: True)
         Whether or not to weight the scaling by uncertainty values. If True, uncertainty values are
-        extracted from the `uncertainty_column` in both datasets.
+        extracted from the `uncertainty_column` in both datasets, and robust (Huber) inverse
+        variance weighting is used in the LSQ procedure.
+    least_squares_loss: str, optional (default: "huber")
+        This value is passed directly to the `loss` argument in scipy.optimize.least_squares. Refer
+        to the documentation for `scipy.optimize.least_squares` [2]. The default value ("huber")
+        should be a good choice for just about any situation. If you want to more directly replicate
+        SCALEIT's behavior, use "linear" instead.
 
     Returns
     -------
@@ -189,42 +99,69 @@ def scale_maps(
     Citations:
     ----------
     [1] SCALEIT https://www.ccp4.ac.uk/html/scaleit.html
+    [2] scipy.optimize.least_squares
+      https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html
     """
-    at_least_one_map_has_uncertainties = (
-        reference_map.has_uncertainties or map_to_scale.has_uncertainties
+    # we want to compute the scaling factors (scalars) on the common set of indices,
+    # but then apply the scaling operation to the entire set of `map_to_scale.amplitudes``,
+    # even if the corresponding amplitudes don't appear in the `reference_map` Map
+    unmodified_map_to_scale = map_to_scale.copy()
+    reference_map, map_to_scale = filter_common_indices(reference_map, map_to_scale)
+
+    one = np.array(1.0)  # a constant if there are no uncertainties to use
+    ref_variance: np.ndarray = (
+        np.square(reference_map.uncertainties)
+        if (reference_map.has_uncertainties and weight_using_uncertainties)
+        else one
     )
-    if weight_using_uncertainties and at_least_one_map_has_uncertainties:
-        scale_factors = compute_scale_factors(
-            reference_values=reference_map.amplitudes,
-            values_to_scale=map_to_scale.amplitudes,
-            reference_uncertainties=(
-                reference_map.uncertainties if reference_map.has_uncertainties else None
-            ),
-            to_scale_uncertainties=(
-                map_to_scale.uncertainties if map_to_scale.has_uncertainties else None
-            ),
-        )
-    else:
-        scale_factors = compute_scale_factors(
-            reference_values=reference_map.amplitudes, values_to_scale=map_to_scale.amplitudes
+    to_scale_variance: np.ndarray = (
+        np.square(map_to_scale.uncertainties)
+        if (map_to_scale.has_uncertainties and weight_using_uncertainties)
+        else one
+    )
+    sqrt_inverse_variance = 1.0 / np.sqrt(ref_variance + to_scale_variance)
+
+    def compute_residuals(scaling_parameters: ScaleParameters) -> np.ndarray:
+        scale_factors = _compute_anisotropic_scale_factors(
+            reference_map.index,
+            scaling_parameters,
         )
 
-    number_of_non_nan_values_to_scale = np.sum(np.isfinite(map_to_scale.amplitudes))
-    if number_of_non_nan_values_to_scale != len(scale_factors):
-        msg = f"map (number of non-nan values: {number_of_non_nan_values_to_scale}) and  "
+        difference_after_scaling = (
+            scale_factors * map_to_scale.amplitudes - reference_map.amplitudes
+        )
+        residuals = np.array(sqrt_inverse_variance * difference_after_scaling, dtype=np.float64)
 
-        msg += f"scale_factors (len: {len(scale_factors)}) do not have a common size -- something went "
-        msg += "wrong, contact the developers"
-        raise RuntimeError(msg)
+        # filter NaNs in input -- are simply missing values
+        residuals = residuals[np.isfinite(residuals)]
 
-    scaled_map: Map = map_to_scale.copy()
-    scaled_map.loc[np.isfinite(scaled_map.amplitudes), scaled_map.amplitude_column_name] *= (
-        scale_factors
+        if not isinstance(residuals, np.ndarray):
+            msg = "scipy optimizers' behavior is unstable unless `np.ndarray`s are used"
+            raise TypeError(msg)
+
+        return residuals
+
+    initial_scaling_parameters: ScaleParameters = (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    optimization_result = opt.least_squares(
+        compute_residuals,
+        initial_scaling_parameters,
+        loss=least_squares_loss,
+    )
+    optimized_parameters: ScaleParameters = optimization_result.x
+
+    optimized_scale_factors = _compute_anisotropic_scale_factors(
+        unmodified_map_to_scale.index,
+        optimized_parameters,
     )
 
+    if len(optimized_scale_factors) != len(unmodified_map_to_scale.index):
+        msg1 = "length mismatch: `optimized_scale_factors` - something went wrong"
+        msg2 = f"({len(optimized_scale_factors)}) vs `values_to_scale` ({len(unmodified_map_to_scale.index)})"
+        raise RuntimeError(msg1, msg2)
+
+    scaled_map = map_to_scale.copy()
+    scaled_map.amplitudes *= optimized_scale_factors
     if scaled_map.has_uncertainties:
-        scaled_map.loc[
-            np.isfinite(scaled_map.amplitudes), scaled_map.uncertainties_column_name
-        ] *= scale_factors
+        scaled_map.uncertainties *= optimized_scale_factors
 
     return scaled_map

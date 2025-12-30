@@ -25,71 +25,19 @@ def test_compute_anisotropic_scale_factors_smoke(miller_dataseries: rs.DataSerie
     assert len(scale_factors) == len(miller_dataseries)
 
 
-def test_compute_scale_factors_identical(miller_dataseries: rs.DataSeries) -> None:
-    scale_factors = scale.compute_scale_factors(
-        reference_values=miller_dataseries,
-        values_to_scale=miller_dataseries,
+@pytest.mark.parametrize("use_uncertainties", [False, True])
+def test_scale_maps_identical(random_difference_map: Map, use_uncertainties: bool) -> None:
+    scaled_map = scale.scale_maps(
+        reference_map=random_difference_map,
+        map_to_scale=random_difference_map,
+        weight_using_uncertainties=use_uncertainties,
     )
-    assert (scale_factors == 1.0).all()
-
-    equal_uncertainties = miller_dataseries.copy()
-    equal_uncertainties[:] = np.ones(len(equal_uncertainties))
-
-    scale_factors = scale.compute_scale_factors(
-        reference_values=miller_dataseries,
-        values_to_scale=miller_dataseries,
-        reference_uncertainties=equal_uncertainties,
-        to_scale_uncertainties=equal_uncertainties,
-    )
-    assert (scale_factors == 1.0).all()
-
-
-def test_compute_scale_factors_shuffle_indices(miller_dataseries: rs.DataSeries) -> None:
-    shuffled_miller_dataseries = miller_dataseries.sample(frac=1)
-    scale_factors = scale.compute_scale_factors(
-        reference_values=miller_dataseries,
-        values_to_scale=shuffled_miller_dataseries,
-    )
-    assert (scale_factors == 1.0).all()
-
-
-def test_compute_scale_factors_nans(miller_dataseries: rs.DataSeries) -> None:
-    with_nans = miller_dataseries.copy()
-    with_nans.iloc[0] = np.nan
-    miller_dataseries.iloc[1] = np.nan
-    miller_dataseries.iloc[2] = np.nan
-    scale_factors = scale.compute_scale_factors(
-        reference_values=miller_dataseries,
-        values_to_scale=with_nans,
-    )
-    assert (scale_factors == 1.0).all()
-
-
-def test_compute_scale_factors_scalar(miller_dataseries: rs.DataSeries) -> None:
-    multiple = 2.0
-    doubled_miller_dataseries = miller_dataseries / multiple
-
-    scale_factors = scale.compute_scale_factors(
-        reference_values=miller_dataseries,
-        values_to_scale=doubled_miller_dataseries,
-    )
-    np.testing.assert_array_almost_equal(scale_factors, multiple)
-
-
-def test_compute_scale_factors_anisotropic(miller_dataseries: rs.DataSeries) -> None:
-    flat_miller_dataseries = miller_dataseries.copy()
-    flat_miller_dataseries[:] = np.ones(len(miller_dataseries))
-
-    scale_factors = scale.compute_scale_factors(
-        reference_values=miller_dataseries,
-        values_to_scale=flat_miller_dataseries,
-    )
-    np.testing.assert_array_almost_equal(scale_factors, miller_dataseries.values)
+    pd.testing.assert_frame_equal(scaled_map, random_difference_map)
 
 
 @pytest.mark.parametrize("use_uncertainties", [False, True])
-def test_scale_maps(random_difference_map: Map, use_uncertainties: bool) -> None:
-    multiple = 2.0
+@pytest.mark.parametrize("multiple", [0.4, 1.0, 2.5, 13.324])
+def test_scale_maps(random_difference_map: Map, use_uncertainties: bool, multiple: float) -> None:
     doubled_difference_map: Map = random_difference_map.copy()
     doubled_difference_map.amplitudes /= multiple
 
@@ -112,10 +60,39 @@ def test_scale_maps(random_difference_map: Map, use_uncertainties: bool) -> None
     )
 
 
+@pytest.mark.parametrize("multiple", [0.4, 1.0, 2.5, 13.324])
+def test_scale_uncertainties_invariant_global_scale(
+    random_difference_map: Map, multiple: float
+) -> None:
+    doubled_difference_map: Map = random_difference_map.copy()
+    doubled_difference_map.uncertainties /= multiple
+
+    scaled = scale.scale_maps(
+        reference_map=random_difference_map,
+        map_to_scale=doubled_difference_map,
+        weight_using_uncertainties=True,
+    )
+    np.testing.assert_array_almost_equal(
+        scaled.amplitudes,
+        random_difference_map.amplitudes,
+    )
+    np.testing.assert_array_almost_equal(
+        scaled.phases,
+        random_difference_map.phases,
+    )
+    np.testing.assert_array_almost_equal(
+        scaled.uncertainties * multiple,
+        random_difference_map.uncertainties,
+    )
+
+
 @pytest.mark.parametrize("use_uncertainties", [False, True])
-def test_scale_maps_nans_in_input(random_difference_map: Map, use_uncertainties: bool) -> None:
+@pytest.mark.parametrize("column", ["F", "PHI", "SIGF"])
+def test_scale_maps_nans_in_input(
+    random_difference_map: Map, use_uncertainties: bool, column: str
+) -> None:
     another_difference_map = random_difference_map.copy()
-    another_difference_map.loc[0, another_difference_map.amplitude_column_name] = np.nan
+    another_difference_map.loc[1, column] = np.nan
 
     scale.scale_maps(
         reference_map=random_difference_map,
