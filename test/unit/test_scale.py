@@ -5,7 +5,7 @@ import reciprocalspaceship as rs
 
 from meteor import scale
 from meteor.rsmap import Map
-from meteor.scale import ScaleParameters, compute_scale_factors
+from meteor.scale import compute_scale_factors, ScaleMode, ScaleParameters
 
 
 def compute_scale_factor_reference_implementation(
@@ -46,22 +46,38 @@ def miller_dataseries() -> rs.DataSeries:
     )
 
 
-def test_compute_anisotropic_scale_factors_smoke(miller_dataseries: rs.DataSeries) -> None:
+@pytest.mark.parametrize("scale_mode", ScaleMode)
+def test_compute_anisotropic_scale_factors_smoke(scale_mode: ScaleMode, miller_dataseries: rs.DataSeries) -> None:
     # test call signature, valid return
     arb_params: scale.ScaleParameters = (1.5,) * 7
-    scale_factors = compute_scale_factors(miller_dataseries.index, arb_params)
+    scale_factors = compute_scale_factors(
+        miller_indices=miller_dataseries.index, 
+        scale_parameters=arb_params,
+        scale_mode=scale_mode    
+    )
     assert len(scale_factors) == len(miller_dataseries)
 
 
+@pytest.mark.parametrize("scale_mode", ScaleMode)
 def test_compute_anisotropic_scale_factors(
-    miller_dataseries: rs.DataSeries, np_rng: np.random.Generator
+    scale_mode: ScaleMode, miller_dataseries: rs.DataSeries, np_rng: np.random.Generator
 ) -> None:
     num_random_trials = 5
     for _ in range(num_random_trials):
-        random_params: scale.ScaleParameters = tuple(np_rng.random(size=7))
-        obtained_output = compute_scale_factors(miller_dataseries.index, random_params)
+        random_params = np_rng.normal(size=scale_mode.number_of_parameters)
+        obtained_output = compute_scale_factors(
+            miller_indices=miller_dataseries.index,
+            scale_parameters=tuple(random_params),
+            scale_mode=scale_mode
+        )
+
+        params_for_ref = np.zeros(7)
+        params_for_ref[:scale_mode.number_of_parameters] = random_params
+        if scale_mode == ScaleMode.isotropic:
+            params_for_ref[2] = params_for_ref[3] = params_for_ref[1]
+
         expected_output = compute_scale_factor_reference_implementation(
-            miller_dataseries.index, random_params
+            miller_dataseries.index, tuple(params_for_ref)
         )
         np.testing.assert_allclose(obtained_output, expected_output)
 
