@@ -17,33 +17,33 @@ ScaleParameters = tuple[float, float, float, float, float, float, float]
 
 log = structlog.get_logger()
 
+DIMESON_OF_MILLER_INDEX: int = 3
 
-def _compute_anisotropic_scale_factors(
+
+def compute_scale_factors(
     miller_indices: pd.Index,
-    anisotropic_scale_parameters: ScaleParameters,
+    scale_parameters: ScaleParameters,
 ) -> np.ndarray:
-    miller_indices_as_array = np.array(list(miller_indices))
-    squared_miller_indices = np.square(miller_indices_as_array)
+    vector_h = np.array(list(miller_indices))
+    sp_as_array = np.array(scale_parameters)
 
-    h_squared = squared_miller_indices[:, 0]
-    k_squared = squared_miller_indices[:, 1]
-    l_squared = squared_miller_indices[:, 2]
+    if vector_h.shape[1] != DIMESON_OF_MILLER_INDEX:
+        msg = "`miller_indices` should be an (n, 3)-shape array of miller indices"
+        msg += f"got shape: {vector_h}"
+        raise ValueError(msg)
 
-    hk_product = miller_indices_as_array[:, 0] * miller_indices_as_array[:, 1]
-    hl_product = miller_indices_as_array[:, 0] * miller_indices_as_array[:, 2]
-    kl_product = miller_indices_as_array[:, 1] * miller_indices_as_array[:, 2]
+    matrix_B = np.empty((3, 3), dtype=sp_as_array.dtype)  # noqa: N806
+    matrix_B[0, 0] = sp_as_array[1]
+    matrix_B[1, 1] = sp_as_array[2]
+    matrix_B[2, 2] = sp_as_array[3]
+    matrix_B[0, 1] = matrix_B[1, 0] = sp_as_array[4]
+    matrix_B[0, 2] = matrix_B[2, 0] = sp_as_array[5]
+    matrix_B[1, 2] = matrix_B[2, 1] = sp_as_array[6]
 
-    # Anisotropic scaling term
-    exponential_argument = -(
-        h_squared * anisotropic_scale_parameters[1]
-        + k_squared * anisotropic_scale_parameters[2]
-        + l_squared * anisotropic_scale_parameters[3]
-        + 2 * hk_product * anisotropic_scale_parameters[4]
-        + 2 * hl_product * anisotropic_scale_parameters[5]
-        + 2 * kl_product * anisotropic_scale_parameters[6]
-    )
+    # the einsum implements sum_i{ h^T . B . h }
+    exponential_argument = -np.einsum("ni,ij,nj->n", vector_h, matrix_B, vector_h)
 
-    return anisotropic_scale_parameters[0] * np.exp(exponential_argument)
+    return sp_as_array[0] * np.exp(exponential_argument)
 
 
 def scale_maps(
@@ -122,7 +122,7 @@ def scale_maps(
     sqrt_inverse_variance = 1.0 / np.sqrt(ref_variance + to_scale_variance)
 
     def compute_residuals(scaling_parameters: ScaleParameters) -> np.ndarray:
-        scale_factors = _compute_anisotropic_scale_factors(
+        scale_factors = compute_scale_factors(
             reference_map.index,
             scaling_parameters,
         )
@@ -149,7 +149,7 @@ def scale_maps(
     )
     optimized_parameters: ScaleParameters = optimization_result.x
 
-    optimized_scale_factors = _compute_anisotropic_scale_factors(
+    optimized_scale_factors = compute_scale_factors(
         unmodified_map_to_scale.index,
         optimized_parameters,
     )

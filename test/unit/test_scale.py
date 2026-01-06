@@ -5,7 +5,35 @@ import reciprocalspaceship as rs
 
 from meteor import scale
 from meteor.rsmap import Map
-from meteor.scale import _compute_anisotropic_scale_factors
+from meteor.scale import ScaleParameters, compute_scale_factors
+
+
+def compute_scale_factor_reference_implementation(
+    miller_indices: pd.Index,
+    scale_parameters: ScaleParameters,
+) -> np.ndarray:
+    miller_indices_as_array = np.array(list(miller_indices))
+    squared_miller_indices = np.square(miller_indices_as_array)
+
+    h_squared = squared_miller_indices[:, 0]
+    k_squared = squared_miller_indices[:, 1]
+    l_squared = squared_miller_indices[:, 2]
+
+    hk_product = miller_indices_as_array[:, 0] * miller_indices_as_array[:, 1]
+    hl_product = miller_indices_as_array[:, 0] * miller_indices_as_array[:, 2]
+    kl_product = miller_indices_as_array[:, 1] * miller_indices_as_array[:, 2]
+
+    # Anisotropic scaling term
+    exponential_argument = -(
+        h_squared * scale_parameters[1]
+        + k_squared * scale_parameters[2]
+        + l_squared * scale_parameters[3]
+        + 2 * hk_product * scale_parameters[4]
+        + 2 * hl_product * scale_parameters[5]
+        + 2 * kl_product * scale_parameters[6]
+    )
+
+    return scale_parameters[0] * np.exp(exponential_argument)
 
 
 @pytest.fixture
@@ -20,9 +48,22 @@ def miller_dataseries() -> rs.DataSeries:
 
 def test_compute_anisotropic_scale_factors_smoke(miller_dataseries: rs.DataSeries) -> None:
     # test call signature, valid return
-    random_params: scale.ScaleParameters = (1.5,) * 7
-    scale_factors = _compute_anisotropic_scale_factors(miller_dataseries.index, random_params)
+    arb_params: scale.ScaleParameters = (1.5,) * 7
+    scale_factors = compute_scale_factors(miller_dataseries.index, arb_params)
     assert len(scale_factors) == len(miller_dataseries)
+
+
+def test_compute_anisotropic_scale_factors(
+    miller_dataseries: rs.DataSeries, np_rng: np.random.Generator
+) -> None:
+    num_random_trials = 5
+    for _ in range(num_random_trials):
+        random_params: scale.ScaleParameters = tuple(np_rng.random(size=7))
+        obtained_output = compute_scale_factors(miller_dataseries.index, random_params)
+        expected_output = compute_scale_factor_reference_implementation(
+            miller_dataseries.index, random_params
+        )
+        np.testing.assert_allclose(obtained_output, expected_output)
 
 
 @pytest.mark.parametrize("use_uncertainties", [False, True])
