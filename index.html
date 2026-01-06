@@ -38,7 +38,8 @@ el.replaceWith(d);
 <section id="section-intro">
 <h1 id="meteor">☄️ METEOR</h1>
 <p><strong>Map Enhancement Tools for Ephemeral Occupancy Refinement</strong></p>
-<p><a href="https://github.com/rs-station/meteor/actions/workflows/tests.yml"><img alt="Pytest" src="https://github.com/rs-station/meteor/actions/workflows/tests.yml/badge.svg"></a>
+<p><a href="https://doi.org/10.1038/s42003-025-09031-6"><img alt="DOI: 10.1038/s42003-025-09031-6" src="https://img.shields.io/badge/Publication-Comms_Bio-blue"></a>
+<a href="https://github.com/rs-station/meteor/actions/workflows/tests.yml"><img alt="Pytest" src="https://github.com/rs-station/meteor/actions/workflows/tests.yml/badge.svg"></a>
 <a href="https://github.com/rs-station/meteor/actions/workflows/mypy.yml"><img alt="Mypy" src="https://github.com/rs-station/meteor/actions/workflows/mypy.yml/badge.svg"></a>
 <a href="https://github.com/rs-station/meteor/actions/workflows/lint.yml"><img alt="Ruff" src="https://github.com/rs-station/meteor/actions/workflows/lint.yml/badge.svg"></a>
 <a href="https://codecov.io/github/rs-station/meteor"><img alt="codecov" src="https://codecov.io/github/rs-station/meteor/graph/badge.svg?token=pn9lOy3fMp"></a>
@@ -67,7 +68,7 @@ meteor.phaseboost -h
 <li>be objective and reproducible (minimize user choice &amp; bias)</li>
 <li>be easy to use</li>
 </ol>
-<p>Aim 1 is met using structure factor amplitude weighting (e.g. k-weighting, existing art) and <a href="https://en.wikipedia.org/wiki/Total_variation_denoising">TV denoising</a> (new in the context of crystallography). Aims 2 and 3 are met through automatically setting parameters using negentropy maximization (as in <a href="https://en.wikipedia.org/wiki/Independent_component_analysis">ICA</a>). For all the details, <a href="https://www.biorxiv.org/content/10.1101/2024.11.06.622276v1.full">see our preprint</a>.</p>
+<p>Aim 1 is met using structure factor amplitude weighting (e.g. k-weighting, existing art) and <a href="https://en.wikipedia.org/wiki/Total_variation_denoising">TV denoising</a> (new in the context of crystallography). Aims 2 and 3 are met through automatically setting parameters using negentropy maximization (as in <a href="https://en.wikipedia.org/wiki/Independent_component_analysis">ICA</a>). For all the details, <a href="https://doi.org/10.1038/s42003-025-09031-6">see our paper in <em>Comms Bio</em></a>.</p>
 <h3 id="isomorphous-data-please">isomorphous data, please</h3>
 <p>METEOR is only for isomorphous difference maps, meaning the lattices/symmetries of the <em>native</em> and <em>derivative</em> datasets are comparable. If you need to compare non-isomorphous lattices, check out <a href="https://github.com/rs-station/matchmaps">matchmaps</a>.</p>
 <h2 id="command-line-details">command-line details</h2>
@@ -197,13 +198,13 @@ meteor.phaseboost -h
         tv_denoise_mode=tv_denoise_mode, tv_weight=tv_weight, diffmap=diffmap
     )
     aggregate_metadata = DiffmapMetadata(
-        k_parameter_optimization=kparameter_metadata, tv_weight_optmization=tv_metadata
+        k_parameter_optimization=kparameter_metadata, tv_weight_optimization=tv_metadata
     )
 
-    if aggregate_metadata.tv_weight_optmization.optimal_negentropy &lt;= 0.0:
+    if aggregate_metadata.tv_weight_optimization.optimal_negentropy &lt;= 0.0:
         log.warning(
             NEGATIVE_NEGENTROPY_WARNING_MESSAGE,
-            final_negentropy=aggregate_metadata.tv_weight_optmization.optimal_negentropy,
+            final_negentropy=aggregate_metadata.tv_weight_optimization.optimal_negentropy,
         )
 
     return final_map, aggregate_metadata</code></pre>
