@@ -215,7 +215,7 @@ def scale_maps(
         msg2 = f"({len(optimized_scale_factors)}) vs `values_to_scale` ({len(unmodified_map_to_scale.index)})"
         raise RuntimeError(msg1, msg2)
 
-    scaled_map = map_to_scale.copy()
+    scaled_map = unmodified_map_to_scale.copy()
     scaled_map.amplitudes *= optimized_scale_factors
     if scaled_map.has_uncertainties:
         scaled_map.uncertainties *= optimized_scale_factors

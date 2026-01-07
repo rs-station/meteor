@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -6,6 +8,8 @@ import reciprocalspaceship as rs
 from meteor import scale
 from meteor.rsmap import Map
 from meteor.scale import ScaleMode, ScaleParameters, compute_scale_factors
+
+LSQ_LOSSES_TO_TEST: list[str | Callable] = ["linear", "huber"]
 
 
 def compute_scale_factor_reference_implementation(
@@ -72,18 +76,35 @@ def test_compute_anisotropic_scale_factors(
 
 
 @pytest.mark.parametrize("use_uncertainties", [False, True])
-def test_scale_maps_identical(random_difference_map: Map, use_uncertainties: bool) -> None:
+@pytest.mark.parametrize("scale_mode", ScaleMode)
+@pytest.mark.parametrize("least_squares_loss", LSQ_LOSSES_TO_TEST)
+def test_scale_maps_identical(
+    random_difference_map: Map,
+    use_uncertainties: bool,
+    scale_mode: ScaleMode,
+    least_squares_loss: str,
+) -> None:
     scaled_map = scale.scale_maps(
         reference_map=random_difference_map,
         map_to_scale=random_difference_map,
         weight_using_uncertainties=use_uncertainties,
+        scale_mode=scale_mode,
+        least_squares_loss=least_squares_loss,
     )
     pd.testing.assert_frame_equal(scaled_map, random_difference_map)
 
 
 @pytest.mark.parametrize("use_uncertainties", [False, True])
+@pytest.mark.parametrize("scale_mode", ScaleMode)
+@pytest.mark.parametrize("least_squares_loss", LSQ_LOSSES_TO_TEST)
 @pytest.mark.parametrize("multiple", [0.4, 1.0, 2.5, 13.324])
-def test_scale_maps(random_difference_map: Map, use_uncertainties: bool, multiple: float) -> None:
+def test_scale_maps(
+    random_difference_map: Map,
+    use_uncertainties: bool,
+    scale_mode: ScaleMode,
+    least_squares_loss: str,
+    multiple: float,
+) -> None:
     doubled_difference_map: Map = random_difference_map.copy()
     doubled_difference_map.amplitudes /= multiple
 
@@ -91,6 +112,8 @@ def test_scale_maps(random_difference_map: Map, use_uncertainties: bool, multipl
         reference_map=random_difference_map,
         map_to_scale=doubled_difference_map,
         weight_using_uncertainties=use_uncertainties,
+        scale_mode=scale_mode,
+        least_squares_loss=least_squares_loss,
     )
     np.testing.assert_array_almost_equal(
         scaled.amplitudes,
@@ -133,9 +156,15 @@ def test_scale_uncertainties_invariant_global_scale(
 
 
 @pytest.mark.parametrize("use_uncertainties", [False, True])
+@pytest.mark.parametrize("scale_mode", ScaleMode)
+@pytest.mark.parametrize("least_squares_loss", LSQ_LOSSES_TO_TEST)
 @pytest.mark.parametrize("column", ["F", "PHI", "SIGF"])
 def test_scale_maps_nans_in_input(
-    random_difference_map: Map, use_uncertainties: bool, column: str
+    random_difference_map: Map,
+    use_uncertainties: bool,
+    scale_mode: ScaleMode,
+    least_squares_loss: str,
+    column: str,
 ) -> None:
     another_difference_map = random_difference_map.copy()
     another_difference_map.loc[1, column] = np.nan
@@ -144,6 +173,8 @@ def test_scale_maps_nans_in_input(
         reference_map=random_difference_map,
         map_to_scale=another_difference_map,
         weight_using_uncertainties=use_uncertainties,
+        scale_mode=scale_mode,
+        least_squares_loss=least_squares_loss,
     )
 
 
@@ -169,3 +200,21 @@ def test_scale_maps_uncertainty_weighting() -> None:
 
     np.testing.assert_allclose(scaled["F"][(0, 0, 2)], 0.5, atol=1e-4)
     np.testing.assert_allclose(scaled["SIGF"][(0, 0, 2)], 250000.0, rtol=1e-4)
+
+
+@pytest.mark.parametrize("weight_using_uncertainties", [False, True])
+@pytest.mark.parametrize("scale_mode", ScaleMode)
+@pytest.mark.parametrize("least_squares_loss", LSQ_LOSSES_TO_TEST)
+def test_scale_mismatched_indices(
+    weight_using_uncertainties: bool, scale_mode: ScaleMode, least_squares_loss: str, noisy_map: Map
+) -> None:
+    missing_indices = noisy_map.copy()
+    missing_indices.drop(missing_indices.index[:512], inplace=True)
+
+    scale.scale_maps(
+        reference_map=missing_indices,
+        map_to_scale=noisy_map,
+        weight_using_uncertainties=weight_using_uncertainties,
+        scale_mode=scale_mode,
+        least_squares_loss=least_squares_loss,
+    )
