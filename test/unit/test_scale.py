@@ -5,7 +5,7 @@ import reciprocalspaceship as rs
 
 from meteor import scale
 from meteor.rsmap import Map
-from meteor.scale import compute_scale_factors, ScaleMode, ScaleParameters
+from meteor.scale import ScaleMode, ScaleParameters, compute_scale_factors
 
 
 def compute_scale_factor_reference_implementation(
@@ -47,18 +47,6 @@ def miller_dataseries() -> rs.DataSeries:
 
 
 @pytest.mark.parametrize("scale_mode", ScaleMode)
-def test_compute_anisotropic_scale_factors_smoke(scale_mode: ScaleMode, miller_dataseries: rs.DataSeries) -> None:
-    # test call signature, valid return
-    arb_params: scale.ScaleParameters = (1.5,) * 7
-    scale_factors = compute_scale_factors(
-        miller_indices=miller_dataseries.index, 
-        scale_parameters=arb_params,
-        scale_mode=scale_mode    
-    )
-    assert len(scale_factors) == len(miller_dataseries)
-
-
-@pytest.mark.parametrize("scale_mode", ScaleMode)
 def test_compute_anisotropic_scale_factors(
     scale_mode: ScaleMode, miller_dataseries: rs.DataSeries, np_rng: np.random.Generator
 ) -> None:
@@ -68,17 +56,18 @@ def test_compute_anisotropic_scale_factors(
         obtained_output = compute_scale_factors(
             miller_indices=miller_dataseries.index,
             scale_parameters=tuple(random_params),
-            scale_mode=scale_mode
+            scale_mode=scale_mode,
         )
 
         params_for_ref = np.zeros(7)
-        params_for_ref[:scale_mode.number_of_parameters] = random_params
+        params_for_ref[: scale_mode.number_of_parameters] = random_params
         if scale_mode == ScaleMode.isotropic:
             params_for_ref[2] = params_for_ref[3] = params_for_ref[1]
 
         expected_output = compute_scale_factor_reference_implementation(
             miller_dataseries.index, tuple(params_for_ref)
         )
+        assert len(obtained_output) == len(miller_dataseries)
         np.testing.assert_allclose(obtained_output, expected_output)
 
 
