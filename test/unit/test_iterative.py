@@ -104,7 +104,9 @@ def test_iterative_tv_denoise_retains_scale(
     denoised_map, _ = testing_denoiser(derivative=very_noisy_map, native=noise_free_map)
     mssq_vanilla = np.mean(np.square(vanilla_difference_map.amplitudes))
     mssq_denoised = np.mean(np.square(denoised_map.amplitudes))
-    np.testing.assert_allclose(mssq_denoised, mssq_vanilla, rtol=0.2)  # TODO: think
+
+    # the itTV method should natively retain the sum{squares} scale to 20% or better
+    np.testing.assert_allclose(mssq_denoised, mssq_vanilla, rtol=0.2)
 
 
 def test_iterative_tv_denoiser(

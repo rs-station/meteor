@@ -123,7 +123,6 @@ def test_final_map_has_reported_negentropy(noisy_map: Map) -> None:
     # this caused the negentropy values to be off
 
     # simulate missing reflections that will be filled
-    # TODO this is broken
     noisy_map.drop(noisy_map.index[:512], inplace=True)
 
     weight = 0.01
