@@ -56,6 +56,7 @@ def compute_scale_factors(
         msg += f"for mode={scale_mode}, got length: {len(scale_parameters)}"
         raise ValueError(msg)
 
+    # this code is part of a few tight loops; code below is fast and clear
     matrix_B = np.zeros((3, 3), dtype=sp_as_array.dtype)  # noqa: N806 (variable capitalization)
 
     if scale_mode == ScaleMode.anisotropic:
@@ -76,7 +77,7 @@ def compute_scale_factors(
         matrix_B[1, 1] = sp_as_array[1]
         matrix_B[2, 2] = sp_as_array[1]
 
-    # NOTE: early return
+    # NOTE: early return -- we don't need to compute the einsum for scale_mode "scalar"
     elif scale_mode == ScaleMode.scalar:
         return sp_as_array[0] * np.ones(vector_h.shape[0], dtype=np.float64)
 
