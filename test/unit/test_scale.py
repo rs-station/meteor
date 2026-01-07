@@ -211,9 +211,17 @@ def test_scale_mismatched_indices(
     missing_indices = noisy_map.copy()
     missing_indices.drop(missing_indices.index[:512], inplace=True)
 
-    scale.scale_maps(
+    _ = scale.scale_maps(
         reference_map=missing_indices,
         map_to_scale=noisy_map,
+        weight_using_uncertainties=weight_using_uncertainties,
+        scale_mode=scale_mode,
+        least_squares_loss=least_squares_loss,
+    )
+
+    _ = scale.scale_maps(
+        reference_map=noisy_map,
+        map_to_scale=missing_indices,
         weight_using_uncertainties=weight_using_uncertainties,
         scale_mode=scale_mode,
         least_squares_loss=least_squares_loss,
