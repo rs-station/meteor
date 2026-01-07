@@ -109,9 +109,10 @@ def test_compute_kweights_vs_analytical() -> None:
     k_parameter = 0.5
 
     diffmap = Map.from_dict({"F": deltaf, "PHI": phi, "SIGF": sigdeltaf})
-    expected_weights = np.array([0.453, 0.406, 0.354])
+    expected_weights = np.array([1.121, 1.004, 0.875])
 
     result = compute_kweights(diffmap, k_parameter=k_parameter)
+    assert np.mean(result) == 1.0
     assert_almost_equal(result.values, expected_weights, decimal=3)
 
 
@@ -122,10 +123,25 @@ def test_compute_kweighted_difference_map_vs_analytical(
     kwt_diffmap = compute_kweighted_difference_map(
         dummy_derivative, dummy_native, k_parameter=0.5, check_isomorphous=False
     )
-    expected_weighted_amplitudes = np.array([1.3247, 1.8280])  # calculated by hand
-    expected_weighted_uncertainties = np.array([0.3122, 0.2585])
+    expected_weighted_amplitudes = np.array([3.2824, 4.5294])  # calculated by hand
+    expected_weighted_uncertainties = np.array([0.7737, 0.6406])
     assert_almost_equal(kwt_diffmap.amplitudes, expected_weighted_amplitudes, decimal=4)
     assert_almost_equal(kwt_diffmap.uncertainties, expected_weighted_uncertainties, decimal=4)
+
+
+def test_kweighted_difference_map_retains_scale(
+    dummy_derivative: Map,
+    dummy_native: Map,
+) -> None:
+    vanilla_diffmap = compute_difference_map(
+        dummy_derivative, dummy_native, check_isomorphous=False
+    )
+    kwt_diffmap = compute_kweighted_difference_map(
+        dummy_derivative, dummy_native, k_parameter=0.5, check_isomorphous=False
+    )
+    vanilla_mssq = np.mean(np.square(vanilla_diffmap))
+    kwt_mssq = np.mean(np.square(kwt_diffmap))
+    np.testing.assert_allclose(vanilla_mssq, kwt_mssq, rtol=1e-4)
 
 
 def test_kweight_optimization(noise_free_map: rs.DataSet, noisy_map: rs.DataSet) -> None:
