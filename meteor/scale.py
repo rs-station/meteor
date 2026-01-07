@@ -18,7 +18,7 @@ ScaleParameters = tuple[float, ...]
 
 log = structlog.get_logger()
 
-DIMESON_OF_MILLER_INDEX: int = 3
+DIMENSION_OF_MILLER_INDEX: int = 3
 
 
 class ParameterLengthMismatchError(ValueError): ...
@@ -44,13 +44,13 @@ class ScaleMode(StrEnum):
 
 
 def compute_scale_factors(
-    *, miller_indices: pd.Index, scale_parameters: ScaleParameters, scale_mode: ScaleMode
+    *, miller_indices: pd.Index, scale_parameters: ScaleParameters, scale_mode: str | ScaleMode
 ) -> np.ndarray:
-    if type(scale_mode) is str:
+    if isinstance(scale_mode, str):
         scale_mode = ScaleMode(scale_mode)
 
     vector_h = np.array(list(miller_indices))
-    if vector_h.shape[1] != DIMESON_OF_MILLER_INDEX:
+    if vector_h.shape[1] != DIMENSION_OF_MILLER_INDEX:
         msg = "`miller_indices` should be an (n, 3) multi-index of miller HKL indices, "
         msg += f"got shape: {vector_h.shape}"
         raise ValueError(msg)

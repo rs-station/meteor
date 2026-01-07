@@ -89,14 +89,14 @@ def test_string_scale_mode(scale_mode: str, miller_dataseries: rs.DataSeries) ->
             _ = compute_scale_factors(
                 miller_indices=miller_dataseries.index,
                 scale_parameters=(1.0,) * 7,
-                scale_mode=scale_mode,  # type: ignore[arg-type]
+                scale_mode=scale_mode,
             )
     else:
         arbitrary_params = (1.0,) * ScaleMode(scale_mode).number_of_parameters
         _ = compute_scale_factors(
             miller_indices=miller_dataseries.index,
             scale_parameters=arbitrary_params,
-            scale_mode=scale_mode,  # type: ignore[arg-type]
+            scale_mode=scale_mode,
         )
 
 
