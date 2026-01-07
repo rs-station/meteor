@@ -7,7 +7,12 @@ import reciprocalspaceship as rs
 
 from meteor import scale
 from meteor.rsmap import Map
-from meteor.scale import ScaleMode, ScaleParameters, compute_scale_factors
+from meteor.scale import (
+    ParameterLengthMismatchError,
+    ScaleMode,
+    ScaleParameters,
+    compute_scale_factors,
+)
 
 LSQ_LOSSES_TO_TEST: list[str | Callable] = ["linear", "huber"]
 
@@ -73,6 +78,39 @@ def test_compute_anisotropic_scale_factors(
         )
         assert len(obtained_output) == len(miller_dataseries)
         np.testing.assert_allclose(obtained_output, expected_output)
+
+
+@pytest.mark.parametrize(
+    "scale_mode", ["anisotropic", "isotropic", "orthogonal", "scalar", "not-valid"]
+)
+def test_string_scale_mode(scale_mode: str, miller_dataseries: rs.DataSeries) -> None:
+    if scale_mode == "not-valid":
+        with pytest.raises(ValueError, match="'not-valid' is not a valid ScaleMode"):
+            _ = compute_scale_factors(
+                miller_indices=miller_dataseries.index,
+                scale_parameters=(1.0,) * 7,
+                scale_mode=scale_mode,  # type: ignore[arg-type]
+            )
+    else:
+        arbitrary_params = (1.0,) * ScaleMode(scale_mode).number_of_parameters
+        _ = compute_scale_factors(
+            miller_indices=miller_dataseries.index,
+            scale_parameters=arbitrary_params,
+            scale_mode=scale_mode,  # type: ignore[arg-type]
+        )
+
+
+@pytest.mark.parametrize("scale_mode", ScaleMode)
+def test_parameter_length_scale_mode_mismatch(
+    scale_mode: ScaleMode, miller_dataseries: rs.DataSeries
+) -> None:
+    wrong_length_params = (1.0,) * 10
+    with pytest.raises(ParameterLengthMismatchError):
+        _ = compute_scale_factors(
+            miller_indices=miller_dataseries.index,
+            scale_parameters=wrong_length_params,
+            scale_mode=scale_mode,
+        )
 
 
 @pytest.mark.parametrize("use_uncertainties", [False, True])

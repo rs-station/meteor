@@ -21,6 +21,9 @@ log = structlog.get_logger()
 DIMESON_OF_MILLER_INDEX: int = 3
 
 
+class ParameterLengthMismatchError(ValueError): ...
+
+
 class ScaleMode(StrEnum):
     anisotropic = "anisotropic"
     orthogonal = "orthogonal"
@@ -37,13 +40,15 @@ class ScaleMode(StrEnum):
             return 2
         if self is ScaleMode.scalar:
             return 1
-        msg = f"mode {self!s} not valid"
-        raise NotImplementedError(msg)
+        raise NotImplementedError
 
 
 def compute_scale_factors(
     *, miller_indices: pd.Index, scale_parameters: ScaleParameters, scale_mode: ScaleMode
 ) -> np.ndarray:
+    if type(scale_mode) is str:
+        scale_mode = ScaleMode(scale_mode)
+
     vector_h = np.array(list(miller_indices))
     if vector_h.shape[1] != DIMESON_OF_MILLER_INDEX:
         msg = "`miller_indices` should be an (n, 3) multi-index of miller HKL indices, "
@@ -54,7 +59,7 @@ def compute_scale_factors(
     if sp_as_array.shape != (scale_mode.number_of_parameters,):
         msg = f"`scale_parameters` should be length {scale_mode.number_of_parameters} "
         msg += f"for mode={scale_mode}, got length: {len(scale_parameters)}"
-        raise ValueError(msg)
+        raise ParameterLengthMismatchError(msg)
 
     # this code is part of a few tight loops; code below is fast and clear
     matrix_B = np.zeros((3, 3), dtype=sp_as_array.dtype)  # noqa: N806 (variable capitalization)
