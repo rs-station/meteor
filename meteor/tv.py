@@ -11,6 +11,7 @@ from skimage.restoration import denoise_tv_chambolle
 
 from .metadata import TvScanMetadata
 from .rsmap import Map
+from .scale import ScaleMode, scale_maps
 from .settings import (
     BRACKET_FOR_GOLDEN_OPTIMIZATION,
     MAP_SAMPLING,
@@ -147,6 +148,17 @@ def tv_denoise_difference_map(
     # propogate uncertainties
     if difference_map.has_uncertainties:
         final_map.set_uncertainties(difference_map.uncertainties)
+
+    # scale to non-denoised map to retain amplitude scale
+    difference_map.canonicalize_amplitudes()
+    final_map.canonicalize_amplitudes()
+    final_map = scale_maps(
+        reference_map=difference_map,
+        map_to_scale=final_map,
+        scale_mode=ScaleMode.scalar,
+        weight_using_uncertainties=False,
+        least_squares_loss="linear",
+    )
 
     if full_output:
         initial_negentropy = negentropy(realspace_map_array)

@@ -28,7 +28,7 @@ def test_script_produces_consistent_results(
     # for when WeightMode.fixed; these maximized negentropy in coarse manual testing
     # and should provide consistent results with the values on disk
     kweight_parameter = 0.01
-    tv_weight = 0.01
+    tv_weight = 0.016869
 
     output_mtz = tmp_path / "test-output.mtz"
     output_metadata_file = tmp_path / "test-output-metadata.json"
@@ -98,7 +98,7 @@ def test_script_produces_consistent_results(
                 err_msg="tv weight optimium different from expected",
             )
         else:
-            optimal_tv_with_weighting = 0.010
+            optimal_tv_with_weighting = 0.016869
             np.testing.assert_allclose(
                 diffmap_metadata.tv_weight_optimization.optimal_parameter_value,
                 optimal_tv_with_weighting,
