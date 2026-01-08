@@ -214,8 +214,6 @@ def scale_maps(
         scale_parameters=optimized_parameters,
         scale_mode=scale_mode,
     )
-    if optimized_scale_factors[0] <= 0.0:
-        log.warning("the scale constant `C` (in `C*exp{-B}`) is negative - likely wrong")
 
     if len(optimized_scale_factors) != len(unmodified_map_to_scale.index):
         msg1 = "length mismatch: `optimized_scale_factors` - something went wrong"

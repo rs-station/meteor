@@ -80,6 +80,20 @@ def test_compute_anisotropic_scale_factors(
         np.testing.assert_allclose(obtained_output, expected_output)
 
 
+def test_compute_anisotropic_scale_factors_miller_error(miller_dataseries: rs.DataSeries) -> None:
+    scale_mode = ScaleMode.anisotropic
+    arbitrary_params = (1.0,) * scale_mode.number_of_parameters
+    cut_index = miller_dataseries.index[:,:2]
+    
+    err_string = f"miller_indices` should be an (n, 3) multi-index of miller HKL indices, got shape: {cut_index.shape}"
+    with pytest.raises(ValueError, match=err_string):
+        _ = compute_scale_factors(
+            miller_indices=cut_index,
+            scale_parameters=arbitrary_params,
+            scale_mode=scale_mode
+        )
+
+
 @pytest.mark.parametrize(
     "scale_mode", ["anisotropic", "isotropic", "orthogonal", "scalar", "not-valid"]
 )
