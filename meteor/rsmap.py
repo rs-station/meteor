@@ -249,15 +249,11 @@ class Map(rs.DataSet):
         return np.max(d_hkl), np.min(d_hkl)
 
     @property
-    def cell(self) -> rs.UnitCell | None:
+    def cell(self) -> CellType | None:
         return self._unitcell
 
     @cell.setter
-    def cell(self, value: rs.UnitCell) -> None:
-        if not isinstance(value, rs.UnitCell):
-            msg = f"expected `cell` to be a rs.UnitCell, got {type(value)}"
-            raise TypeError(msg)
-        self._unitcell = value
+    def cell(self, value: CellType | None) -> None:
 
     @property
     def amplitudes(self) -> rs.DataSeries:
