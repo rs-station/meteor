@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Literal, overload
+from typing import TYPE_CHECKING, Literal, overload
 
 import gemmi
 import numpy as np
 import reciprocalspaceship as rs
 from reciprocalspaceship.decorators import cellify, spacegroupify
 from reciprocalspaceship.utils import canonicalize_phases
+
+if TYPE_CHECKING:
+    from .rsmap import Map
 
 CellType = Sequence[float] | np.ndarray | gemmi.UnitCell
 SpacegroupType = str | int | gemmi.SpaceGroup
@@ -41,13 +44,30 @@ def filter_common_indices(df1: rs.DataSet, df2: rs.DataSet) -> tuple[rs.DataSet,
         raise IndexError(msg)
     return df1_common, df2_common
 
+@overload
+def cut_resolution(
+    dataset: Map,
+    *,
+    low_resolution_limit: float | None = None,
+    high_resolution_limit: float | None = None,
+) -> Map: ...
 
+@overload
 def cut_resolution(
     dataset: rs.DataSet,
     *,
     low_resolution_limit: float | None = None,
     high_resolution_limit: float | None = None,
-) -> rs.DataSet:
+) -> rs.DataSet: ...
+
+
+
+def cut_resolution(
+    dataset: rs.DataSet | Map,
+    *,
+    low_resolution_limit: float | None = None,
+    high_resolution_limit: float | None = None,
+) -> rs.DataSet | Map:
     if (
         high_resolution_limit
         and low_resolution_limit
