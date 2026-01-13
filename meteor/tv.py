@@ -149,6 +149,7 @@ def tv_denoise_difference_map(
     if difference_map.has_uncertainties:
         final_map.set_uncertainties(difference_map.uncertainties)
 
+    # TV denoising changes the scale of the denoised map (reduces average magnitude)
     # scale to non-denoised map to retain amplitude scale
     difference_map.canonicalize_amplitudes()
     final_map.canonicalize_amplitudes()
