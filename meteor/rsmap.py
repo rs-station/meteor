@@ -237,6 +237,9 @@ class Map(rs.DataSet):
         if not hasattr(self, "cell"):
             msg = "no `cell` attribute set, cannot compute resolution (d-values)"
             raise AttributeError(msg)
+        if self.cell is None:
+            msg = "`cell` attribute is None, cannot compute resolution (d-values)"
+            raise AttributeError(msg)
         d_hkl = self.cell.calculate_d_array(self.get_hkls())
         return rs.DataSeries(d_hkl, dtype="R", index=self.index)
 
@@ -244,6 +247,10 @@ class Map(rs.DataSet):
     def resolution_limits(self) -> tuple[float, float]:
         d_hkl = self.compute_dHKL()
         return np.max(d_hkl), np.min(d_hkl)
+
+    @property
+    def cell(self) -> rs.UnitCell | None:
+        return self._cell
 
     @property
     def amplitudes(self) -> rs.DataSeries:
