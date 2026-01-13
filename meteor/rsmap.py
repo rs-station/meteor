@@ -250,7 +250,14 @@ class Map(rs.DataSet):
 
     @property
     def cell(self) -> rs.UnitCell | None:
-        return self._cell
+        return self._unitcell
+
+    @cell.setter
+    def cell(self, value: rs.UnitCell) -> None:
+        if not isinstance(value, rs.UnitCell):
+            msg = f"expected `cell` to be a rs.UnitCell, got {type(value)}"
+            raise TypeError(msg)
+        self._unitcell = value
 
     @property
     def amplitudes(self) -> rs.DataSeries:
