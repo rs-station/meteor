@@ -79,6 +79,7 @@ class Map(rs.DataSet):
         amplitude_column: str = "F",
         phase_column: str = "PHI",
         uncertainty_column: str | None = "SIGF",
+        cell: CellType | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(data=data, **kwargs)
@@ -103,6 +104,7 @@ class Map(rs.DataSet):
             del self[column]
 
         # ensure types correct
+        self.cell = self._verify_cell_type(cell)
         self.amplitudes = self._verify_amplitude_type(self.amplitudes, fix=True)
         self.phases = self._verify_phase_type(self.phases, fix=True)
         if self.has_uncertainties:
@@ -140,6 +142,18 @@ class Map(rs.DataSet):
             msg = f"dtype for passed {name} not allowed, got: {dataseries.dtype} allow {allowed_types}"
             raise AssertionError(msg)
         return dataseries
+    def _verify_cell_type(
+        self,
+        cell: CellType | None,
+        *,
+        fix: bool = True,
+    ) -> gemmi.UnitCell | None:
+        if cell is not None and not isinstance(cell, gemmi.UnitCell):
+            if fix:
+                return gemmi.UnitCell(cell)
+            msg = f"dtype for passed cell not allowed, got: {type(cell)} allow gemmi.UnitCell"
+            raise AssertionError(msg)
+        return cell
 
     def _verify_amplitude_type(
         self,
@@ -254,6 +268,7 @@ class Map(rs.DataSet):
 
     @cell.setter
     def cell(self, value: CellType | None) -> None:
+        self._unitcell = self._verify_cell_type(value)
 
     @property
     def amplitudes(self) -> rs.DataSeries:
