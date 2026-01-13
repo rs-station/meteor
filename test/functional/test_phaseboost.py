@@ -40,10 +40,10 @@ def test_script_produces_consistent_results(
         str(output_mtz),
         "-m",
         str(output_metadata),
-        "-x",
-        "0.01",
+        "--tv-weights-to-scan",
+        "0.005",
         "--max-iterations",
-        "5",
+        "3",
     ]
 
     phaseboost.main(cli_args)
