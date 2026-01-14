@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Literal, overload
+from typing import Literal, TypeAlias, overload
 
 import gemmi
 import numpy as np
@@ -11,8 +11,8 @@ import reciprocalspaceship as rs
 from reciprocalspaceship.decorators import cellify, spacegroupify
 from reciprocalspaceship.utils import canonicalize_phases
 
-CellType = Sequence[float] | np.ndarray | gemmi.UnitCell
-SpacegroupType = str | int | gemmi.SpaceGroup
+CellType: TypeAlias = Sequence[float] | np.ndarray | gemmi.UnitCell
+SpacegroupType: TypeAlias = str | int | gemmi.SpaceGroup
 
 
 class ShapeMismatchError(Exception): ...
