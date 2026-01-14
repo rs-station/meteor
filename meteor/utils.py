@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Literal, overload
+from typing import TYPE_CHECKING, Literal, TypeAlias, overload
+
 
 import gemmi
 import numpy as np
@@ -14,8 +15,9 @@ from reciprocalspaceship.utils import canonicalize_phases
 if TYPE_CHECKING:
     from .rsmap import Map
 
-CellType = Sequence[float] | np.ndarray | gemmi.UnitCell
-SpacegroupType = str | int | gemmi.SpaceGroup
+CellType: TypeAlias = Sequence[float] | np.ndarray | gemmi.UnitCell
+SpacegroupType: TypeAlias = str | int | gemmi.SpaceGroup
+
 
 
 class ShapeMismatchError(Exception): ...
