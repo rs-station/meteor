@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any, ClassVar, Final, Literal, overload
 
@@ -22,6 +22,7 @@ from .utils import (
 )
 
 NUMBER_OF_DIMENSIONS_IN_UNIVERSE: Final[int] = 3
+GEMMI_UNITCELL_PARAMETERS_LENGTH: Final[int] = 6
 
 
 class MissingUncertaintiesError(AttributeError): ...
@@ -106,7 +107,9 @@ class Map(rs.DataSet):
         self.amplitudes = self._verify_amplitude_type(self.amplitudes, fix=True)
         self.phases = self._verify_phase_type(self.phases, fix=True)
         if self.has_uncertainties:
-            self.uncertainties = self._verify_uncertainty_type(self.uncertainties, fix=True)
+            self.uncertainties = self._verify_uncertainty_type(
+                self.uncertainties, fix=True
+            )
 
     @property
     def _constructor(self) -> Callable[[Any], Map]:
@@ -141,6 +144,21 @@ class Map(rs.DataSet):
             raise AssertionError(msg)
         return dataseries
 
+    def _verify_cell(
+        self, cell: CellType | None, *, fix: bool = True
+    ) -> gemmi.UnitCell | None:
+        if cell is None or isinstance(cell, gemmi.UnitCell):
+            return cell
+        if (
+            isinstance(cell, (Sequence, np.ndarray))
+            and len(cell) == GEMMI_UNITCELL_PARAMETERS_LENGTH
+            and fix
+        ):
+            return gemmi.UnitCell(*cell)
+        msg = f"dtype for passed cell not allowed, got: {type(cell)}"
+        msg += f"allowed: {gemmi.UnitCell} or sequence of length {GEMMI_UNITCELL_PARAMETERS_LENGTH} or None"
+        raise TypeError(msg)
+
     def _verify_amplitude_type(
         self,
         dataseries: rs.DataSeries,
@@ -162,7 +180,9 @@ class Map(rs.DataSet):
             cast_fix_to=rs.StructureFactorAmplitudeDtype(),
         )
 
-    def _verify_phase_type(self, dataseries: rs.DataSeries, *, fix: bool = True) -> rs.DataSeries:
+    def _verify_phase_type(
+        self, dataseries: rs.DataSeries, *, fix: bool = True
+    ) -> rs.DataSeries:
         name = "phase"
         phase_dtypes = [rs.PhaseDtype()]
         return self._verify_type(
@@ -182,7 +202,11 @@ class Map(rs.DataSet):
             rs.StandardDeviationFriedelSFDtype(),
         ]
         return self._verify_type(
-            name, uncertainty_dtypes, dataseries, fix=fix, cast_fix_to=rs.StandardDeviationDtype()
+            name,
+            uncertainty_dtypes,
+            dataseries,
+            fix=fix,
+            cast_fix_to=rs.StandardDeviationDtype(),
         )
 
     def __setitem__(self, key: str, value: Any) -> None:
@@ -192,7 +216,9 @@ class Map(rs.DataSet):
             raise MapMutabilityError(msg)
         super().__setitem__(key, value)
 
-    def insert(self, loc: int, column: str, value: Any, *, allow_duplicates: bool = False) -> None:
+    def insert(
+        self, loc: int, column: str, value: Any, *, allow_duplicates: bool = False
+    ) -> None:
         if column in self._allowed_columns:
             super().insert(loc, column, value, allow_duplicates=allow_duplicates)
         else:
@@ -220,7 +246,9 @@ class Map(rs.DataSet):
         elif all(col in self.columns for col in hkl_names):
             # we need to pull out each column as a separate DataSeries so that we don't try to
             # create a new Map object without F, PHI
-            hkls = np.vstack([self[col].to_numpy(dtype=np.int32) for col in hkl_names]).T
+            hkls = np.vstack(
+                [self[col].to_numpy(dtype=np.int32) for col in hkl_names]
+            ).T
         else:
             msg = f"cannot find `H`, `K`, and `L` columns in index or columns {self.columns}"
             raise ValueError(msg)
@@ -253,15 +281,8 @@ class Map(rs.DataSet):
         return super().cell
 
     @cell.setter
-    def cell(self, value: CellType | None) -> None:
-        if value is None or isinstance(value, gemmi.UnitCell):
-            unitcell = value
-        elif isinstance(value, CellType):
-            unitcell = gemmi.UnitCell(value)
-        else:
-            msg = f"cannot convert {value} of type {type(value)} to gemmi.UnitCell"
-            raise TypeError(msg)
-        # Optional: you can also add type-checked setters
+    def cell(self, cell: CellType | None) -> None:
+        unitcell = self._verify_cell(cell)
         super(Map, type(self)).cell.fset(self, unitcell)
 
     @property
@@ -311,7 +332,9 @@ class Map(rs.DataSet):
             msg += "to initialize, use Map.set_uncertainties(...)"
             raise AttributeError(msg)
 
-    def set_uncertainties(self, values: rs.DataSeries, column_name: str = "SIGF") -> None:
+    def set_uncertainties(
+        self, values: rs.DataSeries, column_name: str = "SIGF"
+    ) -> None:
         values = self._verify_uncertainty_type(values)
 
         if self.has_uncertainties:
@@ -325,7 +348,10 @@ class Map(rs.DataSet):
                 msg = "Misconfigured columns"
                 raise RuntimeError(msg)
             super().insert(
-                number_of_columns, self._uncertainty_column, values, allow_duplicates=False
+                number_of_columns,
+                self._uncertainty_column,
+                values,
+                allow_duplicates=False,
             )
 
     @property
@@ -452,7 +478,12 @@ class Map(rs.DataSet):
     @classmethod
     @cellify("cell")
     def from_3d_numpy_map(
-        cls, map_grid: np.ndarray, *, spacegroup: Any, cell: CellType, high_resolution_limit: float
+        cls,
+        map_grid: np.ndarray,
+        *,
+        spacegroup: Any,
+        cell: CellType,
+        high_resolution_limit: float,
     ) -> Map:
         """
         Create a `Map` from a 3d grid of voxel values stored in a numpy array.
@@ -512,10 +543,14 @@ class Map(rs.DataSet):
         phase_column: str = "PHI",
     ) -> Map:
         map_mean = np.mean(np.array(ccp4_map.grid))
-        map_has_nonzero_000_refl = bool(np.abs(map_mean) > MAP_HAS_NONZERO_000_TOLERANCE)
+        map_has_nonzero_000_refl = bool(
+            np.abs(map_mean) > MAP_HAS_NONZERO_000_TOLERANCE
+        )
 
         # to ensure we include the final shell of reflections, add a small buffer to the resolution
-        gemmi_structure_factors = gemmi.transform_map_to_f_phi(ccp4_map.grid, half_l=False)
+        gemmi_structure_factors = gemmi.transform_map_to_f_phi(
+            ccp4_map.grid, half_l=False
+        )
         data = gemmi_structure_factors.prepare_asu_data(
             dmin=high_resolution_limit - GEMMI_HIGH_RESOLUTION_BUFFER,
             with_sys_abs=True,
@@ -534,7 +569,9 @@ class Map(rs.DataSet):
         mtz.switch_to_asu_hkl()
         dataset = super().from_gemmi(mtz)
 
-        return cls(dataset, amplitude_column=amplitude_column, phase_column=phase_column)
+        return cls(
+            dataset, amplitude_column=amplitude_column, phase_column=phase_column
+        )
 
     def write_mtz(self, file_path: str | Path) -> None:
         path_cast_to_str = str(file_path)
