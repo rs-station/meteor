@@ -79,7 +79,6 @@ class Map(rs.DataSet):
         amplitude_column: str = "F",
         phase_column: str = "PHI",
         uncertainty_column: str | None = "SIGF",
-        cell: CellType | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(data=data, **kwargs)
@@ -104,7 +103,6 @@ class Map(rs.DataSet):
             del self[column]
 
         # ensure types correct
-        self.cell = self._verify_cell_type(cell)
         self.amplitudes = self._verify_amplitude_type(self.amplitudes, fix=True)
         self.phases = self._verify_phase_type(self.phases, fix=True)
         if self.has_uncertainties:
@@ -142,18 +140,6 @@ class Map(rs.DataSet):
             msg = f"dtype for passed {name} not allowed, got: {dataseries.dtype} allow {allowed_types}"
             raise AssertionError(msg)
         return dataseries
-    def _verify_cell_type(
-        self,
-        cell: CellType | None,
-        *,
-        fix: bool = True,
-    ) -> gemmi.UnitCell | None:
-        if cell is not None and not isinstance(cell, gemmi.UnitCell):
-            if fix:
-                return gemmi.UnitCell(cell)
-            msg = f"dtype for passed cell not allowed, got: {type(cell)} allow gemmi.UnitCell"
-            raise AssertionError(msg)
-        return cell
 
     def _verify_amplitude_type(
         self,
@@ -263,12 +249,20 @@ class Map(rs.DataSet):
         return np.max(d_hkl), np.min(d_hkl)
 
     @property
-    def cell(self) -> CellType | None:
-        return self._unitcell
+    def cell(self) -> gemmi.UnitCell | None:
+        return super().cell
 
     @cell.setter
     def cell(self, value: CellType | None) -> None:
-        self._unitcell = self._verify_cell_type(value)
+        if value is None or isinstance(value, gemmi.UnitCell):
+            unitcell = value
+        elif isinstance(value, CellType):
+            unitcell = gemmi.UnitCell(value)
+        else:
+            msg = f"cannot convert {value} of type {type(value)} to gemmi.UnitCell"
+            raise TypeError(msg)
+        # Optional: you can also add type-checked setters
+        super(Map, type(self)).cell.fset(self, unitcell)
 
     @property
     def amplitudes(self) -> rs.DataSeries:
