@@ -185,7 +185,9 @@ def scale_maps(
             scale_mode=scale_mode,
         )
         if not np.all(np.isfinite(scale_factors)):
-            msg = "scaling procedure failed -- optimization produced non finite values"
+            msg = "Scaling procedure failed -- optimization produced non finite values. "
+            msg += "This can be caused by unusual input values. "
+            msg += "Recommend: check the input data for severe outliers."
             raise RuntimeError(msg)
 
         difference_after_scaling = (
@@ -202,8 +204,7 @@ def scale_maps(
 
         return residuals
 
-    initial_constant_scale_factor = np.mean(map_to_scale.amplitudes / reference_map.amplitudes)
-    initial_scaling_parameters: ScaleParameters = (initial_constant_scale_factor,) + (0.0,) * (
+    initial_scaling_parameters: ScaleParameters = (1.0,) + (0.0,) * (
         scale_mode.number_of_parameters - 1
     )
     optimization_result = opt.least_squares(
