@@ -81,6 +81,21 @@ def test_compute_anisotropic_scale_factors(
         np.testing.assert_allclose(obtained_output, expected_output)
 
 
+def test_compute_anisotropic_scale_factors_miller_error() -> None:
+    scale_mode = ScaleMode.anisotropic
+    arbitrary_params = (1.0,) * scale_mode.number_of_parameters
+    cut_index = np.ones((5, 2))
+
+    # backslashes needed because this string becomes a regex search
+    err_string = r"`miller_indices` should be an \(n, 3\) multi-index of miller HKL indices, got shape: \(5, 2\)"
+    with pytest.raises(ValueError, match=err_string):
+        _ = compute_scale_factors(
+            miller_indices=cut_index,  # type: ignore[arg-type]
+            scale_parameters=arbitrary_params,
+            scale_mode=scale_mode,
+        )
+
+
 @pytest.mark.parametrize(
     "scale_mode", ["anisotropic", "isotropic", "orthogonal", "scalar", "not-valid"]
 )
@@ -144,12 +159,12 @@ def test_scale_maps(
     least_squares_loss: str,
     multiple: float,
 ) -> None:
-    doubled_difference_map: Map = random_difference_map.copy()
-    doubled_difference_map.amplitudes /= multiple
+    multiplied_difference_map: Map = random_difference_map.copy()
+    multiplied_difference_map.amplitudes /= multiple
 
     scaled = scale.scale_maps(
         reference_map=random_difference_map,
-        map_to_scale=doubled_difference_map,
+        map_to_scale=multiplied_difference_map,
         weight_using_uncertainties=use_uncertainties,
         scale_mode=scale_mode,
         least_squares_loss=least_squares_loss,
@@ -172,12 +187,12 @@ def test_scale_maps(
 def test_scale_uncertainties_invariant_global_scale(
     random_difference_map: Map, multiple: float
 ) -> None:
-    doubled_difference_map: Map = random_difference_map.copy()
-    doubled_difference_map.uncertainties /= multiple
+    multiplied_difference_map: Map = random_difference_map.copy()
+    multiplied_difference_map.uncertainties /= multiple
 
     scaled = scale.scale_maps(
         reference_map=random_difference_map,
-        map_to_scale=doubled_difference_map,
+        map_to_scale=multiplied_difference_map,
         weight_using_uncertainties=True,
     )
     np.testing.assert_array_almost_equal(
@@ -281,3 +296,42 @@ def test_scale_maps_raises_on_non_finite_scale_factors(random_difference_map: Ma
                 reference_map=random_difference_map,
                 map_to_scale=random_difference_map,
             )
+
+
+@pytest.mark.parametrize("multiple", [0.6, 1.0, 2.3])
+def test_scalar_scale_reciprocal_vs_real_space(random_difference_map: Map, multiple: float) -> None:
+    map_sampling = 3
+
+    real_space = random_difference_map.to_3d_numpy_map(map_sampling=map_sampling)
+
+    # #133 right now there is an issue where the round trip to and from a numpy map rescales the
+    # map values - do one round trip first and use THAT rescaled value as a starting point
+    m1 = Map.from_3d_numpy_map(
+        real_space,
+        spacegroup=random_difference_map.spacegroup,
+        cell=random_difference_map.cell,
+        high_resolution_limit=random_difference_map.resolution_limits[1],
+    )
+
+    different_real_space = multiple * real_space.copy()
+    m2 = Map.from_3d_numpy_map(
+        different_real_space,
+        spacegroup=random_difference_map.spacegroup,
+        cell=random_difference_map.cell,
+        high_resolution_limit=random_difference_map.resolution_limits[1],
+    )
+
+    # confirm reciprocal space scalar scaling recovers `multiple`
+    rescaled_m2 = scale.scale_maps(
+        reference_map=m1,
+        map_to_scale=m2,
+        weight_using_uncertainties=False,
+        scale_mode=ScaleMode.scalar,
+        least_squares_loss="linear",
+    )
+
+    m1.canonicalize_amplitudes()
+    rescaled_m2.canonicalize_amplitudes()
+
+    np.testing.assert_allclose(m1.amplitudes, rescaled_m2.amplitudes, rtol=0.01)
+    np.testing.assert_allclose(m1.phases, rescaled_m2.phases, rtol=0.01)

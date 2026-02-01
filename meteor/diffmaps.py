@@ -81,12 +81,13 @@ def compute_kweights(difference_map: Map, *, k_parameter: float) -> rs.DataSerie
     """
     assert_is_map(difference_map, require_uncertainties=True)
 
-    inverse_weights = (
+    weights = 1.0 / (
         1
         + (difference_map.uncertainties**2 / (difference_map.uncertainties**2).mean())
         + k_parameter * (difference_map.amplitudes**2 / (difference_map.amplitudes**2).mean())
     )
-    return 1.0 / inverse_weights
+
+    return weights / np.mean(weights)
 
 
 def compute_kweighted_difference_map(
