@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -279,6 +280,22 @@ def test_scale_mismatched_indices(
         scale_mode=scale_mode,
         least_squares_loss=least_squares_loss,
     )
+
+
+def test_scale_maps_raises_on_non_finite_scale_factors(random_difference_map: Map) -> None:
+    with patch("meteor.scale.compute_scale_factors") as mock_compute_scale_factors:
+        mock_scale_factors = np.ones(len(random_difference_map))
+        mock_scale_factors[0] = np.inf  # Insert a non-finite value
+        mock_compute_scale_factors.return_value = mock_scale_factors
+
+        with pytest.raises(
+            RuntimeError,
+            match="Scaling procedure failed -- optimization produced non finite values",
+        ):
+            scale.scale_maps(
+                reference_map=random_difference_map,
+                map_to_scale=random_difference_map,
+            )
 
 
 @pytest.mark.parametrize("multiple", [0.6, 1.0, 2.3])
