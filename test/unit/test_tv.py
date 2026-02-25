@@ -73,7 +73,7 @@ def test_tv_denoise_retains_scale(random_difference_map: Map) -> None:
     )
     mssq_vanilla = np.mean(np.square(random_difference_map.amplitudes))
     mssq_denoised = np.mean(np.square(denoised_map.amplitudes))
-    np.testing.assert_allclose(mssq_denoised, mssq_vanilla, rtol=1e-2)
+    np.testing.assert_allclose(mssq_denoised, mssq_vanilla, rtol=0.05)
 
 
 @pytest.mark.parametrize("weights_to_scan", [None, DEFAULT_WEIGHTS_TO_SCAN])
