@@ -121,7 +121,7 @@ el.replaceWith(d);
 <div class="desc"></div>
 </dd>
 <dt id="meteor.utils.cut_resolution"><code class="name flex">
-<span>def <span class="ident">cut_resolution</span></span>(<span>dataset: rs.DataSet,<br>*,<br>low_resolution_limit: float | None = None,<br>high_resolution_limit: float | None = None) ‑> reciprocalspaceship.dataset.DataSet</span>
+<span>def <span class="ident">cut_resolution</span></span>(<span>dataset: rs.DataSet | Map,<br>*,<br>low_resolution_limit: float | None = None,<br>high_resolution_limit: float | None = None) ‑> rs.DataSet | Map</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -129,11 +129,11 @@ el.replaceWith(d);
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def cut_resolution(
-    dataset: rs.DataSet,
+    dataset: rs.DataSet | Map,
     *,
     low_resolution_limit: float | None = None,
     high_resolution_limit: float | None = None,
-) -&gt; rs.DataSet:
+) -&gt; rs.DataSet | Map:
     if (
         high_resolution_limit
         and low_resolution_limit

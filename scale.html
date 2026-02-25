@@ -52,8 +52,70 @@ el.replaceWith(d);
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="meteor.scale.compute_scale_factors"><code class="name flex">
+<span>def <span class="ident">compute_scale_factors</span></span>(<span>*,<br>miller_indices: pd.Index,<br>scale_parameters: <a title="meteor.scale.ScaleParameters" href="#meteor.scale.ScaleParameters">ScaleParameters</a>,<br>scale_mode: str | <a title="meteor.scale.ScaleMode" href="#meteor.scale.ScaleMode">ScaleMode</a>) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def compute_scale_factors(
+    *, miller_indices: pd.Index, scale_parameters: ScaleParameters, scale_mode: str | ScaleMode
+) -&gt; np.ndarray:
+    if isinstance(scale_mode, str):
+        scale_mode = ScaleMode(scale_mode)
+
+    vector_h = np.array(list(miller_indices))
+    if vector_h.shape[1] != DIMENSION_OF_MILLER_INDEX:
+        msg = &#34;`miller_indices` should be an (n, 3) multi-index of miller HKL indices, &#34;
+        msg += f&#34;got shape: {vector_h.shape}&#34;
+        raise ValueError(msg)
+
+    sp_as_array = np.array(scale_parameters)
+    if sp_as_array.shape != (scale_mode.number_of_parameters,):
+        msg = f&#34;`scale_parameters` should be length {scale_mode.number_of_parameters} &#34;
+        msg += f&#34;for mode={scale_mode}, got length: {len(scale_parameters)}&#34;
+        raise ParameterLengthMismatchError(msg)
+
+    # this code is part of a few tight loops; code below is fast and clear
+    matrix_B = np.zeros((3, 3), dtype=sp_as_array.dtype)  # noqa: N806 (variable capitalization)
+
+    if scale_mode == ScaleMode.anisotropic:
+        matrix_B[0, 0] = sp_as_array[1]
+        matrix_B[1, 1] = sp_as_array[2]
+        matrix_B[2, 2] = sp_as_array[3]
+        matrix_B[0, 1] = matrix_B[1, 0] = sp_as_array[4]
+        matrix_B[0, 2] = matrix_B[2, 0] = sp_as_array[5]
+        matrix_B[1, 2] = matrix_B[2, 1] = sp_as_array[6]
+
+    elif scale_mode == ScaleMode.orthogonal:
+        matrix_B[0, 0] = sp_as_array[1]
+        matrix_B[1, 1] = sp_as_array[2]
+        matrix_B[2, 2] = sp_as_array[3]
+
+    elif scale_mode == ScaleMode.isotropic:
+        matrix_B[0, 0] = sp_as_array[1]
+        matrix_B[1, 1] = sp_as_array[1]
+        matrix_B[2, 2] = sp_as_array[1]
+
+    # NOTE: early return -- we don&#39;t need to compute the einsum for scale_mode &#34;scalar&#34;
+    elif scale_mode == ScaleMode.scalar:
+        return sp_as_array[0] * np.ones(vector_h.shape[0], dtype=np.float64)
+
+    else:
+        msg = f&#34;mode {scale_mode} not valid&#34;
+        raise ValueError(msg)
+
+    # the einsum implements sum_i{ h^T . B . h }
+    exponential_argument = -np.einsum(&#34;ni,ij,nj-&gt;n&#34;, vector_h, matrix_B, vector_h)
+
+    return sp_as_array[0] * np.exp(exponential_argument)</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
 <dt id="meteor.scale.scale_maps"><code class="name flex">
-<span>def <span class="ident">scale_maps</span></span>(<span>*,<br>reference_map: Map,<br>map_to_scale: Map,<br>weight_using_uncertainties: bool = True,<br>least_squares_loss: str | Callable = 'huber') ‑> <a title="meteor.rsmap.Map" href="rsmap.html#meteor.rsmap.Map">Map</a></span>
+<span>def <span class="ident">scale_maps</span></span>(<span>*,<br>reference_map: Map,<br>map_to_scale: Map,<br>scale_mode: <a title="meteor.scale.ScaleMode" href="#meteor.scale.ScaleMode">ScaleMode</a> = anisotropic,<br>weight_using_uncertainties: bool = True,<br>least_squares_loss: str | Callable = 'huber') ‑> <a title="meteor.rsmap.Map" href="rsmap.html#meteor.rsmap.Map">Map</a></span>
 </code></dt>
 <dd>
 <details class="source">
@@ -64,6 +126,7 @@ el.replaceWith(d);
     *,
     reference_map: Map,
     map_to_scale: Map,
+    scale_mode: ScaleMode = ScaleMode.anisotropic,
     weight_using_uncertainties: bool = True,
     least_squares_loss: str | Callable = &#34;huber&#34;,
 ) -&gt; Map:
@@ -90,6 +153,12 @@ el.replaceWith(d);
         The reference dataset map.
     map_to_scale : Map
         The map dataset to be scaled.
+    scale_mode : ScaleMode (StrEnum, default: `anisotropic`)
+        Should be one of:
+          - &#39;anisotropic&#39; (fit all Bxy, as above)
+          - &#39;orthogonal&#39; (off-diagonal Bxy are zero)
+          - &#39;isotropic&#39; (off-diagonal Bxy are zero and dialgonal Bxy are identical)
+          - &#39;scalar&#39; (only fit the scale constant C)
     weight_using_uncertainties : bool, optional (default: True)
         Whether or not to weight the scaling by uncertainty values. If True, uncertainty values are
         extracted from the `uncertainty_column` in both datasets, and robust (Huber) inverse
@@ -135,10 +204,11 @@ el.replaceWith(d);
     )
     sqrt_inverse_variance = 1.0 / np.sqrt(ref_variance + to_scale_variance)
 
-    def compute_residuals(scaling_parameters: ScaleParameters) -&gt; np.ndarray:
-        scale_factors = _compute_anisotropic_scale_factors(
-            reference_map.index,
-            scaling_parameters,
+    def compute_residuals(scale_parameters: ScaleParameters) -&gt; np.ndarray:
+        scale_factors = compute_scale_factors(
+            miller_indices=reference_map.index,
+            scale_parameters=scale_parameters,
+            scale_mode=scale_mode,
         )
 
         difference_after_scaling = (
@@ -155,7 +225,9 @@ el.replaceWith(d);
 
         return residuals
 
-    initial_scaling_parameters: ScaleParameters = (1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+    initial_scaling_parameters: ScaleParameters = (1.0,) + (0.0,) * (
+        scale_mode.number_of_parameters - 1
+    )
     optimization_result = opt.least_squares(
         compute_residuals,
         initial_scaling_parameters,
@@ -163,9 +235,10 @@ el.replaceWith(d);
     )
     optimized_parameters: ScaleParameters = optimization_result.x
 
-    optimized_scale_factors = _compute_anisotropic_scale_factors(
-        unmodified_map_to_scale.index,
-        optimized_parameters,
+    optimized_scale_factors = compute_scale_factors(
+        miller_indices=unmodified_map_to_scale.index,
+        scale_parameters=optimized_parameters,
+        scale_mode=scale_mode,
     )
 
     if len(optimized_scale_factors) != len(unmodified_map_to_scale.index):
@@ -173,7 +246,7 @@ el.replaceWith(d);
         msg2 = f&#34;({len(optimized_scale_factors)}) vs `values_to_scale` ({len(unmodified_map_to_scale.index)})&#34;
         raise RuntimeError(msg1, msg2)
 
-    scaled_map = map_to_scale.copy()
+    scaled_map = unmodified_map_to_scale.copy()
     scaled_map.amplitudes *= optimized_scale_factors
     if scaled_map.has_uncertainties:
         scaled_map.uncertainties *= optimized_scale_factors
@@ -191,13 +264,19 @@ the form:</p>
 weighting. Any of <code>scipy</code>'s loss functions can be employed; the Huber loss is the default.</p>
 <p>NB! All intensity, amplitude, and standard deviation columns in <code>map_to_scale</code> will be
 modified (scaled). To access the scale parameters directly, use
-<code>meteor.scale.compute_scale_factors</code>.</p>
+<code><a title="meteor.scale.compute_scale_factors" href="#meteor.scale.compute_scale_factors">compute_scale_factors()</a></code>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>reference_map</code></strong> :&ensp;<code>Map</code></dt>
 <dd>The reference dataset map.</dd>
 <dt><strong><code>map_to_scale</code></strong> :&ensp;<code>Map</code></dt>
 <dd>The map dataset to be scaled.</dd>
+<dt><strong><code>scale_mode</code></strong> :&ensp;<code><a title="meteor.scale.ScaleMode" href="#meteor.scale.ScaleMode">ScaleMode</a> (StrEnum</code>, default<code>:</code>anisotropic<code>)</code></dt>
+<dd>Should be one of:
+- 'anisotropic' (fit all Bxy, as above)
+- 'orthogonal' (off-diagonal Bxy are zero)
+- 'isotropic' (off-diagonal Bxy are zero and dialgonal Bxy are identical)
+- 'scalar' (only fit the scale constant C)</dd>
 <dt><strong><code>weight_using_uncertainties</code></strong> :&ensp;<code>bool</code>, optional <code>(default: True)</code></dt>
 <dd>Whether or not to weight the scaling by uncertainty values. If True, uncertainty values are
 extracted from the <code>uncertainty_column</code> in both datasets, and robust (Huber) inverse
@@ -216,7 +295,7 @@ best match <code>reference_map</code>.</dd>
 </dl>
 <h2 id="see-also">See Also</h2>
 <dl>
-<dt><code>compute_scale_factors</code></dt>
+<dt><code><a title="meteor.scale.compute_scale_factors" href="#meteor.scale.compute_scale_factors">compute_scale_factors()</a></code></dt>
 <dd>function to compute the scale factors directly</dd>
 </dl>
 <h2 id="citations">Citations:</h2>
@@ -227,6 +306,106 @@ best match <code>reference_map</code>.</dd>
 </dl>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="meteor.scale.ParameterLengthMismatchError"><code class="flex name class">
+<span>class <span class="ident">ParameterLengthMismatchError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ParameterLengthMismatchError(ValueError): ...</code></pre>
+</details>
+<div class="desc"><p>Inappropriate argument value (of correct type).</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.ValueError</li>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="meteor.scale.ScaleMode"><code class="flex name class">
+<span>class <span class="ident">ScaleMode</span></span>
+<span>(</span><span>*args, **kwds)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ScaleMode(StrEnum):
+    anisotropic = &#34;anisotropic&#34;
+    orthogonal = &#34;orthogonal&#34;
+    isotropic = &#34;isotropic&#34;
+    scalar = &#34;scalar&#34;
+
+    @property
+    def number_of_parameters(self) -&gt; int:
+        if self is ScaleMode.anisotropic:
+            return 7
+        if self is ScaleMode.orthogonal:
+            return 4
+        if self is ScaleMode.isotropic:
+            return 2
+        if self is ScaleMode.scalar:
+            return 1
+        raise NotImplementedError</code></pre>
+</details>
+<div class="desc"><p>Enum where members are also (and must be) strings</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.StrEnum</li>
+<li>builtins.str</li>
+<li>enum.ReprEnum</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="meteor.scale.ScaleMode.anisotropic"><code class="name">var <span class="ident">anisotropic</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="meteor.scale.ScaleMode.isotropic"><code class="name">var <span class="ident">isotropic</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="meteor.scale.ScaleMode.orthogonal"><code class="name">var <span class="ident">orthogonal</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="meteor.scale.ScaleMode.scalar"><code class="name">var <span class="ident">scalar</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="meteor.scale.ScaleMode.number_of_parameters"><code class="name">prop <span class="ident">number_of_parameters</span> : int</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def number_of_parameters(self) -&gt; int:
+    if self is ScaleMode.anisotropic:
+        return 7
+    if self is ScaleMode.orthogonal:
+        return 4
+    if self is ScaleMode.isotropic:
+        return 2
+    if self is ScaleMode.scalar:
+        return 1
+    raise NotImplementedError</code></pre>
+</details>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -246,7 +425,25 @@ best match <code>reference_map</code>.</dd>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="meteor.scale.compute_scale_factors" href="#meteor.scale.compute_scale_factors">compute_scale_factors</a></code></li>
 <li><code><a title="meteor.scale.scale_maps" href="#meteor.scale.scale_maps">scale_maps</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="meteor.scale.ParameterLengthMismatchError" href="#meteor.scale.ParameterLengthMismatchError">ParameterLengthMismatchError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="meteor.scale.ScaleMode" href="#meteor.scale.ScaleMode">ScaleMode</a></code></h4>
+<ul class="">
+<li><code><a title="meteor.scale.ScaleMode.anisotropic" href="#meteor.scale.ScaleMode.anisotropic">anisotropic</a></code></li>
+<li><code><a title="meteor.scale.ScaleMode.isotropic" href="#meteor.scale.ScaleMode.isotropic">isotropic</a></code></li>
+<li><code><a title="meteor.scale.ScaleMode.number_of_parameters" href="#meteor.scale.ScaleMode.number_of_parameters">number_of_parameters</a></code></li>
+<li><code><a title="meteor.scale.ScaleMode.orthogonal" href="#meteor.scale.ScaleMode.orthogonal">orthogonal</a></code></li>
+<li><code><a title="meteor.scale.ScaleMode.scalar" href="#meteor.scale.ScaleMode.scalar">scalar</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

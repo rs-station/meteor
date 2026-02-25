@@ -148,6 +148,18 @@ el.replaceWith(d);
     if difference_map.has_uncertainties:
         final_map.set_uncertainties(difference_map.uncertainties)
 
+    # TV denoising changes the scale of the denoised map (reduces average magnitude)
+    # scale to non-denoised map to retain amplitude scale
+    difference_map.canonicalize_amplitudes()
+    final_map.canonicalize_amplitudes()
+    final_map = scale_maps(
+        reference_map=difference_map,
+        map_to_scale=final_map,
+        scale_mode=ScaleMode.scalar,
+        weight_using_uncertainties=False,
+        least_squares_loss=&#34;linear&#34;,
+    )
+
     if full_output:
         initial_negentropy = negentropy(realspace_map_array)
         tv_result = TvScanMetadata(

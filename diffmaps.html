@@ -216,12 +216,13 @@ Then, it applies k-weighting to the amplitude differences based on the provided 
     &#34;&#34;&#34;
     assert_is_map(difference_map, require_uncertainties=True)
 
-    inverse_weights = (
+    weights = 1.0 / (
         1
         + (difference_map.uncertainties**2 / (difference_map.uncertainties**2).mean())
         + k_parameter * (difference_map.amplitudes**2 / (difference_map.amplitudes**2).mean())
     )
-    return 1.0 / inverse_weights</code></pre>
+
+    return weights / np.mean(weights)</code></pre>
 </details>
 <div class="desc"><p>Compute weights for each structure factor based on DeltaF and its uncertainty.</p>
 <h2 id="parameters">Parameters</h2>
