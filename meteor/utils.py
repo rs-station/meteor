@@ -44,6 +44,7 @@ def filter_common_indices(df1: rs.DataSet, df2: rs.DataSet) -> tuple[rs.DataSet,
         raise IndexError(msg)
     return df1_common, df2_common
 
+
 @overload
 def cut_resolution(
     dataset: Map,
@@ -52,6 +53,7 @@ def cut_resolution(
     high_resolution_limit: float | None = None,
 ) -> Map: ...
 
+
 @overload
 def cut_resolution(
     dataset: rs.DataSet,
@@ -59,7 +61,6 @@ def cut_resolution(
     low_resolution_limit: float | None = None,
     high_resolution_limit: float | None = None,
 ) -> rs.DataSet: ...
-
 
 
 def cut_resolution(
