@@ -219,7 +219,7 @@ class IterativeTvDenoiser:
                     tv_weight=tv_metadata.optimal_parameter_value,
                 )
 
-            if num_iterations > self.max_iterations:
+            if num_iterations >= self.max_iterations:
                 if self.verbose:
                     log.info("Maximum number of iterations reached; stopping...")
                 break
