@@ -76,6 +76,55 @@ def test_iteratively_denoise_sf_amplitudes_smoke(
     assert isinstance(metadata[0], TvIterationMetadata)
 
 
+def test_iterative_tv_halts_on_decreasing_negentropy(
+    testing_denoiser: IterativeTvDenoiser,
+    random_difference_map: Map,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    scripted_negentropies = [1.0, 2.0, 1.5]
+    call_count = {"n": 0}
+
+    def mock_tv_step(
+        complex_difference_sf: rs.DataSeries, *, cell: object, spacegroup: object
+    ) -> tuple[rs.DataSeries, TvScanMetadata]:
+        idx = call_count["n"]
+        call_count["n"] += 1
+        if idx >= len(scripted_negentropies):
+            msg = (
+                f"algorithm did not halt: called {idx + 1} times, "
+                f"only {len(scripted_negentropies)} negentropies scripted"
+            )
+            raise AssertionError(msg)
+        meta = TvScanMetadata(
+            initial_negentropy=0.0,
+            optimal_parameter_value=0.1,
+            optimal_negentropy=scripted_negentropies[idx],
+            map_sampling=5.0,
+            parameter_scan_results=[],
+        )
+        # return the input unchanged so the rest of the loop's arithmetic stays valid
+        return complex_difference_sf.copy(), meta
+
+    monkeypatch.setattr(testing_denoiser, "_tv_denoise_complex_difference_sf", mock_tv_step)
+    # neither convergence nor max_iterations should be the reason we stop
+    testing_denoiser.convergence_tolerance = -1.0
+    testing_denoiser.max_iterations = 1000
+
+    sfs = random_difference_map.to_structurefactor()
+    _, metadata = testing_denoiser._iteratively_denoise_sf_amplitudes(
+        initial_derivative=sfs,
+        native=sfs + 1.0,
+        cell=random_difference_map.cell,
+        spacegroup=random_difference_map.spacegroup,
+    )
+
+    # the third call is the one with decreasing negentropy and should trigger break
+    # before the iteration body runs, so only two iterations get recorded in metadata
+    assert call_count["n"] == 3
+    assert len(metadata) == 2
+    assert [m.negentropy_after_tv for m in metadata] == [1.0, 2.0]
+
+
 def test_iterative_tv_denoiser_different_indices(
     noise_free_map: Map, very_noisy_map: Map, testing_denoiser: IterativeTvDenoiser
 ) -> None:

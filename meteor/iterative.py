@@ -179,6 +179,12 @@ class IterativeTvDenoiser:
             denoised_difference_sfs, tv_metadata = self._tv_denoise_complex_difference_sf(
                 difference, cell=cell, spacegroup=spacegroup
             )
+            if num_iterations > 1:
+                previous_negentropy = metadata[-1].negentropy_after_tv
+                if previous_negentropy > tv_metadata.optimal_negentropy:
+                    if self.verbose:
+                        log.info("Negentropy decreased after TV step; stopping...")
+                    break
 
             # project onto the native amplitudes to obtain an "updated_derivative"
             #   Fh' = (D_F' + F) * [|Fh| / |D_F' + F|]
@@ -213,9 +219,10 @@ class IterativeTvDenoiser:
                     tv_weight=tv_metadata.optimal_parameter_value,
                 )
 
-            if num_iterations > self.max_iterations:
+            if num_iterations >= self.max_iterations:
+                if self.verbose:
+                    log.info("Maximum number of iterations reached; stopping...")
                 break
-
         return derivative, metadata
 
     def __call__(
