@@ -107,9 +107,7 @@ class Map(rs.DataSet):
         self.amplitudes = self._verify_amplitude_type(self.amplitudes, fix=True)
         self.phases = self._verify_phase_type(self.phases, fix=True)
         if self.has_uncertainties:
-            self.uncertainties = self._verify_uncertainty_type(
-                self.uncertainties, fix=True
-            )
+            self.uncertainties = self._verify_uncertainty_type(self.uncertainties, fix=True)
 
     @property
     def _constructor(self) -> Callable[[Any], Map]:
@@ -144,9 +142,7 @@ class Map(rs.DataSet):
             raise AssertionError(msg)
         return dataseries
 
-    def _verify_cell(
-        self, cell: CellType | None, *, fix: bool = True
-    ) -> gemmi.UnitCell | None:
+    def _verify_cell(self, cell: CellType | None, *, fix: bool = True) -> gemmi.UnitCell | None:
         if cell is None or isinstance(cell, gemmi.UnitCell):
             return cell
         if (
@@ -180,9 +176,7 @@ class Map(rs.DataSet):
             cast_fix_to=rs.StructureFactorAmplitudeDtype(),
         )
 
-    def _verify_phase_type(
-        self, dataseries: rs.DataSeries, *, fix: bool = True
-    ) -> rs.DataSeries:
+    def _verify_phase_type(self, dataseries: rs.DataSeries, *, fix: bool = True) -> rs.DataSeries:
         name = "phase"
         phase_dtypes = [rs.PhaseDtype()]
         return self._verify_type(
@@ -216,9 +210,7 @@ class Map(rs.DataSet):
             raise MapMutabilityError(msg)
         super().__setitem__(key, value)
 
-    def insert(
-        self, loc: int, column: str, value: Any, *, allow_duplicates: bool = False
-    ) -> None:
+    def insert(self, loc: int, column: str, value: Any, *, allow_duplicates: bool = False) -> None:
         if column in self._allowed_columns:
             super().insert(loc, column, value, allow_duplicates=allow_duplicates)
         else:
@@ -246,9 +238,7 @@ class Map(rs.DataSet):
         elif all(col in self.columns for col in hkl_names):
             # we need to pull out each column as a separate DataSeries so that we don't try to
             # create a new Map object without F, PHI
-            hkls = np.vstack(
-                [self[col].to_numpy(dtype=np.int32) for col in hkl_names]
-            ).T
+            hkls = np.vstack([self[col].to_numpy(dtype=np.int32) for col in hkl_names]).T
         else:
             msg = f"cannot find `H`, `K`, and `L` columns in index or columns {self.columns}"
             raise ValueError(msg)
@@ -332,9 +322,7 @@ class Map(rs.DataSet):
             msg += "to initialize, use Map.set_uncertainties(...)"
             raise AttributeError(msg)
 
-    def set_uncertainties(
-        self, values: rs.DataSeries, column_name: str = "SIGF"
-    ) -> None:
+    def set_uncertainties(self, values: rs.DataSeries, column_name: str = "SIGF") -> None:
         values = self._verify_uncertainty_type(values)
 
         if self.has_uncertainties:
@@ -543,14 +531,10 @@ class Map(rs.DataSet):
         phase_column: str = "PHI",
     ) -> Map:
         map_mean = np.mean(np.array(ccp4_map.grid))
-        map_has_nonzero_000_refl = bool(
-            np.abs(map_mean) > MAP_HAS_NONZERO_000_TOLERANCE
-        )
+        map_has_nonzero_000_refl = bool(np.abs(map_mean) > MAP_HAS_NONZERO_000_TOLERANCE)
 
         # to ensure we include the final shell of reflections, add a small buffer to the resolution
-        gemmi_structure_factors = gemmi.transform_map_to_f_phi(
-            ccp4_map.grid, half_l=False
-        )
+        gemmi_structure_factors = gemmi.transform_map_to_f_phi(ccp4_map.grid, half_l=False)
         data = gemmi_structure_factors.prepare_asu_data(
             dmin=high_resolution_limit - GEMMI_HIGH_RESOLUTION_BUFFER,
             with_sys_abs=True,
@@ -569,9 +553,7 @@ class Map(rs.DataSet):
         mtz.switch_to_asu_hkl()
         dataset = super().from_gemmi(mtz)
 
-        return cls(
-            dataset, amplitude_column=amplitude_column, phase_column=phase_column
-        )
+        return cls(dataset, amplitude_column=amplitude_column, phase_column=phase_column)
 
     def write_mtz(self, file_path: str | Path) -> None:
         path_cast_to_str = str(file_path)
