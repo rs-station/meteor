@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from unittest.mock import patch
 
+import gemmi
 import numpy as np
 import pandas as pd
 import pytest
@@ -283,6 +284,52 @@ def test_scale_mismatched_indices(
         scale_mode=scale_mode,
         least_squares_loss=least_squares_loss,
     )
+
+
+@pytest.mark.parametrize("scale_mode", ScaleMode)
+def test_scale_maps_large_mismatch_protein_cell(scale_mode: ScaleMode) -> None:
+    # Regression test for issue #149: when the reference and map_to_scale amplitudes differ
+    # by a large overall factor and the cell is big enough that Miller indices reach typical
+    # protein-crystal magnitudes, the anisotropic optimization used to take a Newton step
+    # that drove the B parameters to values where exp(-h^T B h) overflowed to +inf.
+    cell = gemmi.UnitCell(a=80.0, b=80.0, c=100.0, alpha=90, beta=90, gamma=120)
+    spacegroup = gemmi.find_spacegroup_by_name("P 31 2 1")
+    resolution = 2.0
+    scale_mismatch = 16.0
+
+    # local RNG so we don't perturb the session-scoped fixture state for other tests
+    rng = np.random.default_rng(seed=149)
+    hkl = rs.utils.generate_reciprocal_asu(cell, spacegroup, resolution, anomalous=False)
+    n = hkl.shape[0]
+    amplitudes = (np.abs(rng.normal(size=n)) * 200.0).astype("float32")
+    phases = rng.uniform(-180, 180, size=n).astype("float32")
+    uncertainties = np.ones(n, dtype="float32")
+
+    ds = rs.DataSet(
+        {"H": hkl[:, 0], "K": hkl[:, 1], "L": hkl[:, 2],
+         "F": amplitudes, "PHI": phases, "SIGF": uncertainties},
+        spacegroup=spacegroup,
+        cell=cell,
+    ).infer_mtz_dtypes().set_index(["H", "K", "L"])
+
+    reference_map = Map(
+        ds, amplitude_column="F", phase_column="PHI", uncertainty_column="SIGF",
+        cell=cell, spacegroup=spacegroup,
+    )
+
+    mismatched = ds.copy()
+    mismatched["F"] = (mismatched["F"].astype(float) / scale_mismatch).astype("float32")
+    map_to_scale = Map(
+        mismatched, amplitude_column="F", phase_column="PHI", uncertainty_column="SIGF",
+        cell=cell, spacegroup=spacegroup,
+    )
+
+    scaled = scale.scale_maps(
+        reference_map=reference_map,
+        map_to_scale=map_to_scale,
+        scale_mode=scale_mode,
+    )
+    np.testing.assert_allclose(scaled.amplitudes, reference_map.amplitudes, rtol=0.05)
 
 
 def test_scale_maps_raises_on_non_finite_scale_factors(random_difference_map: Map) -> None:

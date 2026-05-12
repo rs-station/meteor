@@ -178,6 +178,12 @@ def scale_maps(
     )
     sqrt_inverse_variance = 1.0 / np.sqrt(ref_variance + to_scale_variance)
 
+    # Use float64 explicitly: the underlying MTZ-typed amplitudes are float32, and
+    # finite-difference gradients computed at that precision can vanish for the scalar.
+    # sqrt_inverse_variance = np.array(sqrt_inverse_variance, dtype=np.float64)
+    # ref_amplitudes = np.asarray(reference_map.amplitudes, dtype=np.float64)
+    # to_scale_amplitudes = np.asarray(map_to_scale.amplitudes, dtype=np.float64)
+
     def compute_residuals(scale_parameters: ScaleParameters) -> np.ndarray:
         scale_factors = compute_scale_factors(
             miller_indices=reference_map.index,
@@ -204,7 +210,8 @@ def scale_maps(
 
         return residuals
 
-    initial_scaling_parameters: ScaleParameters = (1.0,) + (0.0,) * (
+    initial_c = float(np.mean(reference_map.amplitudes) / np.mean(map_to_scale.amplitudes))
+    initial_scaling_parameters: ScaleParameters = (initial_c,) + (0.0,) * (
         scale_mode.number_of_parameters - 1
     )
     optimization_result = opt.least_squares(
