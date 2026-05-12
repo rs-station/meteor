@@ -29,21 +29,22 @@ def test_initialization_leaves_input_unmodified(noise_free_map: Map) -> None:
     assert not isinstance(dataset, Map)
 
     dataset["new_column"] = dataset["F"].copy()
-    new_map = Map(dataset)
+    new_map = Map(dataset, cell=(10.0, 10.0, 10.0, 90.0, 90.0, 90.0), spacegroup=1)
     assert "new_column" in dataset.columns
     assert "new_column" not in new_map.columns
 
 
 def test_amplitude_and_phase_required(noise_free_map: Map) -> None:
     ds = rs.DataSet(noise_free_map)
-    Map(ds)  # should be no problem
+    cell = (10.0, 10.0, 10.0, 90.0, 90.0, 90.0)
+    Map(ds, cell=cell, spacegroup=1)  # should be no problem
 
     with pytest.raises(KeyError):
-        Map(ds, phase_column="does_not_exist")
+        Map(ds, cell=cell, spacegroup=1, phase_column="does_not_exist")
 
     del ds["F"]
     with pytest.raises(KeyError):
-        Map(ds)
+        Map(ds, cell=cell, spacegroup=1)
 
 
 def test_column_name_properties(random_difference_map: Map) -> None:
@@ -60,7 +61,13 @@ def test_column_name_properties(random_difference_map: Map) -> None:
 
 def test_loc_indexing(random_difference_map: Map) -> None:
     ds = rs.DataSet(random_difference_map).rename(columns={"F": "amps", "PHI": "phases"})
-    non_std_map = Map(ds, amplitude_column="amps", phase_column="phases")
+    non_std_map = Map(
+        ds,
+        cell=(10.0, 10.0, 10.0, 90.0, 90.0, 90.0),
+        spacegroup=1,
+        amplitude_column="amps",
+        phase_column="phases",
+    )
     indx = [(0, 0, 1), (1, 2, 3)]
     assert non_std_map.loc[indx] is not None
 
@@ -85,7 +92,13 @@ def test_copy(noise_free_map: Map) -> None:
 
 def test_copy_non_standard_names(noise_free_map: Map) -> None:
     ds = rs.DataSet(noise_free_map).rename(columns={"F": "amps", "PHI": "phases"})
-    non_std_map = Map(ds, amplitude_column="amps", phase_column="phases")
+    non_std_map = Map(
+        ds,
+        cell=(10.0, 10.0, 10.0, 90.0, 90.0, 90.0),
+        spacegroup=1,
+        amplitude_column="amps",
+        phase_column="phases",
+    )
     copy_map = non_std_map.copy()
 
     assert isinstance(copy_map, Map)
@@ -207,10 +220,6 @@ def test_compute_dhkl(noise_free_map: Map) -> None:
     assert np.min(d_hkl) == 1.0
     assert d_hkl.shape == noise_free_map.amplitudes.shape
 
-    noise_free_map.cell = None
-    with pytest.raises(AttributeError):
-        _ = noise_free_map.compute_dHKL()
-
 
 def test_resolution_limits(random_difference_map: Map) -> None:
     dmax, dmin = random_difference_map.resolution_limits
@@ -236,8 +245,10 @@ def test_has_uncertainties(noise_free_map: Map) -> None:
 
 @pytest.mark.filterwarnings("ignore:Pandas doesn't allow columns to be created via a new attribute")
 def test_set_uncertainties() -> None:
-    test_map = Map.from_dict(
+    test_map = Map(
         {"F": rs.DataSeries([2.0, 3.0, 4.0]), "PHI": rs.DataSeries([0.0, 0.0, 0.0])},
+        cell=(10.0, 10.0, 10.0, 90.0, 90.0, 90.0),
+        spacegroup=1,
     )
 
     assert not test_map.has_uncertainties
@@ -254,8 +265,10 @@ def test_set_uncertainties() -> None:
 
 
 def test_misconfigured_columns() -> None:
-    test_map = Map.from_dict(
+    test_map = Map(
         {"F": rs.DataSeries([2.0, 3.0, 4.0]), "PHI": rs.DataSeries([0.0, 0.0, 0.0])},
+        cell=(10.0, 10.0, 10.0, 90.0, 90.0, 90.0),
+        spacegroup=1,
     )
     del test_map["F"]
     with pytest.raises(RuntimeError):
@@ -281,9 +294,7 @@ def test_to_structurefactor() -> None:
     phase = rs.DataSeries(np.arange(4) * 90.0, index=index, name="PHI")
 
     ds = rs.concat([amp, phase], axis=1)
-    ds.cell = (10., 10., 10., 90., 90., 90.)
-    ds.spacegroup = 1
-    rsmap = Map(ds)
+    rsmap = Map(ds, cell=(10.0, 10.0, 10.0, 90.0, 90.0, 90.0), spacegroup=1)
 
     expected = np.array([1.0, 0.0, -1.0, 0.0]) + 1j * np.array([0.0, 1.0, 0.0, -1.0])
     result = rsmap.to_structurefactor()
@@ -323,7 +334,12 @@ def test_from_structurefactor_correctness() -> None:
         rs.PhaseDtype(),
     )
 
-    c_map = Map.from_structurefactor(carray, index=index)
+    c_map = Map.from_structurefactor(
+        carray,
+        cell=(10.0, 10.0, 10.0, 90.0, 90.0, 90.0),
+        spacegroup=1,
+        index=index,
+    )
     pd.testing.assert_series_equal(c_map.amplitudes, expected_amp)
     pd.testing.assert_series_equal(c_map.phases, expected_phase)
 

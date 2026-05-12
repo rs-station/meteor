@@ -25,10 +25,13 @@ def dummy_derivative() -> Map:
         "F": np.array([2.0, 3.0, 1.0]),
         "PHI": np.array([180.0, 0.0, 1.0]),
         "SIGF": np.array([0.5, 0.5, 1.0]),
-        "cell": (10., 10., 10., 90., 90., 90.),
-        "spacegroup": 1,
     }
-    return Map(derivative, index=index).infer_mtz_dtypes()
+    return Map(
+        derivative,
+        cell=(10.0, 10.0, 10.0, 90.0, 90.0, 90.0),
+        spacegroup=1,
+        index=index,
+    ).infer_mtz_dtypes()
 
 
 @pytest.fixture
@@ -38,10 +41,13 @@ def dummy_native() -> Map:
         "F": np.array([1.0, 2.0]),
         "PHI": np.array([0.0, 180.0]),
         "SIGF": np.array([0.5, 0.5]),
-        "cell": (10., 10., 10., 90., 90., 90.),
-        "spacegroup": 1,
     }
-    return Map(native, index=index).infer_mtz_dtypes()
+    return Map(
+        native,
+        cell=(10.0, 10.0, 10.0, 90.0, 90.0, 90.0),
+        spacegroup=1,
+        index=index,
+    ).infer_mtz_dtypes()
 
 
 def test_compute_difference_map_vs_analytical(dummy_derivative: Map, dummy_native: Map) -> None:
@@ -112,7 +118,11 @@ def test_compute_kweights_vs_analytical() -> None:
     sigdeltaf = rs.DataSeries([1.0, 1.0, 1.0])
     k_parameter = 0.5
 
-    diffmap = Map.from_dict({"F": deltaf, "PHI": phi, "SIGF": sigdeltaf})
+    diffmap = Map(
+        {"F": deltaf, "PHI": phi, "SIGF": sigdeltaf},
+        cell=(10.0, 10.0, 10.0, 90.0, 90.0, 90.0),
+        spacegroup=1,
+    )
     expected_weights = np.array([1.121, 1.004, 0.875])
 
     result = compute_kweights(diffmap, k_parameter=k_parameter)

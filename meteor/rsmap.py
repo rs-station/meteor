@@ -448,7 +448,7 @@ class Map(rs.DataSet):
             spacegroup=spacegroup,
         )
 
-        return cls(dataset)
+        return cls(dataset, cell=cell, spacegroup=spacegroup)
 
     @classmethod
     def from_gemmi(
@@ -459,8 +459,11 @@ class Map(rs.DataSet):
         phase_column: str = "PHI",
         uncertainty_column: str | None = "SIGF",
     ) -> Map:
+        dataset = rs.DataSet(gemmi_mtz)
         return cls(
-            rs.DataSet(gemmi_mtz),
+            dataset,
+            cell=dataset.cell,
+            spacegroup=dataset.spacegroup,
             amplitude_column=amplitude_column,
             phase_column=phase_column,
             uncertainty_column=uncertainty_column,
@@ -558,9 +561,15 @@ class Map(rs.DataSet):
 
         mtz.set_data(data)
         mtz.switch_to_asu_hkl()
-        dataset = super().from_gemmi(mtz)
+        dataset = rs.DataSet.from_gemmi(mtz)
 
-        return cls(dataset, amplitude_column=amplitude_column, phase_column=phase_column)
+        return cls(
+            dataset,
+            cell=dataset.cell,
+            spacegroup=dataset.spacegroup,
+            amplitude_column=amplitude_column,
+            phase_column=phase_column,
+        )
 
     def write_mtz(self, file_path: str | Path) -> None:
         path_cast_to_str = str(file_path)
