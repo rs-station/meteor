@@ -35,8 +35,8 @@ def assert_isomorphous(
     *, derivative: rs.DataSet, native: rs.DataSet, warning_only: bool = False
 ) -> None:
     if not native.is_isomorphous(derivative):
-        msg = "`derivative` and `native` datasets are not similar enough; "
-        msg += f"they have cell/spacegroup: {derivative.cell}/{native.cell} and "
+        msg = "`derivative` and `native` lattices are not higly isomorphous; "
+        msg += f"they have cell, spacegroup: {derivative.cell}/{native.cell} and "
         msg += f"{derivative.spacegroup}/{native.spacegroup} respectively"
         if warning_only:
             log.warning(msg)
