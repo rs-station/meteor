@@ -57,7 +57,7 @@ def test_compute_difference_map_vs_analytical(dummy_derivative: Map, dummy_nativ
     assert isinstance(dummy_native, Map)
     assert isinstance(dummy_derivative, Map)
 
-    result = compute_difference_map(dummy_derivative, dummy_native, check_isomorphous=False)
+    result = compute_difference_map(dummy_derivative, dummy_native)
     assert_almost_equal(result.amplitudes, expected_amplitudes, decimal=4)
     assert_almost_equal(result.phases, expected_phases, decimal=4)
 
@@ -66,21 +66,19 @@ def test_compute_difference_map_vs_analytical(dummy_derivative: Map, dummy_nativ
     "diffmap_fxn",
     # lambdas to make the call signatures for these functions match `compute_difference_map`
     [
-        lambda d, n, check: compute_difference_map(d, n, check_isomorphous=check),
-        lambda d, n, check: compute_kweighted_difference_map(
-            d, n, k_parameter=0.5, check_isomorphous=check
+        lambda d, n: compute_difference_map(d, n),
+        lambda d, n: compute_kweighted_difference_map(
+            d, n, k_parameter=0.5
         ),
-        lambda d, n, check: max_negentropy_kweighted_difference_map(d, n, check_isomorphous=check)[
+        lambda d, n: max_negentropy_kweighted_difference_map(d, n)[
             0
         ],
     ],
 )
-@pytest.mark.parametrize("check_isomorphous", [True, False])
 def test_cell_spacegroup_propogation(
     diffmap_fxn: Callable,
     dummy_derivative: Map,
     dummy_native: Map,
-    check_isomorphous: bool,
 ) -> None:
     # these should all cast to gemmi objects
     dummy_derivative.cell = (10.0, 10.0, 10.0, 90.0, 90.0, 90.0)
@@ -89,27 +87,19 @@ def test_cell_spacegroup_propogation(
     dummy_native.spacegroup = 1
 
     # ensure the native cell is propogated
-    result = diffmap_fxn(dummy_derivative, dummy_native, check_isomorphous)
+    result = diffmap_fxn(dummy_derivative, dummy_native)
     assert result.cell == dummy_native.cell
     assert result.spacegroup == dummy_native.spacegroup
 
     # check we raise or dont with a spacegroup mismatch
     dummy_native.spacegroup = 19
-    if check_isomorphous:
-        with pytest.raises(NotIsomorphousError):
-            _ = diffmap_fxn(dummy_derivative, dummy_native, check_isomorphous)
-    else:
-        _ = diffmap_fxn(dummy_derivative, dummy_native, check_isomorphous)
+    _ = diffmap_fxn(dummy_derivative, dummy_native)
 
     # check we raise or dont with a cell mismatch
     dummy_native.spacegroup = 1
-    _ = diffmap_fxn(dummy_derivative, dummy_native, check_isomorphous)
+    _ = diffmap_fxn(dummy_derivative, dummy_native)
     dummy_native.cell = (20.0, 10.0, 10.0, 90.0, 90.0, 90.0)
-    if check_isomorphous:
-        with pytest.raises(NotIsomorphousError):
-            _ = diffmap_fxn(dummy_derivative, dummy_native, check_isomorphous)
-    else:
-        _ = diffmap_fxn(dummy_derivative, dummy_native, check_isomorphous)
+    _ = diffmap_fxn(dummy_derivative, dummy_native)
 
 
 def test_compute_kweights_vs_analytical() -> None:
@@ -134,9 +124,7 @@ def test_compute_kweighted_difference_map_vs_analytical(
     dummy_derivative: Map,
     dummy_native: Map,
 ) -> None:
-    kwt_diffmap = compute_kweighted_difference_map(
-        dummy_derivative, dummy_native, k_parameter=0.5, check_isomorphous=False
-    )
+    kwt_diffmap = compute_kweighted_difference_map(dummy_derivative, dummy_native, k_parameter=0.5)
     expected_weighted_amplitudes = np.array([3.2824, 4.5294])  # calculated by hand
     expected_weighted_uncertainties = np.array([0.7737, 0.6406])
     assert_almost_equal(kwt_diffmap.amplitudes, expected_weighted_amplitudes, decimal=4)
@@ -147,12 +135,8 @@ def test_kweighted_difference_map_retains_scale(
     dummy_derivative: Map,
     dummy_native: Map,
 ) -> None:
-    vanilla_diffmap = compute_difference_map(
-        dummy_derivative, dummy_native, check_isomorphous=False
-    )
-    kwt_diffmap = compute_kweighted_difference_map(
-        dummy_derivative, dummy_native, k_parameter=0.5, check_isomorphous=False
-    )
+    vanilla_diffmap = compute_difference_map(dummy_derivative, dummy_native)
+    kwt_diffmap = compute_kweighted_difference_map(dummy_derivative, dummy_native, k_parameter=0.5)
     vanilla_mssq = np.mean(np.square(vanilla_diffmap))
     kwt_mssq = np.mean(np.square(kwt_diffmap))
     np.testing.assert_allclose(vanilla_mssq, kwt_mssq, rtol=1e-4)
