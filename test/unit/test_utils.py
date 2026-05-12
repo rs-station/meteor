@@ -39,7 +39,8 @@ def test_assert_isomorphous_warning_only(
         derivative=random_difference_map, native=different_map, warning_only=True
     )
     captured = capsys.readouterr()
-    assert ("warning" in captured.out.lower()) and ("isomorphous" in captured.out)
+    assert "warning" in captured.out.lower()
+    assert "isomorphous" in captured.out
 
     # and when they agree, nothing is logged
     utils.assert_isomorphous(
