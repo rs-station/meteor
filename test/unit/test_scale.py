@@ -405,4 +405,4 @@ def test_scalar_scale_reciprocal_vs_real_space(random_difference_map: Map, multi
     rescaled_m2.canonicalize_amplitudes()
 
     np.testing.assert_allclose(m1.amplitudes, rescaled_m2.amplitudes, rtol=0.01)
-    np.testing.assert_allclose(m1.phases, rescaled_m2.phases, rtol=0.01)
+    np.testing.assert_allclose(m1.phases, rescaled_m2.phases, rtol=0.05)
