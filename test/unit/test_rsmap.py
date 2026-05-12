@@ -269,16 +269,20 @@ def test_from_dataset(noise_free_map: Map) -> None:
         amplitude_column=noise_free_map._amplitude_column,
         phase_column=noise_free_map._phase_column,
         uncertainty_column=noise_free_map._uncertainty_column,
+        spacegroup=map_as_dataset.spacegroup,
+        cell=map_as_dataset.cell,
     )
     pd.testing.assert_frame_equal(noise_free_map, map2)
 
 
-def test_to_structurefactor(noise_free_map: Map) -> None:
+def test_to_structurefactor() -> None:
     index = pd.Index(np.arange(4))
     amp = rs.DataSeries(np.ones(4), index=index, name="F")
     phase = rs.DataSeries(np.arange(4) * 90.0, index=index, name="PHI")
 
     ds = rs.concat([amp, phase], axis=1)
+    ds.cell = (10., 10., 10., 90., 90., 90.)
+    ds.spacegroup = 1
     rsmap = Map(ds)
 
     expected = np.array([1.0, 0.0, -1.0, 0.0]) + 1j * np.array([0.0, 1.0, 0.0, -1.0])

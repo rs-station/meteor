@@ -108,4 +108,6 @@ def random_difference_map(test_map_columns: MapColumns, np_rng: np.random.Genera
         amplitude_column=test_map_columns.amplitude,
         phase_column=test_map_columns.phase,
         uncertainty_column=test_map_columns.uncertainty,
+        cell=UNIT_CELL,
+        spacegroup=SPACE_GROUP
     )

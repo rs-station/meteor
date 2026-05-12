@@ -250,6 +250,8 @@ class DiffmapArgParser(argparse.ArgumentParser):
             amplitude_column=found_amplitude_column,
             phase_column=PHASE_COLUMN_NAME,
             uncertainty_column=found_uncertainty_column,
+            cell=mtz.cell,
+            spacegroup=mtz.spacegroup,
         )
 
     @staticmethod

@@ -19,12 +19,16 @@ def test_scaling_regression(testing_mtz_file: Path) -> None:
         amplitude_column="F_on_scaled",
         phase_column="PHI_k",
         uncertainty_column="SIGF_on_scaled",
+        cell=on.cell,
+        spacegroup=on.spacegroup,
     )
     scaled_off_truth = Map(
         ds,
         amplitude_column="F_off_scaled",
         phase_column="PHI_k",
         uncertainty_column="SIGF_off_scaled",
+        cell=off.cell,
+        spacegroup=off.spacegroup,
     )
 
     scaled_on = scale_maps(

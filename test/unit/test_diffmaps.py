@@ -25,6 +25,8 @@ def dummy_derivative() -> Map:
         "F": np.array([2.0, 3.0, 1.0]),
         "PHI": np.array([180.0, 0.0, 1.0]),
         "SIGF": np.array([0.5, 0.5, 1.0]),
+        "cell": (10., 10., 10., 90., 90., 90.),
+        "spacegroup": 1,
     }
     return Map(derivative, index=index).infer_mtz_dtypes()
 
@@ -36,6 +38,8 @@ def dummy_native() -> Map:
         "F": np.array([1.0, 2.0]),
         "PHI": np.array([0.0, 180.0]),
         "SIGF": np.array([0.5, 0.5]),
+        "cell": (10., 10., 10., 90., 90., 90.),
+        "spacegroup": 1,
     }
     return Map(native, index=index).infer_mtz_dtypes()
 

@@ -122,6 +122,8 @@ class Map(rs.DataSet):
                 amplitude_column=self._amplitude_column,
                 phase_column=self._phase_column,
                 uncertainty_column=self._uncertainty_column,
+                cell=self._cell,
+                spacegroup=self._spacegroup,
                 **kwargs,
             )
 
