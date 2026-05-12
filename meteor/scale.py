@@ -209,7 +209,7 @@ def scale_maps(
         msg = f"`initial_c` is {initial_c}: either not finite or negative. "
         msg += "Check input for errors and outliers"
         raise RuntimeError(msg)
-    
+
     initial_scaling_parameters: ScaleParameters = (initial_c,) + (0.0,) * (
         scale_mode.number_of_parameters - 1
     )
