@@ -221,11 +221,14 @@ def test_scale_maps_nans_in_input(
     least_squares_loss: str,
     column: str,
 ) -> None:
-    another_difference_map = random_difference_map.copy()
+    # use positive amplitudes so a single NaN in F doesn't poison the mean used to seed C
+    reference_map = random_difference_map.copy()
+    reference_map["F"] = np.abs(reference_map["F"]) + 1.0
+    another_difference_map = reference_map.copy()
     another_difference_map.loc[1, column] = np.nan
 
     scale.scale_maps(
-        reference_map=random_difference_map,
+        reference_map=reference_map,
         map_to_scale=another_difference_map,
         weight_using_uncertainties=use_uncertainties,
         scale_mode=scale_mode,
