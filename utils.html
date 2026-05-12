@@ -46,19 +46,24 @@ el.replaceWith(d);
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="meteor.utils.assert_isomorphous"><code class="name flex">
-<span>def <span class="ident">assert_isomorphous</span></span>(<span>*, derivative: rs.DataSet, native: rs.DataSet) ‑> None</span>
+<span>def <span class="ident">assert_isomorphous</span></span>(<span>*, derivative: rs.DataSet, native: rs.DataSet, warning_only: bool = False) ‑> None</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def assert_isomorphous(*, derivative: rs.DataSet, native: rs.DataSet) -&gt; None:
+<pre><code class="python">def assert_isomorphous(
+    *, derivative: rs.DataSet, native: rs.DataSet, warning_only: bool = False
+) -&gt; None:
     if not native.is_isomorphous(derivative):
-        msg = &#34;`derivative` and `native` datasets are not similar enough; &#34;
-        msg += f&#34;they have cell/spacegroup: {derivative.cell}/{native.cell} and &#34;
+        msg = &#34;`derivative` and `native` lattices are not higly isomorphous; &#34;
+        msg += f&#34;they have cell, spacegroup: {derivative.cell}/{native.cell} and &#34;
         msg += f&#34;{derivative.spacegroup}/{native.spacegroup} respectively&#34;
-        raise NotIsomorphousError(msg)</code></pre>
+        if warning_only:
+            log.warning(msg)
+        else:
+            raise NotIsomorphousError(msg)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>

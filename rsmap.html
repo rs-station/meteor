@@ -70,7 +70,7 @@ el.replaceWith(d);
 <dl>
 <dt id="meteor.rsmap.Map"><code class="flex name class">
 <span>class <span class="ident">Map</span></span>
-<span>(</span><span>data: dict | pd.DataFrame | rs.DataSet,<br>*,<br>amplitude_column: str = 'F',<br>phase_column: str = 'PHI',<br>uncertainty_column: str | None = 'SIGF',<br>**kwargs: Any)</span>
+<span>(</span><span>data: dict | pd.DataFrame | rs.DataSet,<br>cell: CellType,<br>spacegroup: SpacegroupType,<br>*,<br>amplitude_column: str = 'F',<br>phase_column: str = 'PHI',<br>uncertainty_column: str | None = 'SIGF',<br>**kwargs: Any)</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -110,9 +110,11 @@ el.replaceWith(d);
 
     @cellify
     @spacegroupify
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         data: dict | pd.DataFrame | rs.DataSet,
+        cell: CellType,
+        spacegroup: SpacegroupType,
         *,
         amplitude_column: str = &#34;F&#34;,
         phase_column: str = &#34;PHI&#34;,
@@ -124,6 +126,9 @@ el.replaceWith(d);
         self._amplitude_column = amplitude_column
         self._phase_column = phase_column
         self._uncertainty_column = uncertainty_column
+
+        self._cell = cell
+        self._spacegroup = spacegroup
 
         for column in [self._amplitude_column, self._phase_column]:
             if column not in self.columns:
@@ -154,6 +159,8 @@ el.replaceWith(d);
                 amplitude_column=self._amplitude_column,
                 phase_column=self._phase_column,
                 uncertainty_column=self._uncertainty_column,
+                cell=self._cell,
+                spacegroup=self._spacegroup,
                 **kwargs,
             )
 
@@ -220,7 +227,11 @@ el.replaceWith(d);
             rs.StandardDeviationFriedelSFDtype(),
         ]
         return self._verify_type(
-            name, uncertainty_dtypes, dataseries, fix=fix, cast_fix_to=rs.StandardDeviationDtype()
+            name,
+            uncertainty_dtypes,
+            dataseries,
+            fix=fix,
+            cast_fix_to=rs.StandardDeviationDtype(),
         )
 
     def __setitem__(self, key: str, value: Any) -&gt; None:
@@ -229,6 +240,28 @@ el.replaceWith(d);
             msg = &#34;column assignment not allowed for Map objects&#34;
             raise MapMutabilityError(msg)
         super().__setitem__(key, value)
+
+    @property
+    def cell(self) -&gt; gemmi.UnitCell:
+        if not isinstance(self._cell, gemmi.UnitCell):
+            msg = f&#34;Map._cell is not type gemmi.UnitCell, but {type(self._cell)}&#34;
+            raise TypeError(msg)
+        return self._cell
+
+    @cell.setter
+    def cell(self, cell: CellType) -&gt; None:
+        self._cell = _convert_unitcell(cell)
+
+    @property
+    def spacegroup(self) -&gt; gemmi.SpaceGroup:
+        if not isinstance(self._spacegroup, gemmi.SpaceGroup):
+            msg = f&#34;Map._spacegroup is not type gemmi.UnitCell, but {type(self._spacegroup)}&#34;
+            raise TypeError(msg)
+        return self._spacegroup
+
+    @spacegroup.setter
+    def spacegroup(self, spacegroup: SpacegroupType) -&gt; None:
+        self._spacegroup = _convert_spacegroup(spacegroup)
 
     def insert(self, loc: int, column: str, value: Any, *, allow_duplicates: bool = False) -&gt; None:
         if column in self._allowed_columns:
@@ -274,6 +307,9 @@ el.replaceWith(d);
         # that could be enabled by adding &#34;dHKL&#34; to _allowed_columns - @tjlane
         if not hasattr(self, &#34;cell&#34;):
             msg = &#34;no `cell` attribute set, cannot compute resolution (d-values)&#34;
+            raise AttributeError(msg)
+        if self.cell is None:
+            msg = &#34;`cell` attribute is None, cannot compute resolution (d-values)&#34;
             raise AttributeError(msg)
         d_hkl = self.cell.calculate_d_array(self.get_hkls())
         return rs.DataSeries(d_hkl, dtype=&#34;R&#34;, index=self.index)
@@ -344,7 +380,10 @@ el.replaceWith(d);
                 msg = &#34;Misconfigured columns&#34;
                 raise RuntimeError(msg)
             super().insert(
-                number_of_columns, self._uncertainty_column, values, allow_duplicates=False
+                number_of_columns,
+                self._uncertainty_column,
+                values,
+                allow_duplicates=False,
             )
 
     @property
@@ -376,8 +415,8 @@ el.replaceWith(d);
         complex_structurefactor: rs.DataSeries,
         *,
         index: None = None,
-        cell: CellType | None = None,
-        spacegroup: SpacegroupType | None = None,
+        cell: CellType,
+        spacegroup: SpacegroupType,
     ) -&gt; Map: ...
 
     @overload
@@ -387,8 +426,8 @@ el.replaceWith(d);
         complex_structurefactor: np.ndarray,
         *,
         index: pd.Index,
-        cell: CellType | None = None,
-        spacegroup: SpacegroupType | None = None,
+        cell: CellType,
+        spacegroup: SpacegroupType,
     ) -&gt; Map: ...
 
     @classmethod
@@ -397,10 +436,10 @@ el.replaceWith(d);
     def from_structurefactor(
         cls,
         complex_structurefactor: np.ndarray | rs.DataSeries,
+        cell: CellType,
+        spacegroup: SpacegroupType,
         *,
         index: pd.Index | None = None,
-        cell: CellType | None = None,
-        spacegroup: SpacegroupType | None = None,
     ) -&gt; Map:
         # 1. `rs.DataSet.from_structurefactor` exists, but it operates on a column that&#39;s already
         #    part of the dataset; having such a (redundant) column is forbidden by `Map`
@@ -446,7 +485,7 @@ el.replaceWith(d);
             spacegroup=spacegroup,
         )
 
-        return cls(dataset)
+        return cls(dataset, cell=cell, spacegroup=spacegroup)
 
     @classmethod
     def from_gemmi(
@@ -457,8 +496,11 @@ el.replaceWith(d);
         phase_column: str = &#34;PHI&#34;,
         uncertainty_column: str | None = &#34;SIGF&#34;,
     ) -&gt; Map:
+        dataset = rs.DataSet(gemmi_mtz)
         return cls(
-            rs.DataSet(gemmi_mtz),
+            dataset,
+            cell=dataset.cell,
+            spacegroup=dataset.spacegroup,
             amplitude_column=amplitude_column,
             phase_column=phase_column,
             uncertainty_column=uncertainty_column,
@@ -471,7 +513,12 @@ el.replaceWith(d);
     @classmethod
     @cellify(&#34;cell&#34;)
     def from_3d_numpy_map(
-        cls, map_grid: np.ndarray, *, spacegroup: Any, cell: CellType, high_resolution_limit: float
+        cls,
+        map_grid: np.ndarray,
+        *,
+        spacegroup: Any,
+        cell: CellType,
+        high_resolution_limit: float,
     ) -&gt; Map:
         &#34;&#34;&#34;
         Create a `Map` from a 3d grid of voxel values stored in a numpy array.
@@ -551,9 +598,15 @@ el.replaceWith(d);
 
         mtz.set_data(data)
         mtz.switch_to_asu_hkl()
-        dataset = super().from_gemmi(mtz)
+        dataset = rs.DataSet.from_gemmi(mtz)
 
-        return cls(dataset, amplitude_column=amplitude_column, phase_column=phase_column)
+        return cls(
+            dataset,
+            cell=dataset.cell,
+            spacegroup=dataset.spacegroup,
+            amplitude_column=amplitude_column,
+            phase_column=phase_column,
+        )
 
     def write_mtz(self, file_path: str | Path) -&gt; None:
         path_cast_to_str = str(file_path)
@@ -616,7 +669,12 @@ these relatively simple operations.</p></div>
 <pre><code class="python">@classmethod
 @cellify(&#34;cell&#34;)
 def from_3d_numpy_map(
-    cls, map_grid: np.ndarray, *, spacegroup: Any, cell: CellType, high_resolution_limit: float
+    cls,
+    map_grid: np.ndarray,
+    *,
+    spacegroup: Any,
+    cell: CellType,
+    high_resolution_limit: float,
 ) -&gt; Map:
     &#34;&#34;&#34;
     Create a `Map` from a 3d grid of voxel values stored in a numpy array.
@@ -707,7 +765,7 @@ label partial or centric reflections, respectively.</p>
 </dl></div>
 </dd>
 <dt id="meteor.rsmap.Map.from_structurefactor"><code class="name flex">
-<span>def <span class="ident">from_structurefactor</span></span>(<span>cls,<br>complex_structurefactor: np.ndarray | rs.DataSeries,<br>*,<br>index: pd.Index | None = None,<br>cell: CellType | None = None,<br>spacegroup: SpacegroupType | None = None) ‑> <a title="meteor.rsmap.Map" href="#meteor.rsmap.Map">Map</a></span>
+<span>def <span class="ident">from_structurefactor</span></span>(<span>cls,<br>complex_structurefactor: np.ndarray | rs.DataSeries,<br>cell: CellType,<br>spacegroup: SpacegroupType,<br>*,<br>index: pd.Index | None = None) ‑> <a title="meteor.rsmap.Map" href="#meteor.rsmap.Map">Map</a></span>
 </code></dt>
 <dd>
 <details class="source">
@@ -720,10 +778,10 @@ label partial or centric reflections, respectively.</p>
 def from_structurefactor(
     cls,
     complex_structurefactor: np.ndarray | rs.DataSeries,
+    cell: CellType,
+    spacegroup: SpacegroupType,
     *,
     index: pd.Index | None = None,
-    cell: CellType | None = None,
-    spacegroup: SpacegroupType | None = None,
 ) -&gt; Map:
     # 1. `rs.DataSet.from_structurefactor` exists, but it operates on a column that&#39;s already
     #    part of the dataset; having such a (redundant) column is forbidden by `Map`
@@ -769,7 +827,7 @@ def from_structurefactor(
         spacegroup=spacegroup,
     )
 
-    return cls(dataset)</code></pre>
+    return cls(dataset, cell=cell, spacegroup=spacegroup)</code></pre>
 </details>
 <div class="desc"></div>
 </dd>
@@ -805,6 +863,21 @@ def amplitudes(self) -&gt; rs.DataSeries:
     return self[self._amplitude_column]</code></pre>
 </details>
 <div class="desc"></div>
+</dd>
+<dt id="meteor.rsmap.Map.cell"><code class="name">prop <span class="ident">cell</span> : gemmi.UnitCell</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def cell(self) -&gt; gemmi.UnitCell:
+    if not isinstance(self._cell, gemmi.UnitCell):
+        msg = f&#34;Map._cell is not type gemmi.UnitCell, but {type(self._cell)}&#34;
+        raise TypeError(msg)
+    return self._cell</code></pre>
+</details>
+<div class="desc"><p>Unit cell parameters (a, b, c, alpha, beta, gamma)</p></div>
 </dd>
 <dt id="meteor.rsmap.Map.has_uncertainties"><code class="name">prop <span class="ident">has_uncertainties</span> : bool</code></dt>
 <dd>
@@ -854,6 +927,21 @@ def resolution_limits(self) -&gt; tuple[float, float]:
     return np.max(d_hkl), np.min(d_hkl)</code></pre>
 </details>
 <div class="desc"></div>
+</dd>
+<dt id="meteor.rsmap.Map.spacegroup"><code class="name">prop <span class="ident">spacegroup</span> : gemmi.SpaceGroup</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def spacegroup(self) -&gt; gemmi.SpaceGroup:
+    if not isinstance(self._spacegroup, gemmi.SpaceGroup):
+        msg = f&#34;Map._spacegroup is not type gemmi.UnitCell, but {type(self._spacegroup)}&#34;
+        raise TypeError(msg)
+    return self._spacegroup</code></pre>
+</details>
+<div class="desc"><p>Crystallographic space group</p></div>
 </dd>
 <dt id="meteor.rsmap.Map.uncertainties"><code class="name">prop <span class="ident">uncertainties</span> : rs.DataSeries</code></dt>
 <dd>
@@ -922,6 +1010,9 @@ def uncertainties_column_name(self) -&gt; str:
     # that could be enabled by adding &#34;dHKL&#34; to _allowed_columns - @tjlane
     if not hasattr(self, &#34;cell&#34;):
         msg = &#34;no `cell` attribute set, cannot compute resolution (d-values)&#34;
+        raise AttributeError(msg)
+    if self.cell is None:
+        msg = &#34;`cell` attribute is None, cannot compute resolution (d-values)&#34;
         raise AttributeError(msg)
     d_hkl = self.cell.calculate_d_array(self.get_hkls())
     return rs.DataSeries(d_hkl, dtype=&#34;R&#34;, index=self.index)</code></pre>
@@ -1196,7 +1287,10 @@ unless <code>allow_duplicates</code> is set to True.</p>
             msg = &#34;Misconfigured columns&#34;
             raise RuntimeError(msg)
         super().insert(
-            number_of_columns, self._uncertainty_column, values, allow_duplicates=False
+            number_of_columns,
+            self._uncertainty_column,
+            values,
+            allow_duplicates=False,
         )</code></pre>
 </details>
 <div class="desc"></div>
@@ -1349,6 +1443,7 @@ MTZ datatypes</dd>
 <li><code><a title="meteor.rsmap.Map.amplitude_column_name" href="#meteor.rsmap.Map.amplitude_column_name">amplitude_column_name</a></code></li>
 <li><code><a title="meteor.rsmap.Map.amplitudes" href="#meteor.rsmap.Map.amplitudes">amplitudes</a></code></li>
 <li><code><a title="meteor.rsmap.Map.canonicalize_amplitudes" href="#meteor.rsmap.Map.canonicalize_amplitudes">canonicalize_amplitudes</a></code></li>
+<li><code><a title="meteor.rsmap.Map.cell" href="#meteor.rsmap.Map.cell">cell</a></code></li>
 <li><code><a title="meteor.rsmap.Map.compute_dHKL" href="#meteor.rsmap.Map.compute_dHKL">compute_dHKL</a></code></li>
 <li><code><a title="meteor.rsmap.Map.drop" href="#meteor.rsmap.Map.drop">drop</a></code></li>
 <li><code><a title="meteor.rsmap.Map.from_3d_numpy_map" href="#meteor.rsmap.Map.from_3d_numpy_map">from_3d_numpy_map</a></code></li>
@@ -1363,6 +1458,7 @@ MTZ datatypes</dd>
 <li><code><a title="meteor.rsmap.Map.read_mtz_file" href="#meteor.rsmap.Map.read_mtz_file">read_mtz_file</a></code></li>
 <li><code><a title="meteor.rsmap.Map.resolution_limits" href="#meteor.rsmap.Map.resolution_limits">resolution_limits</a></code></li>
 <li><code><a title="meteor.rsmap.Map.set_uncertainties" href="#meteor.rsmap.Map.set_uncertainties">set_uncertainties</a></code></li>
+<li><code><a title="meteor.rsmap.Map.spacegroup" href="#meteor.rsmap.Map.spacegroup">spacegroup</a></code></li>
 <li><code><a title="meteor.rsmap.Map.to_3d_numpy_map" href="#meteor.rsmap.Map.to_3d_numpy_map">to_3d_numpy_map</a></code></li>
 <li><code><a title="meteor.rsmap.Map.to_ccp4_map" href="#meteor.rsmap.Map.to_ccp4_map">to_ccp4_map</a></code></li>
 <li><code><a title="meteor.rsmap.Map.to_structurefactor" href="#meteor.rsmap.Map.to_structurefactor">to_structurefactor</a></code></li>
