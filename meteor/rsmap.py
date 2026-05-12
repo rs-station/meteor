@@ -10,7 +10,7 @@ import gemmi
 import numpy as np
 import pandas as pd
 import reciprocalspaceship as rs
-from reciprocalspaceship.decorators import cellify, spacegroupify
+from reciprocalspaceship.decorators import cellify, spacegroupify, _convert_unitcell, _convert_spacegroup
 
 from .settings import GEMMI_HIGH_RESOLUTION_BUFFER, MAP_HAS_NONZERO_000_TOLERANCE
 from .utils import (
@@ -76,6 +76,8 @@ class Map(rs.DataSet):
     def __init__(
         self,
         data: dict | pd.DataFrame | rs.DataSet,
+        cell: CellType,
+        spacegroup: SpacegroupType,
         *,
         amplitude_column: str = "F",
         phase_column: str = "PHI",
@@ -87,6 +89,9 @@ class Map(rs.DataSet):
         self._amplitude_column = amplitude_column
         self._phase_column = phase_column
         self._uncertainty_column = uncertainty_column
+
+        self._cell = cell
+        self._spacegroup = spacegroup
 
         for column in [self._amplitude_column, self._phase_column]:
             if column not in self.columns:
@@ -141,19 +146,6 @@ class Map(rs.DataSet):
             msg = f"dtype for passed {name} not allowed, got: {dataseries.dtype} allow {allowed_types}"
             raise AssertionError(msg)
         return dataseries
-
-    def _verify_cell(self, cell: CellType | None, *, fix: bool = True) -> gemmi.UnitCell | None:
-        if cell is None or isinstance(cell, gemmi.UnitCell):
-            return cell
-        if (
-            isinstance(cell, (Sequence, np.ndarray))
-            and len(cell) == GEMMI_UNITCELL_PARAMETERS_LENGTH
-            and fix
-        ):
-            return gemmi.UnitCell(*cell)
-        msg = f"dtype for passed cell not allowed, got: {type(cell)}"
-        msg += f"allowed: {gemmi.UnitCell} or sequence of length {GEMMI_UNITCELL_PARAMETERS_LENGTH} or None"
-        raise TypeError(msg)
 
     def _verify_amplitude_type(
         self,
@@ -210,6 +202,28 @@ class Map(rs.DataSet):
             raise MapMutabilityError(msg)
         super().__setitem__(key, value)
 
+    @property
+    def cell(self) -> gemmi.UnitCell:
+        if not isinstance(self._cell, gemmi.UnitCell):
+            msg = f"Map._cell is not type gemmi.UnitCell, but {type(self._cell)}"
+            raise TypeError(msg)
+        return self._cell
+    
+    @cell.setter
+    def cell(self, cell: CellType) -> None:
+        self._cell = _convert_unitcell(cell)
+    
+    @property
+    def spacegroup(self) -> gemmi.SpaceGroup:
+        if not isinstance(self._spacegroup, gemmi.SpaceGroup):
+            msg = f"Map._spacegroup is not type gemmi.UnitCell, but {type(self._spacegroup)}"
+            raise TypeError(msg)
+        return self._spacegroup
+    
+    @spacegroup.setter
+    def spacegroup(self, spacegroup: SpacegroupType) -> None:
+        self._spacegroup = _convert_spacegroup(spacegroup)
+
     def insert(self, loc: int, column: str, value: Any, *, allow_duplicates: bool = False) -> None:
         if column in self._allowed_columns:
             super().insert(loc, column, value, allow_duplicates=allow_duplicates)
@@ -265,15 +279,6 @@ class Map(rs.DataSet):
     def resolution_limits(self) -> tuple[float, float]:
         d_hkl = self.compute_dHKL()
         return np.max(d_hkl), np.min(d_hkl)
-
-    @property
-    def cell(self) -> gemmi.UnitCell | None:
-        return super().cell
-
-    @cell.setter
-    def cell(self, cell: CellType | None) -> None:
-        unitcell = self._verify_cell(cell)
-        super(Map, type(self)).cell.fset(self, unitcell)
 
     @property
     def amplitudes(self) -> rs.DataSeries:
@@ -371,8 +376,8 @@ class Map(rs.DataSet):
         complex_structurefactor: rs.DataSeries,
         *,
         index: None = None,
-        cell: CellType | None = None,
-        spacegroup: SpacegroupType | None = None,
+        cell: CellType,
+        spacegroup: SpacegroupType,
     ) -> Map: ...
 
     @overload
@@ -382,8 +387,8 @@ class Map(rs.DataSet):
         complex_structurefactor: np.ndarray,
         *,
         index: pd.Index,
-        cell: CellType | None = None,
-        spacegroup: SpacegroupType | None = None,
+        cell: CellType,
+        spacegroup: SpacegroupType,
     ) -> Map: ...
 
     @classmethod
@@ -392,10 +397,10 @@ class Map(rs.DataSet):
     def from_structurefactor(
         cls,
         complex_structurefactor: np.ndarray | rs.DataSeries,
+        cell: CellType,
+        spacegroup: SpacegroupType,
         *,
         index: pd.Index | None = None,
-        cell: CellType | None = None,
-        spacegroup: SpacegroupType | None = None,
     ) -> Map:
         # 1. `rs.DataSet.from_structurefactor` exists, but it operates on a column that's already
         #    part of the dataset; having such a (redundant) column is forbidden by `Map`
