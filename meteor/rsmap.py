@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any, ClassVar, Final, Literal, overload
 
@@ -10,7 +10,12 @@ import gemmi
 import numpy as np
 import pandas as pd
 import reciprocalspaceship as rs
-from reciprocalspaceship.decorators import cellify, spacegroupify, _convert_unitcell, _convert_spacegroup
+from reciprocalspaceship.decorators import (
+    _convert_spacegroup,
+    _convert_unitcell,
+    cellify,
+    spacegroupify,
+)
 
 from .settings import GEMMI_HIGH_RESOLUTION_BUFFER, MAP_HAS_NONZERO_000_TOLERANCE
 from .utils import (
@@ -73,7 +78,7 @@ class Map(rs.DataSet):
 
     @cellify
     @spacegroupify
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         data: dict | pd.DataFrame | rs.DataSet,
         cell: CellType,
@@ -210,18 +215,18 @@ class Map(rs.DataSet):
             msg = f"Map._cell is not type gemmi.UnitCell, but {type(self._cell)}"
             raise TypeError(msg)
         return self._cell
-    
+
     @cell.setter
     def cell(self, cell: CellType) -> None:
         self._cell = _convert_unitcell(cell)
-    
+
     @property
     def spacegroup(self) -> gemmi.SpaceGroup:
         if not isinstance(self._spacegroup, gemmi.SpaceGroup):
             msg = f"Map._spacegroup is not type gemmi.UnitCell, but {type(self._spacegroup)}"
             raise TypeError(msg)
         return self._spacegroup
-    
+
     @spacegroup.setter
     def spacegroup(self, spacegroup: SpacegroupType) -> None:
         self._spacegroup = _convert_spacegroup(spacegroup)
