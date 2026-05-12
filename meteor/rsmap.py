@@ -10,7 +10,12 @@ import gemmi
 import numpy as np
 import pandas as pd
 import reciprocalspaceship as rs
-from reciprocalspaceship.decorators import cellify, spacegroupify
+from reciprocalspaceship.decorators import (
+    _convert_spacegroup,
+    _convert_unitcell,
+    cellify,
+    spacegroupify,
+)
 
 from .settings import GEMMI_HIGH_RESOLUTION_BUFFER, MAP_HAS_NONZERO_000_TOLERANCE
 from .utils import (
@@ -22,6 +27,7 @@ from .utils import (
 )
 
 NUMBER_OF_DIMENSIONS_IN_UNIVERSE: Final[int] = 3
+GEMMI_UNITCELL_PARAMETERS_LENGTH: Final[int] = 6
 
 
 class MissingUncertaintiesError(AttributeError): ...
@@ -72,9 +78,11 @@ class Map(rs.DataSet):
 
     @cellify
     @spacegroupify
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         data: dict | pd.DataFrame | rs.DataSet,
+        cell: CellType,
+        spacegroup: SpacegroupType,
         *,
         amplitude_column: str = "F",
         phase_column: str = "PHI",
@@ -86,6 +94,9 @@ class Map(rs.DataSet):
         self._amplitude_column = amplitude_column
         self._phase_column = phase_column
         self._uncertainty_column = uncertainty_column
+
+        self._cell = cell
+        self._spacegroup = spacegroup
 
         for column in [self._amplitude_column, self._phase_column]:
             if column not in self.columns:
@@ -116,6 +127,8 @@ class Map(rs.DataSet):
                 amplitude_column=self._amplitude_column,
                 phase_column=self._phase_column,
                 uncertainty_column=self._uncertainty_column,
+                cell=self._cell,
+                spacegroup=self._spacegroup,
                 **kwargs,
             )
 
@@ -182,7 +195,11 @@ class Map(rs.DataSet):
             rs.StandardDeviationFriedelSFDtype(),
         ]
         return self._verify_type(
-            name, uncertainty_dtypes, dataseries, fix=fix, cast_fix_to=rs.StandardDeviationDtype()
+            name,
+            uncertainty_dtypes,
+            dataseries,
+            fix=fix,
+            cast_fix_to=rs.StandardDeviationDtype(),
         )
 
     def __setitem__(self, key: str, value: Any) -> None:
@@ -191,6 +208,28 @@ class Map(rs.DataSet):
             msg = "column assignment not allowed for Map objects"
             raise MapMutabilityError(msg)
         super().__setitem__(key, value)
+
+    @property
+    def cell(self) -> gemmi.UnitCell:
+        if not isinstance(self._cell, gemmi.UnitCell):
+            msg = f"Map._cell is not type gemmi.UnitCell, but {type(self._cell)}"
+            raise TypeError(msg)
+        return self._cell
+
+    @cell.setter
+    def cell(self, cell: CellType) -> None:
+        self._cell = _convert_unitcell(cell)
+
+    @property
+    def spacegroup(self) -> gemmi.SpaceGroup:
+        if not isinstance(self._spacegroup, gemmi.SpaceGroup):
+            msg = f"Map._spacegroup is not type gemmi.UnitCell, but {type(self._spacegroup)}"
+            raise TypeError(msg)
+        return self._spacegroup
+
+    @spacegroup.setter
+    def spacegroup(self, spacegroup: SpacegroupType) -> None:
+        self._spacegroup = _convert_spacegroup(spacegroup)
 
     def insert(self, loc: int, column: str, value: Any, *, allow_duplicates: bool = False) -> None:
         if column in self._allowed_columns:
@@ -236,6 +275,9 @@ class Map(rs.DataSet):
         # that could be enabled by adding "dHKL" to _allowed_columns - @tjlane
         if not hasattr(self, "cell"):
             msg = "no `cell` attribute set, cannot compute resolution (d-values)"
+            raise AttributeError(msg)
+        if self.cell is None:
+            msg = "`cell` attribute is None, cannot compute resolution (d-values)"
             raise AttributeError(msg)
         d_hkl = self.cell.calculate_d_array(self.get_hkls())
         return rs.DataSeries(d_hkl, dtype="R", index=self.index)
@@ -306,7 +348,10 @@ class Map(rs.DataSet):
                 msg = "Misconfigured columns"
                 raise RuntimeError(msg)
             super().insert(
-                number_of_columns, self._uncertainty_column, values, allow_duplicates=False
+                number_of_columns,
+                self._uncertainty_column,
+                values,
+                allow_duplicates=False,
             )
 
     @property
@@ -338,8 +383,8 @@ class Map(rs.DataSet):
         complex_structurefactor: rs.DataSeries,
         *,
         index: None = None,
-        cell: CellType | None = None,
-        spacegroup: SpacegroupType | None = None,
+        cell: CellType,
+        spacegroup: SpacegroupType,
     ) -> Map: ...
 
     @overload
@@ -349,8 +394,8 @@ class Map(rs.DataSet):
         complex_structurefactor: np.ndarray,
         *,
         index: pd.Index,
-        cell: CellType | None = None,
-        spacegroup: SpacegroupType | None = None,
+        cell: CellType,
+        spacegroup: SpacegroupType,
     ) -> Map: ...
 
     @classmethod
@@ -359,10 +404,10 @@ class Map(rs.DataSet):
     def from_structurefactor(
         cls,
         complex_structurefactor: np.ndarray | rs.DataSeries,
+        cell: CellType,
+        spacegroup: SpacegroupType,
         *,
         index: pd.Index | None = None,
-        cell: CellType | None = None,
-        spacegroup: SpacegroupType | None = None,
     ) -> Map:
         # 1. `rs.DataSet.from_structurefactor` exists, but it operates on a column that's already
         #    part of the dataset; having such a (redundant) column is forbidden by `Map`
@@ -408,7 +453,7 @@ class Map(rs.DataSet):
             spacegroup=spacegroup,
         )
 
-        return cls(dataset)
+        return cls(dataset, cell=cell, spacegroup=spacegroup)
 
     @classmethod
     def from_gemmi(
@@ -419,8 +464,11 @@ class Map(rs.DataSet):
         phase_column: str = "PHI",
         uncertainty_column: str | None = "SIGF",
     ) -> Map:
+        dataset = rs.DataSet(gemmi_mtz)
         return cls(
-            rs.DataSet(gemmi_mtz),
+            dataset,
+            cell=dataset.cell,
+            spacegroup=dataset.spacegroup,
             amplitude_column=amplitude_column,
             phase_column=phase_column,
             uncertainty_column=uncertainty_column,
@@ -433,7 +481,12 @@ class Map(rs.DataSet):
     @classmethod
     @cellify("cell")
     def from_3d_numpy_map(
-        cls, map_grid: np.ndarray, *, spacegroup: Any, cell: CellType, high_resolution_limit: float
+        cls,
+        map_grid: np.ndarray,
+        *,
+        spacegroup: Any,
+        cell: CellType,
+        high_resolution_limit: float,
     ) -> Map:
         """
         Create a `Map` from a 3d grid of voxel values stored in a numpy array.
@@ -513,9 +566,15 @@ class Map(rs.DataSet):
 
         mtz.set_data(data)
         mtz.switch_to_asu_hkl()
-        dataset = super().from_gemmi(mtz)
+        dataset = rs.DataSet.from_gemmi(mtz)
 
-        return cls(dataset, amplitude_column=amplitude_column, phase_column=phase_column)
+        return cls(
+            dataset,
+            cell=dataset.cell,
+            spacegroup=dataset.spacegroup,
+            amplitude_column=amplitude_column,
+            phase_column=phase_column,
+        )
 
     def write_mtz(self, file_path: str | Path) -> None:
         path_cast_to_str = str(file_path)

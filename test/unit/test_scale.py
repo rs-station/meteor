@@ -241,9 +241,12 @@ def test_scale_maps_uncertainty_weighting() -> None:
     miller_indices = [(0, 0, 0), (0, 0, 1), (0, 0, 2)]
     index = pd.MultiIndex.from_tuples(miller_indices, names=["H", "K", "L"])
 
-    reference_map = Map({"F": x, "PHI": phi, "SIGF": weights})
+    common_columns = {"PHI": phi, "SIGF": weights}
+    cell = (10.0, 10.0, 10.0, 90.0, 90.0, 90.0)
+
+    reference_map = Map({"F": x} | common_columns, cell=cell, spacegroup=1)
     reference_map.index = index
-    map_to_scale = Map({"F": y, "PHI": phi, "SIGF": weights})
+    map_to_scale = Map({"F": y} | common_columns, cell=cell, spacegroup=1)
     map_to_scale.index = index
 
     scaled = scale.scale_maps(

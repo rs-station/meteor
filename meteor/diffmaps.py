@@ -49,10 +49,11 @@ def compute_difference_map(derivative: Map, native: Map, *, check_isomorphous: b
     derivative, native = filter_common_indices(derivative, native)
 
     delta_complex = derivative.to_structurefactor() - native.to_structurefactor()
-    delta = Map.from_structurefactor(delta_complex)
-
-    delta.cell = native.cell
-    delta.spacegroup = native.spacegroup
+    delta = Map.from_structurefactor(
+        delta_complex,
+        cell=native.cell,
+        spacegroup=native.spacegroup,
+    )
 
     if derivative.has_uncertainties and native.has_uncertainties:
         prop_uncertainties = np.sqrt(derivative.uncertainties**2 + native.uncertainties**2)
