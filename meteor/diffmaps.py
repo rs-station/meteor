@@ -112,7 +112,6 @@ def compute_kweighted_difference_map(derivative: Map, native: Map, *, k_paramete
     # require uncertainties at the beginning
     assert_is_map(derivative, require_uncertainties=True)
     assert_is_map(native, require_uncertainties=True)
-    assert_isomorphous(derivative=derivative, native=native, warning_only=True)
 
     difference_map = compute_difference_map(derivative, native)
     weights = compute_kweights(difference_map, k_parameter=k_parameter)
@@ -157,7 +156,6 @@ def max_negentropy_kweighted_difference_map(
     """
     assert_is_map(derivative, require_uncertainties=True)
     assert_is_map(native, require_uncertainties=True)
-    assert_isomorphous(derivative=derivative, native=native, warning_only=True)
 
     def negentropy_objective(k_parameter: float) -> float:
         kweighted_map = compute_kweighted_difference_map(

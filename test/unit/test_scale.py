@@ -347,7 +347,7 @@ def test_scale_maps_large_mismatch_protein_cell(scale_mode: ScaleMode) -> None:
         map_to_scale=map_to_scale,
         scale_mode=scale_mode,
     )
-    np.testing.assert_allclose(scaled.amplitudes, reference_map.amplitudes, rtol=0.05)
+    np.testing.assert_allclose(scaled.amplitudes, reference_map.amplitudes, rtol=1e-3)
 
 
 def test_scale_maps_raises_on_non_finite_scale_factors(random_difference_map: Map) -> None:

@@ -205,6 +205,11 @@ def scale_maps(
         return residuals
 
     initial_c = float(np.mean(reference_map.amplitudes) / np.mean(map_to_scale.amplitudes))
+    if not np.isfinite(initial_c) or initial_c < 0.0:
+        msg = f"`initial_c` is {initial_c}: either not finite or negative. "
+        msg += "Check input for errors and outliers"
+        raise RuntimeError(msg)
+    
     initial_scaling_parameters: ScaleParameters = (initial_c,) + (0.0,) * (
         scale_mode.number_of_parameters - 1
     )
