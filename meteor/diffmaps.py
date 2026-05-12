@@ -14,7 +14,7 @@ from .utils import assert_isomorphous, filter_common_indices
 from .validate import ScalarMaximizer, map_negentropy
 
 
-def compute_difference_map(derivative: Map, native: Map, *, check_isomorphous: bool = True) -> Map:
+def compute_difference_map(derivative: Map, native: Map) -> Map:
     """
     Computes amplitude and phase differences between native and derivative structure factor sets.
 
@@ -33,9 +33,6 @@ def compute_difference_map(derivative: Map, native: Map, *, check_isomorphous: b
     native: Map
         the native amplitudes, phases, uncertainties
 
-    check_isomorphous: bool
-        perform a check to ensure the two datasets are isomorphous; recommended. Default: True.
-
     Returns
     -------
     diffmap: Map
@@ -43,8 +40,7 @@ def compute_difference_map(derivative: Map, native: Map, *, check_isomorphous: b
     """
     assert_is_map(derivative, require_uncertainties=False)
     assert_is_map(native, require_uncertainties=False)
-    if check_isomorphous:
-        assert_isomorphous(derivative=derivative, native=native)
+    assert_isomorphous(derivative=derivative, native=native, warning_only=True)
 
     derivative, native = filter_common_indices(derivative, native)
 
@@ -91,9 +87,7 @@ def compute_kweights(difference_map: Map, *, k_parameter: float) -> rs.DataSerie
     return weights / np.mean(weights)
 
 
-def compute_kweighted_difference_map(
-    derivative: Map, native: Map, *, k_parameter: float, check_isomorphous: bool = True
-) -> Map:
+def compute_kweighted_difference_map(derivative: Map, native: Map, *, k_parameter: float) -> Map:
     """
     Compute k-weighted derivative - native structure factor map.
 
@@ -110,9 +104,6 @@ def compute_kweighted_difference_map(
     native: Map
         the native amplitudes, phases, uncertainties
 
-    check_isomorphous: bool
-        perform a check to ensure the two datasets are isomorphous; recommended. Default: True.
-
     Returns
     -------
     diffmap: Map
@@ -121,10 +112,8 @@ def compute_kweighted_difference_map(
     # require uncertainties at the beginning
     assert_is_map(derivative, require_uncertainties=True)
     assert_is_map(native, require_uncertainties=True)
-    if check_isomorphous:
-        assert_isomorphous(derivative=derivative, native=native)
 
-    difference_map = compute_difference_map(derivative, native, check_isomorphous=check_isomorphous)
+    difference_map = compute_difference_map(derivative, native)
     weights = compute_kweights(difference_map, k_parameter=k_parameter)
 
     difference_map.amplitudes *= weights
@@ -138,7 +127,6 @@ def max_negentropy_kweighted_difference_map(
     native: Map,
     *,
     k_parameter_values_to_scan: np.ndarray | Sequence[float] = DEFAULT_KPARAMS_TO_SCAN,
-    check_isomorphous: bool = True,
 ) -> tuple[rs.DataSet, KparameterScanMetadata]:
     """
     Compute k-weighted differences between native and derivative amplitudes and phases.
@@ -158,9 +146,6 @@ def max_negentropy_kweighted_difference_map(
     k_parameter_values_to_scan : np.ndarray | Sequence[float]
         The values to scan to optimize the k-weighting parameter, by default is 0.00, 0.01 ... 1.00
 
-    check_isomorphous: bool
-        perform a check to ensure the two datasets are isomorphous; recommended. Default: True.
-
     Returns
     -------
     kweighted_dataset: rs.DataSet
@@ -171,15 +156,12 @@ def max_negentropy_kweighted_difference_map(
     """
     assert_is_map(derivative, require_uncertainties=True)
     assert_is_map(native, require_uncertainties=True)
-    if check_isomorphous:
-        assert_isomorphous(derivative=derivative, native=native)
 
     def negentropy_objective(k_parameter: float) -> float:
         kweighted_map = compute_kweighted_difference_map(
             derivative,
             native,
             k_parameter=k_parameter,
-            check_isomorphous=check_isomorphous,
         )
         return map_negentropy(kweighted_map)
 
@@ -191,12 +173,9 @@ def max_negentropy_kweighted_difference_map(
         derivative,
         native,
         k_parameter=opt_k_parameter,
-        check_isomorphous=check_isomorphous,
     )
 
-    unweighted_diffmap = compute_difference_map(
-        derivative, native, check_isomorphous=check_isomorphous
-    )
+    unweighted_diffmap = compute_difference_map(derivative, native)
 
     kparameter_metadata = KparameterScanMetadata(
         initial_negentropy=map_negentropy(unweighted_diffmap),

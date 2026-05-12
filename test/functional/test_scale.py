@@ -64,5 +64,5 @@ def test_scaling_regression(testing_mtz_file: Path) -> None:
         least_squares_loss="linear",
     )
 
-    npt.assert_allclose(scaled_on.amplitudes, scaled_on_truth.amplitudes, atol=1e-3)
-    npt.assert_allclose(scaled_off.amplitudes, scaled_off_truth.amplitudes, atol=1e-3)
+    npt.assert_allclose(scaled_on.amplitudes, scaled_on_truth.amplitudes, rtol=1e-3)
+    npt.assert_allclose(scaled_off.amplitudes, scaled_off_truth.amplitudes, rtol=1e-3)

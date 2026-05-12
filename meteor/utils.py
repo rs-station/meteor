@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Literal, TypeAlias, overload
 import gemmi
 import numpy as np
 import reciprocalspaceship as rs
+import structlog
 from reciprocalspaceship.decorators import cellify, spacegroupify
 from reciprocalspaceship.utils import canonicalize_phases
 
@@ -27,12 +28,20 @@ class NotIsomorphousError(RuntimeError): ...
 class ResolutionCutOverlapError(ValueError): ...
 
 
-def assert_isomorphous(*, derivative: rs.DataSet, native: rs.DataSet) -> None:
+log = structlog.get_logger()
+
+
+def assert_isomorphous(
+    *, derivative: rs.DataSet, native: rs.DataSet, warning_only: bool = False
+) -> None:
     if not native.is_isomorphous(derivative):
-        msg = "`derivative` and `native` datasets are not similar enough; "
-        msg += f"they have cell/spacegroup: {derivative.cell}/{native.cell} and "
+        msg = "`derivative` and `native` lattices are not higly isomorphous; "
+        msg += f"they have cell, spacegroup: {derivative.cell}/{native.cell} and "
         msg += f"{derivative.spacegroup}/{native.spacegroup} respectively"
-        raise NotIsomorphousError(msg)
+        if warning_only:
+            log.warning(msg)
+        else:
+            raise NotIsomorphousError(msg)
 
 
 def filter_common_indices(df1: rs.DataSet, df2: rs.DataSet) -> tuple[rs.DataSet, rs.DataSet]:

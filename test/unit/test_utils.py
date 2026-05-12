@@ -29,6 +29,29 @@ def test_assert_isomorphous(random_difference_map: Map) -> None:
         utils.assert_isomorphous(derivative=random_difference_map, native=different_map)
 
 
+def test_assert_isomorphous_warning_only(
+    random_difference_map: Map, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # warning_only=True must not raise, even when datasets disagree
+    different_map = random_difference_map.copy()
+    different_map.cell = gemmi.UnitCell(*[1.0, 1.0, 1.0, 90.0, 90.0, 90.0])
+    utils.assert_isomorphous(
+        derivative=random_difference_map, native=different_map, warning_only=True
+    )
+    captured = capsys.readouterr()
+    assert "warning" in captured.out.lower()
+    assert "isomorphous" in captured.out
+
+    # and when they agree, nothing is logged
+    utils.assert_isomorphous(
+        derivative=random_difference_map,
+        native=random_difference_map,
+        warning_only=True,
+    )
+    captured = capsys.readouterr()
+    assert captured.out == ""
+
+
 def test_filter_common_indices() -> None:
     df1 = pd.DataFrame({"A": [1, 2, 3]}, index=[0, 1, 2])
     df2 = pd.DataFrame({"B": [4, 5, 6]}, index=[1, 2, 3])

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 from meteor.rsmap import Map
@@ -8,12 +9,14 @@ from meteor.scripts.common import DiffMapSet
 
 @pytest.fixture
 def diffmap_set(random_difference_map: Map) -> DiffMapSet:
-    derivative = random_difference_map.copy()
+    base = random_difference_map.copy()
+    base["F"] = np.abs(base["F"]) + 1.0  # non-zero amplitudes
+    derivative = base.copy()
     derivative["F"] += 1.0  # ensure there is some change
     return DiffMapSet(
-        native=random_difference_map.copy(),
+        native=base,
         derivative=derivative,
-        calculated=random_difference_map.copy(),
+        calculated=base,
     )
 
 

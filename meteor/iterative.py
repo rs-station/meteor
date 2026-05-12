@@ -230,7 +230,6 @@ class IterativeTvDenoiser:
         *,
         derivative: Map,
         native: Map,
-        check_isomorphous: bool = True,
     ) -> tuple[Map, list[TvIterationMetadata]]:
         """
         Denoise by estimating new, low-TV phases for the `derivative` dataset.
@@ -243,9 +242,6 @@ class IterativeTvDenoiser:
         native: Map
             the native amplitudes, phases
 
-        check_isomorphous: bool
-            perform a check to ensure the two datasets are isomorphous; recommended. Default: True.
-
         Returns
         -------
         updated_derivative: Map
@@ -256,8 +252,7 @@ class IterativeTvDenoiser:
             the tv_weight used, the negentropy (after the TV step), and the average phase change in
             degrees.
         """
-        if check_isomorphous:
-            assert_isomorphous(derivative=derivative, native=native)
+        assert_isomorphous(derivative=derivative, native=native, warning_only=True)
 
         it_tv_complex_derivative, metadata = self._iteratively_denoise_sf_amplitudes(
             native=native.to_structurefactor(),
