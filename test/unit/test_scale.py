@@ -305,23 +305,41 @@ def test_scale_maps_large_mismatch_protein_cell(scale_mode: ScaleMode) -> None:
     phases = rng.uniform(-180, 180, size=n).astype("float32")
     uncertainties = np.ones(n, dtype="float32")
 
-    ds = rs.DataSet(
-        {"H": hkl[:, 0], "K": hkl[:, 1], "L": hkl[:, 2],
-         "F": amplitudes, "PHI": phases, "SIGF": uncertainties},
-        spacegroup=spacegroup,
-        cell=cell,
-    ).infer_mtz_dtypes().set_index(["H", "K", "L"])
+    ds = (
+        rs.DataSet(
+            {
+                "H": hkl[:, 0],
+                "K": hkl[:, 1],
+                "L": hkl[:, 2],
+                "F": amplitudes,
+                "PHI": phases,
+                "SIGF": uncertainties,
+            },
+            spacegroup=spacegroup,
+            cell=cell,
+        )
+        .infer_mtz_dtypes()
+        .set_index(["H", "K", "L"])
+    )
 
     reference_map = Map(
-        ds, amplitude_column="F", phase_column="PHI", uncertainty_column="SIGF",
-        cell=cell, spacegroup=spacegroup,
+        ds,
+        amplitude_column="F",
+        phase_column="PHI",
+        uncertainty_column="SIGF",
+        cell=cell,
+        spacegroup=spacegroup,
     )
 
     mismatched = ds.copy()
     mismatched["F"] = (mismatched["F"].astype(float) / scale_mismatch).astype("float32")
     map_to_scale = Map(
-        mismatched, amplitude_column="F", phase_column="PHI", uncertainty_column="SIGF",
-        cell=cell, spacegroup=spacegroup,
+        mismatched,
+        amplitude_column="F",
+        phase_column="PHI",
+        uncertainty_column="SIGF",
+        cell=cell,
+        spacegroup=spacegroup,
     )
 
     scaled = scale.scale_maps(

@@ -87,9 +87,7 @@ def compute_kweights(difference_map: Map, *, k_parameter: float) -> rs.DataSerie
     return weights / np.mean(weights)
 
 
-def compute_kweighted_difference_map(
-    derivative: Map, native: Map, *, k_parameter: float
-) -> Map:
+def compute_kweighted_difference_map(derivative: Map, native: Map, *, k_parameter: float) -> Map:
     """
     Compute k-weighted derivative - native structure factor map.
 
@@ -179,9 +177,7 @@ def max_negentropy_kweighted_difference_map(
         k_parameter=opt_k_parameter,
     )
 
-    unweighted_diffmap = compute_difference_map(
-        derivative, native
-    )
+    unweighted_diffmap = compute_difference_map(derivative, native)
 
     kparameter_metadata = KparameterScanMetadata(
         initial_negentropy=map_negentropy(unweighted_diffmap),

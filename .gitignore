@@ -11,6 +11,9 @@ __pycache__/
 *.pdb
 *.cif
 
+# claude
+scheduled_tasks.lock
+
 # documentation is automatically built
 docs/
 

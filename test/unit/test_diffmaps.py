@@ -13,7 +13,6 @@ from meteor.diffmaps import (
     max_negentropy_kweighted_difference_map,
 )
 from meteor.rsmap import Map
-from meteor.utils import NotIsomorphousError
 from meteor.validate import map_negentropy
 
 
@@ -66,13 +65,9 @@ def test_compute_difference_map_vs_analytical(dummy_derivative: Map, dummy_nativ
     "diffmap_fxn",
     # lambdas to make the call signatures for these functions match `compute_difference_map`
     [
-        lambda d, n: compute_difference_map(d, n),
-        lambda d, n: compute_kweighted_difference_map(
-            d, n, k_parameter=0.5
-        ),
-        lambda d, n: max_negentropy_kweighted_difference_map(d, n)[
-            0
-        ],
+        compute_difference_map,
+        lambda d, n: compute_kweighted_difference_map(d, n, k_parameter=0.5),
+        lambda d, n: max_negentropy_kweighted_difference_map(d, n)[0],
     ],
 )
 def test_cell_spacegroup_propogation(
