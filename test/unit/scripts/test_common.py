@@ -43,7 +43,9 @@ def test_diffmap_set_scale(random_difference_map: Map, use_uncertainties: bool) 
     diffmap_set = DiffMapSet(
         native=random_difference_map.copy(),
         derivative=random_difference_map.copy(),
-        calculated=random_difference_map.copy() * 2.0,
+        # `Map * float` yields a `Map` at runtime, but mypy cannot see through the
+        # inherited pandas `__mul__`, so the scalar-multiply result is annotated away
+        calculated=random_difference_map.copy() * 2.0,  # type: ignore[arg-type]
     )
 
     # upon scale, both native and derivative should also become 2x bigger
