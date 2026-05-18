@@ -251,8 +251,8 @@ class Map(rs.DataSet):
 
     def copy(self, *, deep: bool = True) -> Map:
         new_map = super().copy(deep=deep)
-        new_map._cell = gemmi.UnitCell(*self.cell.parameters)
-        new_map._spacegroup = gemmi.SpaceGroup(self.spacegroup.xhm())
+        new_map.cell = self.cell.parameters
+        new_map.spacegroup = self.spacegroup.xhm()
         return new_map
 
     def get_hkls(self) -> np.ndarray:
