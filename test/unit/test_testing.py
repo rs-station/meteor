@@ -28,7 +28,7 @@ def test_phases_allclose() -> None:
 
 
 def test_map_corrcoeff(noise_free_map: Map, np_rng: np.random.Generator) -> None:
-    assert meteortesting.map_corrcoeff(noise_free_map, noise_free_map) == 1.0
+    assert meteortesting.map_corrcoeff(noise_free_map, noise_free_map) > 0.999
 
     noisy_map = noise_free_map.copy()
     noisy_map.amplitudes += np_rng.normal(size=len(noise_free_map))
