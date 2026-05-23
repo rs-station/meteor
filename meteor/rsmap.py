@@ -249,6 +249,12 @@ class Map(rs.DataSet):
     def drop(self, labels: Any, *, inplace: bool = False) -> None | Map:
         return super().drop(labels=labels, axis="index", columns=None, inplace=inplace)
 
+    def copy(self, *, deep: bool = True) -> Map:
+        new_map = super().copy(deep=deep)
+        new_map.cell = self.cell.parameters
+        new_map.spacegroup = self.spacegroup.xhm()
+        return new_map
+
     def get_hkls(self) -> np.ndarray:
         # overwrite rs implt'n, return w/o modifying self -> same behavior, under testing - @tjlane
         # this is a rather horrible thing to do and we should fix it

@@ -109,6 +109,29 @@ def test_copy_non_standard_names(noise_free_map: Map) -> None:
     pd.testing.assert_frame_equal(copy_map, non_std_map)
 
 
+def test_copy_cell_is_independent(noise_free_map: Map) -> None:
+    # regression test for GH#158: Map.copy() must not share `cell` with the original
+    copy_map = noise_free_map.copy()
+    assert copy_map.cell is not noise_free_map.cell
+
+    original_parameters = noise_free_map.cell.parameters
+    copy_map.cell = (1.0, 2.0, 3.0, 90.0, 90.0, 90.0)
+    assert noise_free_map.cell.parameters == original_parameters
+    assert copy_map.cell.parameters != original_parameters
+
+
+def test_copy_spacegroup_is_independent(noise_free_map: Map) -> None:
+    # regression test for GH#158: Map.copy() must not share `spacegroup` with the original
+    copy_map = noise_free_map.copy()
+
+    # `SpaceGroup` objects as immutable singletons, so an identity check is not meaningful here
+    original_number = noise_free_map.spacegroup.number
+    new_number = 19 if original_number != 19 else 1
+    copy_map.spacegroup = new_number
+    assert noise_free_map.spacegroup.number == original_number
+    assert copy_map.spacegroup.number == new_number
+
+
 def test_filter_common_indices_with_maps(noise_free_map: Map) -> None:
     m1 = noise_free_map
     m2 = noise_free_map.copy()
