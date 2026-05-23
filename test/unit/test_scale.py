@@ -13,6 +13,7 @@ from meteor.scale import (
     ParameterLengthMismatchError,
     ScaleMode,
     ScaleParameters,
+    ScalingError,
     compute_scale_factors,
 )
 
@@ -360,13 +361,70 @@ def test_scale_maps_raises_on_non_finite_scale_factors(random_difference_map: Ma
         mock_compute_scale_factors.return_value = mock_scale_factors
 
         with pytest.raises(
-            RuntimeError,
+            ScalingError,
             match="Scaling procedure failed -- optimization produced non finite values",
         ):
             scale.scale_maps(
                 reference_map=random_difference_map,
                 map_to_scale=random_difference_map,
             )
+
+
+def test_scale_maps_raises_on_scale_factor_length_mismatch(random_difference_map: Map) -> None:
+    with patch("meteor.scale.compute_scale_factors") as mock_compute_scale_factors:
+        mock_compute_scale_factors.return_value = np.ones(len(random_difference_map) - 1)
+
+        with pytest.raises(
+            ScalingError,
+            match=r"`scale_factors` and `map_to_scale` do not have the same length",
+        ):
+            scale.scale_maps(
+                reference_map=random_difference_map,
+                map_to_scale=random_difference_map,
+            )
+
+
+def test_compute_scale_factors_raises_on_internal_length_mismatch(
+    miller_dataseries: rs.DataSeries,
+) -> None:
+    scale_mode = ScaleMode.anisotropic
+    arbitrary_params = (1.0,) * scale_mode.number_of_parameters
+    short_exponent = np.zeros(len(miller_dataseries) - 1)
+
+    with patch("meteor.scale.np.einsum", return_value=short_exponent):
+        with pytest.raises(
+            ScalingError,
+            match=r"`scale_factors` and `miller_indices` do not have the same",
+        ):
+            _ = compute_scale_factors(
+                miller_indices=miller_dataseries.index,
+                scale_parameters=arbitrary_params,
+                scale_mode=scale_mode,
+            )
+
+
+def test_scale_maps_raises_on_non_finite_initial_c(random_difference_map: Map) -> None:
+    zeroed = random_difference_map.copy()
+    zeroed.amplitudes *= 0.0
+    with pytest.raises(ScalingError, match=r"`initial_c` is .*: either not finite or negative"):
+        scale.scale_maps(
+            reference_map=random_difference_map,
+            map_to_scale=zeroed,
+        )
+
+
+def test_scale_maps_raises_on_negative_initial_c(random_difference_map: Map) -> None:
+    # Negate `map_to_scale` amplitudes so `initial_c` is negative.
+    negated = random_difference_map.copy()
+    negated.amplitudes = -np.abs(negated.amplitudes) - 1.0
+    reference = random_difference_map.copy()
+    reference.amplitudes = np.abs(reference.amplitudes) + 1.0
+
+    with pytest.raises(ScalingError, match=r"`initial_c` is .*: either not finite or negative"):
+        scale.scale_maps(
+            reference_map=reference,
+            map_to_scale=negated,
+        )
 
 
 @pytest.mark.parametrize("multiple", [0.6, 1.0, 2.3])
