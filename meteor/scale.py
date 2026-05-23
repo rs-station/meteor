@@ -97,7 +97,7 @@ def compute_scale_factors(
 
     scale_factors = sp_as_array[0] * np.exp(exponential_argument)
 
-    if not len(scale_factors) == miller_indices.shape[0]:
+    if len(scale_factors) != miller_indices.shape[0]:
         msg = "`scale_factors` and `miller_indices` do not have the same lenghts!"
         msg += f"{len(scale_factors)} vs {miller_indices.shape}"
         raise ScalingError(msg)
@@ -198,8 +198,8 @@ def scale_maps(
             msg += "This can be caused by unusual input values. "
             msg += "Recommend: check the input data for severe outliers or issues."
             raise ScalingError(msg)
-        
-        if not len(scale_factors) == len(map_to_scale.amplitudes):
+
+        if len(scale_factors) != len(map_to_scale.amplitudes):
             msg = "Scaling procedure failed -- `scale_factors` and `map_to_scale` do not have the "
             msg += "same length. This can be caused by unusual input values. "
             msg += "Recommend: check the input data for severe outliers or issues."
