@@ -19,7 +19,7 @@ ScaleParameters = tuple[float, ...]
 log = structlog.get_logger()
 
 DIMENSION_OF_MILLER_INDEX: int = 3
-_MAX_EXPONENT: float = 700.0  # exp(700) ~ 1e304
+_MAX_SCALE_FACTOR: float = 1e300
 _NON_FINITE_RESIDUAL_PENALTY: float = 1e30
 
 
@@ -115,10 +115,9 @@ def compute_scale_factors(
 
     # the einsum implements sum_i{ h^T . B . h }
     exponential_argument = -np.einsum("ni,ij,nj->n", vector_h, matrix_B, vector_h)
-    # clip so the optimizer can transiently visit large |B| without producing inf
-    np.clip(exponential_argument, -_MAX_EXPONENT, _MAX_EXPONENT, out=exponential_argument)
 
-    return sp_as_array[0] * np.exp(exponential_argument)
+    scale_factors = sp_as_array[0] * np.exp(exponential_argument)
+    return np.clip(scale_factors, -_MAX_SCALE_FACTOR, _MAX_SCALE_FACTOR)
 
 
 def scale_maps(
