@@ -391,11 +391,13 @@ def test_compute_scale_factors_raises_on_internal_length_mismatch(
     arbitrary_params = (1.0,) * scale_mode.number_of_parameters
     short_exponent = np.zeros(len(miller_dataseries) - 1)
 
-    with patch("meteor.scale.np.einsum", return_value=short_exponent):
-        with pytest.raises(
+    with (
+        patch("meteor.scale.np.einsum", return_value=short_exponent),
+        pytest.raises(
             ScalingError,
             match=r"`scale_factors` and `miller_indices` do not have the same",
-        ):
+        ),
+    ):
             _ = compute_scale_factors(
                 miller_indices=miller_dataseries.index,
                 scale_parameters=arbitrary_params,
