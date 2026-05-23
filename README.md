@@ -17,9 +17,9 @@
 
 ## quickstart
 
-Meteor needs a python `3.11` or `3.12` environment. We recommend [installing conda](https://docs.anaconda.com/miniconda/) and creating a fresh environment,
+We recommend [installing conda](https://docs.anaconda.com/miniconda/) and creating a fresh environment, _e.g._
 ```
-conda create --name meteor python==3.12 --yes
+conda create --name meteor python==3.13 --yes
 conda activate meteor
 ```
 
