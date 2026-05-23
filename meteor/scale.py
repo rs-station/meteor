@@ -23,6 +23,8 @@ DIMENSION_OF_MILLER_INDEX: int = 3
 
 class ParameterLengthMismatchError(ValueError): ...
 
+class ScalingError(RuntimeError): ...
+
 
 class ScaleMode(StrEnum):
     anisotropic = "anisotropic"
@@ -88,7 +90,7 @@ def compute_scale_factors(
 
     else:
         msg = f"mode {scale_mode} not valid"
-        raise ValueError(msg)
+        raise ScalingError(msg)
 
     # the einsum implements sum_i{ h^T . B . h }
     exponential_argument = -np.einsum("ni,ij,nj->n", vector_h, matrix_B, vector_h)
@@ -98,7 +100,7 @@ def compute_scale_factors(
     if not len(scale_factors) == miller_indices.shape[0]:
         msg = "`scale_factors` and `miller_indices` do not have the same lenghts!"
         msg += f"{len(scale_factors)} vs {miller_indices.shape}"
-        raise RuntimeError(msg)
+        raise ScalingError(msg)
 
     return scale_factors
 
@@ -195,13 +197,13 @@ def scale_maps(
             msg = "Scaling procedure failed -- optimization produced non finite values. "
             msg += "This can be caused by unusual input values. "
             msg += "Recommend: check the input data for severe outliers or issues."
-            raise RuntimeError(msg)
+            raise ScalingError(msg)
         
         if not len(scale_factors) == len(map_to_scale.amplitudes):
             msg = "Scaling procedure failed -- `scale_factors` and `map_to_scale` do not have the "
             msg += "same length. This can be caused by unusual input values. "
             msg += "Recommend: check the input data for severe outliers or issues."
-            raise RuntimeError(msg)
+            raise ScalingError(msg)
 
         difference_after_scaling = (
             scale_factors * map_to_scale.amplitudes - reference_map.amplitudes
@@ -221,7 +223,7 @@ def scale_maps(
     if not np.isfinite(initial_c) or initial_c < 0.0:
         msg = f"`initial_c` is {initial_c}: either not finite or negative. "
         msg += "Check input for errors and outliers"
-        raise RuntimeError(msg)
+        raise ScalingError(msg)
 
     initial_scaling_parameters: ScaleParameters = (initial_c,) + (0.0,) * (
         scale_mode.number_of_parameters - 1
@@ -242,7 +244,7 @@ def scale_maps(
     if len(optimized_scale_factors) != len(unmodified_map_to_scale.index):
         msg1 = "length mismatch: `optimized_scale_factors` - something went wrong"
         msg2 = f"({len(optimized_scale_factors)}) vs `values_to_scale` ({len(unmodified_map_to_scale.index)})"
-        raise RuntimeError(msg1, msg2)
+        raise ScalingError(msg1, msg2)
 
     scaled_map = unmodified_map_to_scale.copy()
     scaled_map.amplitudes *= optimized_scale_factors
