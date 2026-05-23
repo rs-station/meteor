@@ -1,5 +1,4 @@
 from collections.abc import Callable
-from unittest.mock import patch
 
 import gemmi
 import numpy as np
@@ -354,55 +353,100 @@ def test_scale_maps_large_mismatch_protein_cell(scale_mode: ScaleMode) -> None:
     np.testing.assert_allclose(scaled.amplitudes, reference_map.amplitudes, rtol=1e-3)
 
 
-def test_scale_maps_raises_on_non_finite_scale_factors(random_difference_map: Map) -> None:
-    with patch("meteor.scale.compute_scale_factors") as mock_compute_scale_factors:
-        mock_scale_factors = np.ones(len(random_difference_map))
-        mock_scale_factors[0] = np.inf  # Insert a non-finite value
-        mock_compute_scale_factors.return_value = mock_scale_factors
-
-        with pytest.raises(
-            ScalingError,
-            match="Scaling procedure failed -- optimization produced non finite values",
-        ):
-            scale.scale_maps(
-                reference_map=random_difference_map,
-                map_to_scale=random_difference_map,
-            )
-
-
-def test_scale_maps_raises_on_scale_factor_length_mismatch(random_difference_map: Map) -> None:
-    with patch("meteor.scale.compute_scale_factors") as mock_compute_scale_factors:
-        mock_compute_scale_factors.return_value = np.ones(len(random_difference_map) - 1)
-
-        with pytest.raises(
-            ScalingError,
-            match=r"`scale_factors` and `map_to_scale` do not have the same length",
-        ):
-            scale.scale_maps(
-                reference_map=random_difference_map,
-                map_to_scale=random_difference_map,
-            )
+@pytest.mark.parametrize("scale_mode", ScaleMode)
+def test_compute_scale_factors_clips_overflow(
+    scale_mode: ScaleMode, miller_dataseries: rs.DataSeries
+) -> None:
+    # Pre-clip insurance: pathological B parameters used to overflow `exp(-h^T B h)`
+    # to +inf and poison the residual vector. The clip in compute_scale_factors keeps
+    # the output finite for every mode that uses the exponent.
+    huge_b = 1e6
+    params = (1.0,) + (huge_b,) * (scale_mode.number_of_parameters - 1)
+    out = compute_scale_factors(
+        miller_indices=miller_dataseries.index,
+        scale_parameters=params,
+        scale_mode=scale_mode,
+    )
+    assert np.all(np.isfinite(out))
 
 
-def test_compute_scale_factors_raises_on_internal_length_mismatch(
+@pytest.mark.parametrize("bad_value", [np.nan, np.inf, -np.inf])
+def test_compute_scale_factors_rejects_non_finite_parameters(
+    miller_dataseries: rs.DataSeries, bad_value: float
+) -> None:
+    params = (1.0, bad_value, 0.0, 0.0, 0.0, 0.0, 0.0)
+    with pytest.raises(ScalingError, match=r"`scale_parameters` must all be finite"):
+        _ = compute_scale_factors(
+            miller_indices=miller_dataseries.index,
+            scale_parameters=params,
+            scale_mode=ScaleMode.anisotropic,
+        )
+
+
+def test_compute_scale_factors_accepts_ndarray_miller_indices(
     miller_dataseries: rs.DataSeries,
 ) -> None:
-    scale_mode = ScaleMode.anisotropic
-    arbitrary_params = (1.0,) * scale_mode.number_of_parameters
-    short_exponent = np.zeros(len(miller_dataseries) - 1)
+    # The hot path inside `scale_maps` passes a precomputed (n, 3) ndarray instead of
+    # a pd.Index. Verify the array form gives the same answer as the Index form.
+    params = (1.5, 0.01, 0.02, 0.03, 0.0, 0.0, 0.0)
+    miller_arr = np.asarray(list(miller_dataseries.index))
 
-    with (
-        patch("meteor.scale.np.einsum", return_value=short_exponent),
-        pytest.raises(
-            ScalingError,
-            match=r"`scale_factors` and `miller_indices` do not have the same",
-        ),
-    ):
-            _ = compute_scale_factors(
-                miller_indices=miller_dataseries.index,
-                scale_parameters=arbitrary_params,
-                scale_mode=scale_mode,
-            )
+    from_index = compute_scale_factors(
+        miller_indices=miller_dataseries.index,
+        scale_parameters=params,
+        scale_mode=ScaleMode.anisotropic,
+    )
+    from_array = compute_scale_factors(
+        miller_indices=miller_arr,
+        scale_parameters=params,
+        scale_mode=ScaleMode.anisotropic,
+    )
+    np.testing.assert_array_equal(from_index, from_array)
+
+
+def test_scale_maps_raises_when_no_finite_common_reflections(random_difference_map: Map) -> None:
+    # If every common reflection is NaN we cannot fit anything; should raise a clear
+    # ScalingError up front instead of letting scipy fail mysteriously.
+    all_nan = random_difference_map.copy()
+    all_nan.amplitudes *= np.nan
+
+    with pytest.raises(ScalingError, match=r"No finite common reflections"):
+        scale.scale_maps(
+            reference_map=random_difference_map,
+            map_to_scale=all_nan,
+        )
+
+
+def test_scale_maps_recovers_scale_with_partial_nan_inputs(random_difference_map: Map) -> None:
+    # Regression test for #162: dropping reflections via NaN must not change the
+    # residual vector length seen by scipy across iterations. Inject NaNs into a
+    # subset of `map_to_scale` and confirm the recovered scale matches a clean fit.
+    multiple = 3.0
+    reference = random_difference_map.copy()
+    reference.amplitudes = np.abs(reference.amplitudes) + 1.0
+
+    scaled_clean = reference.copy()
+    scaled_clean.amplitudes = scaled_clean.amplitudes / multiple
+
+    scaled_with_nans = scaled_clean.copy()
+    nan_rows = np.zeros(len(scaled_with_nans), dtype=bool)
+    nan_rows[::7] = True  # ~14% of reflections marked missing
+    scaled_with_nans.loc[nan_rows, scaled_with_nans.amplitudes.name] = np.nan
+
+    recovered = scale.scale_maps(
+        reference_map=reference,
+        map_to_scale=scaled_with_nans,
+        scale_mode=ScaleMode.scalar,
+        least_squares_loss="linear",
+    )
+
+    # the finite entries should be recovered to within numerical tolerance
+    finite = np.isfinite(np.asarray(recovered.amplitudes, dtype=np.float64))
+    np.testing.assert_allclose(
+        np.asarray(recovered.amplitudes, dtype=np.float64)[finite],
+        np.asarray(reference.amplitudes, dtype=np.float64)[finite],
+        rtol=1e-4,
+    )
 
 
 def test_scale_maps_raises_on_non_finite_initial_c(random_difference_map: Map) -> None:

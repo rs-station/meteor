@@ -19,9 +19,12 @@ ScaleParameters = tuple[float, ...]
 log = structlog.get_logger()
 
 DIMENSION_OF_MILLER_INDEX: int = 3
+_MAX_EXPONENT: float = 700.0  # exp(700) ~ 1e304
+_NON_FINITE_RESIDUAL_PENALTY: float = 1e30
 
 
 class ParameterLengthMismatchError(ValueError): ...
+
 
 class ScalingError(RuntimeError): ...
 
@@ -45,26 +48,48 @@ class ScaleMode(StrEnum):
         raise NotImplementedError
 
 
-def compute_scale_factors(
-    *, miller_indices: pd.Index, scale_parameters: ScaleParameters, scale_mode: str | ScaleMode
-) -> np.ndarray:
-    if isinstance(scale_mode, str):
-        scale_mode = ScaleMode(scale_mode)
-
-    vector_h = np.array(list(miller_indices))
-    if vector_h.shape[1] != DIMENSION_OF_MILLER_INDEX:
+def _cast_to_miller_array(miller_indices: pd.Index | np.ndarray) -> np.ndarray:
+    """Coerce a pd.MultiIndex or a precomputed (n, 3) array to an (n, 3) ndarray."""
+    if isinstance(miller_indices, np.ndarray):
+        vector_h = miller_indices
+    else:
+        vector_h = np.array(list(miller_indices))
+    if vector_h.ndim != 2 or vector_h.shape[1] != DIMENSION_OF_MILLER_INDEX:  # noqa: PLR2004
         msg = "`miller_indices` should be an (n, 3) multi-index of miller HKL indices, "
         msg += f"got shape: {vector_h.shape}"
         raise ValueError(msg)
+    return vector_h
 
-    sp_as_array = np.array(scale_parameters)
+
+def compute_scale_factors(
+    *,
+    miller_indices: pd.Index | np.ndarray,
+    scale_parameters: ScaleParameters,
+    scale_mode: str | ScaleMode,
+) -> np.ndarray:
+    """Evaluate the anisotropic scale factor `C * exp(-h^T B h)` for each Miller index.
+
+    `miller_indices` may be a `pd.MultiIndex` or a precomputed `(n, 3)` ndarray.
+    The hot path (called once per least-squares iteration) prefers the ndarray
+    form so we don't re-build it on every call.
+    """
+    if isinstance(scale_mode, str):
+        scale_mode = ScaleMode(scale_mode)
+
+    vector_h = _cast_to_miller_array(miller_indices)
+
+    sp_as_array = np.asarray(scale_parameters, dtype=np.float64)
     if sp_as_array.shape != (scale_mode.number_of_parameters,):
         msg = f"`scale_parameters` should be length {scale_mode.number_of_parameters} "
         msg += f"for mode={scale_mode}, got length: {len(scale_parameters)}"
         raise ParameterLengthMismatchError(msg)
 
+    if not np.all(np.isfinite(sp_as_array)):
+        msg = f"`scale_parameters` must all be finite, got: {tuple(scale_parameters)}"
+        raise ScalingError(msg)
+
     # this code is part of a few tight loops; code below is fast and clear
-    matrix_B = np.zeros((3, 3), dtype=sp_as_array.dtype)  # noqa: N806 (variable capitalization)
+    matrix_B = np.zeros((3, 3), dtype=np.float64)  # noqa: N806 (variable capitalization)
 
     if scale_mode == ScaleMode.anisotropic:
         matrix_B[0, 0] = sp_as_array[1]
@@ -88,21 +113,12 @@ def compute_scale_factors(
     elif scale_mode == ScaleMode.scalar:
         return sp_as_array[0] * np.ones(vector_h.shape[0], dtype=np.float64)
 
-    else:
-        msg = f"mode {scale_mode} not valid"
-        raise ScalingError(msg)
-
     # the einsum implements sum_i{ h^T . B . h }
     exponential_argument = -np.einsum("ni,ij,nj->n", vector_h, matrix_B, vector_h)
+    # clip so the optimizer can transiently visit large |B| without producing inf
+    np.clip(exponential_argument, -_MAX_EXPONENT, _MAX_EXPONENT, out=exponential_argument)
 
-    scale_factors = sp_as_array[0] * np.exp(exponential_argument)
-
-    if len(scale_factors) != miller_indices.shape[0]:
-        msg = "`scale_factors` and `miller_indices` do not have the same lenghts!"
-        msg += f"{len(scale_factors)} vs {miller_indices.shape}"
-        raise ScalingError(msg)
-
-    return scale_factors
+    return sp_as_array[0] * np.exp(exponential_argument)
 
 
 def scale_maps(
@@ -111,7 +127,7 @@ def scale_maps(
     map_to_scale: Map,
     scale_mode: ScaleMode = ScaleMode.anisotropic,
     weight_using_uncertainties: bool = True,
-    least_squares_loss: str | Callable = "huber",
+    least_squares_loss: str | Callable[[np.ndarray], np.ndarray] = "huber",
 ) -> Map:
     """
     Scale a dataset to align it with a reference dataset using anisotropic scaling.
@@ -174,55 +190,61 @@ def scale_maps(
     unmodified_map_to_scale = map_to_scale.copy()
     reference_map, map_to_scale = filter_common_indices(reference_map, map_to_scale)
 
-    one = np.array(1.0)  # a constant if there are no uncertainties to use
-    ref_variance: np.ndarray = (
-        np.square(reference_map.uncertainties)
-        if (reference_map.has_uncertainties and weight_using_uncertainties)
-        else one
+    ref_amps = np.asarray(reference_map.amplitudes, dtype=np.float64)
+    to_amps = np.asarray(map_to_scale.amplitudes, dtype=np.float64)
+
+    use_ref_sigmas = reference_map.has_uncertainties and weight_using_uncertainties
+    use_to_sigmas = map_to_scale.has_uncertainties and weight_using_uncertainties
+    ref_sigmas = (
+        np.asarray(reference_map.uncertainties, dtype=np.float64) if use_ref_sigmas else None
     )
-    to_scale_variance: np.ndarray = (
-        np.square(map_to_scale.uncertainties)
-        if (map_to_scale.has_uncertainties and weight_using_uncertainties)
-        else one
+    to_sigmas = (
+        np.asarray(map_to_scale.uncertainties, dtype=np.float64) if use_to_sigmas else None
     )
-    sqrt_inverse_variance = 1.0 / np.sqrt(ref_variance + to_scale_variance)
+
+    valid = np.isfinite(ref_amps) & np.isfinite(to_amps)
+    if ref_sigmas is not None:
+        valid &= np.isfinite(ref_sigmas) & (ref_sigmas > 0.0)
+    if to_sigmas is not None:
+        valid &= np.isfinite(to_sigmas) & (to_sigmas > 0.0)
+
+    n_valid = int(valid.sum())
+    if n_valid == 0:
+        msg = (
+            "No finite common reflections to fit. "
+            "Check input maps for missing values or invalid uncertainties."
+        )
+        raise ScalingError(msg)
+
+    ref_amps = ref_amps[valid]
+    to_amps = to_amps[valid]
+    ref_variance: np.ndarray | float = ref_sigmas[valid] ** 2 if ref_sigmas is not None else 1.0
+    to_variance: np.ndarray | float = to_sigmas[valid] ** 2 if to_sigmas is not None else 1.0
+    sqrt_inverse_variance = 1.0 / np.sqrt(ref_variance + to_variance)
+
+    miller_array = _cast_to_miller_array(reference_map.index)[valid]
 
     def compute_residuals(scale_parameters: ScaleParameters) -> np.ndarray:
         scale_factors = compute_scale_factors(
-            miller_indices=reference_map.index,
+            miller_indices=miller_array,
             scale_parameters=scale_parameters,
             scale_mode=scale_mode,
         )
-        if not np.all(np.isfinite(scale_factors)):
-            msg = "Scaling procedure failed -- optimization produced non finite values. "
-            msg += "This can be caused by unusual input values. "
-            msg += "Recommend: check the input data for severe outliers or issues."
-            raise ScalingError(msg)
+        residuals = sqrt_inverse_variance * (scale_factors * to_amps - ref_amps)
 
-        if len(scale_factors) != len(map_to_scale.amplitudes):
-            msg = "Scaling procedure failed -- `scale_factors` and `map_to_scale` do not have the "
-            msg += "same length. This can be caused by unusual input values. "
-            msg += "Recommend: check the input data for severe outliers or issues."
-            raise ScalingError(msg)
-
-        difference_after_scaling = (
-            scale_factors * map_to_scale.amplitudes - reference_map.amplitudes
+        return np.nan_to_num(
+            residuals,
+            nan=_NON_FINITE_RESIDUAL_PENALTY,
+            posinf=_NON_FINITE_RESIDUAL_PENALTY,
+            neginf=-_NON_FINITE_RESIDUAL_PENALTY,
         )
-        residuals = np.array(sqrt_inverse_variance * difference_after_scaling, dtype=np.float64)
 
-        # filter NaNs in input -- are simply missing values
-        residuals = residuals[np.isfinite(residuals)]
-
-        if not isinstance(residuals, np.ndarray):
-            msg = "scipy optimizers' behavior is unstable unless `np.ndarray`s are used"
-            raise TypeError(msg)
-
-        return residuals
-
-    initial_c = float(np.mean(reference_map.amplitudes) / np.mean(map_to_scale.amplitudes))
+    initial_c = float(ref_amps.mean() / to_amps.mean())
     if not np.isfinite(initial_c) or initial_c < 0.0:
-        msg = f"`initial_c` is {initial_c}: either not finite or negative. "
-        msg += "Check input for errors and outliers"
+        msg = (
+            f"`initial_c` is {initial_c}: either not finite or negative. "
+            "Check input for errors and outliers"
+        )
         raise ScalingError(msg)
 
     initial_scaling_parameters: ScaleParameters = (initial_c,) + (0.0,) * (
@@ -233,18 +255,13 @@ def scale_maps(
         initial_scaling_parameters,
         loss=least_squares_loss,
     )
-    optimized_parameters: ScaleParameters = optimization_result.x
+    optimized_parameters: ScaleParameters = tuple(optimization_result.x)
 
     optimized_scale_factors = compute_scale_factors(
         miller_indices=unmodified_map_to_scale.index,
         scale_parameters=optimized_parameters,
         scale_mode=scale_mode,
     )
-
-    if len(optimized_scale_factors) != len(unmodified_map_to_scale.index):
-        msg1 = "length mismatch: `optimized_scale_factors` - something went wrong"
-        msg2 = f"({len(optimized_scale_factors)}) vs `values_to_scale` ({len(unmodified_map_to_scale.index)})"
-        raise ScalingError(msg1, msg2)
 
     scaled_map = unmodified_map_to_scale.copy()
     scaled_map.amplitudes *= optimized_scale_factors
