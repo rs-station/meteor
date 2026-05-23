@@ -93,7 +93,14 @@ def compute_scale_factors(
     # the einsum implements sum_i{ h^T . B . h }
     exponential_argument = -np.einsum("ni,ij,nj->n", vector_h, matrix_B, vector_h)
 
-    return sp_as_array[0] * np.exp(exponential_argument)
+    scale_factors = sp_as_array[0] * np.exp(exponential_argument)
+
+    if not len(scale_factors) == miller_indices.shape[0]:
+        msg = "`scale_factors` and `miller_indices` do not have the same lenghts!"
+        msg += f"{len(scale_factors)} vs {miller_indices.shape}"
+        raise RuntimeError(msg)
+
+    return scale_factors
 
 
 def scale_maps(
@@ -187,7 +194,13 @@ def scale_maps(
         if not np.all(np.isfinite(scale_factors)):
             msg = "Scaling procedure failed -- optimization produced non finite values. "
             msg += "This can be caused by unusual input values. "
-            msg += "Recommend: check the input data for severe outliers."
+            msg += "Recommend: check the input data for severe outliers or issues."
+            raise RuntimeError(msg)
+        
+        if not len(scale_factors) == len(map_to_scale.amplitudes):
+            msg = "Scaling procedure failed -- `scale_factors` and `map_to_scale` do not have the "
+            msg += "same length. This can be caused by unusual input values. "
+            msg += "Recommend: check the input data for severe outliers or issues."
             raise RuntimeError(msg)
 
         difference_after_scaling = (
