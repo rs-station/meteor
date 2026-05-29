@@ -19,8 +19,9 @@ ScaleParameters = tuple[float, ...]
 log = structlog.get_logger()
 
 DIMENSION_OF_MILLER_INDEX: int = 3
-_MAX_SCALE_FACTOR: float = 1e300
-_NON_FINITE_RESIDUAL_PENALTY: float = 1e30
+MAX_SCALE_FACTOR: float = 1e300
+NON_FINITE_RESIDUAL_PENALTY: float = 1e30
+MIN_FRACTION_COMMON_INDICES: float = 0.5
 
 
 class ParameterLengthMismatchError(ValueError): ...
@@ -117,7 +118,7 @@ def compute_scale_factors(
     exponential_argument = -np.einsum("ni,ij,nj->n", vector_h, matrix_B, vector_h)
 
     scale_factors = sp_as_array[0] * np.exp(exponential_argument)
-    return np.clip(scale_factors, -_MAX_SCALE_FACTOR, _MAX_SCALE_FACTOR)
+    return np.clip(scale_factors, -MAX_SCALE_FACTOR, MAX_SCALE_FACTOR)
 
 
 def scale_maps(
@@ -197,9 +198,7 @@ def scale_maps(
     ref_sigmas = (
         np.asarray(reference_map.uncertainties, dtype=np.float64) if use_ref_sigmas else None
     )
-    to_sigmas = (
-        np.asarray(map_to_scale.uncertainties, dtype=np.float64) if use_to_sigmas else None
-    )
+    to_sigmas = np.asarray(map_to_scale.uncertainties, dtype=np.float64) if use_to_sigmas else None
 
     valid = np.isfinite(ref_amps) & np.isfinite(to_amps)
     if ref_sigmas is not None:
@@ -214,6 +213,13 @@ def scale_maps(
             "Check input maps for missing values or invalid uncertainties."
         )
         raise ScalingError(msg)
+
+    fraction_common_indices = float(n_valid / len(valid))
+    if fraction_common_indices < MIN_FRACTION_COMMON_INDICES:
+        log.warning(
+            "very small number of common indices between datasets to be scaled together",
+            fraction_common_indices=fraction_common_indices,
+        )
 
     ref_amps = ref_amps[valid]
     to_amps = to_amps[valid]
@@ -233,9 +239,9 @@ def scale_maps(
 
         return np.nan_to_num(
             residuals,
-            nan=_NON_FINITE_RESIDUAL_PENALTY,
-            posinf=_NON_FINITE_RESIDUAL_PENALTY,
-            neginf=-_NON_FINITE_RESIDUAL_PENALTY,
+            nan=NON_FINITE_RESIDUAL_PENALTY,
+            posinf=NON_FINITE_RESIDUAL_PENALTY,
+            neginf=-NON_FINITE_RESIDUAL_PENALTY,
         )
 
     initial_c = float(ref_amps.mean() / to_amps.mean())
