@@ -1,3 +1,4 @@
+import pickle
 from pathlib import Path
 
 import gemmi
@@ -130,6 +131,22 @@ def test_copy_spacegroup_is_independent(noise_free_map: Map) -> None:
     copy_map.spacegroup = new_number
     assert noise_free_map.spacegroup.number == original_number
     assert copy_map.spacegroup.number == new_number
+
+
+def test_pickle_preserves_column_names(noise_free_map: Map) -> None:
+    # regression test: `_amplitude_column`/`_phase_column`/`_uncertainty_column` must survive a
+    # pickle round-trip (eg. as used by `multiprocessing`), since pandas only preserves instance
+    # attributes declared in `_metadata`
+    pickled_map = pickle.loads(pickle.dumps(noise_free_map))  # noqa: S301, trusted local data
+
+    assert isinstance(pickled_map, Map)
+    assert pickled_map.amplitude_column_name == noise_free_map.amplitude_column_name
+    assert pickled_map.phase_column_name == noise_free_map.phase_column_name
+    assert pickled_map.uncertainties_column_name == noise_free_map.uncertainties_column_name
+    pd.testing.assert_frame_equal(pickled_map, noise_free_map)
+
+    # the methods that read these private attributes should also work after unpickling
+    pickled_map.to_structurefactor()
 
 
 def test_filter_common_indices_with_maps(noise_free_map: Map) -> None:
