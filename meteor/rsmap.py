@@ -73,6 +73,16 @@ class Map(rs.DataSet):
     # these columns are always allowed
     _allowed_columns: ClassVar[list[str]] = ["H", "K", "L"]
 
+    # without this, pandas drops these attributes on pickle/copy/slicing operations, since they
+    # are not part of `rs.DataSet._metadata` -- see:
+    # https://pandas.pydata.org/docs/development/extending.html#define-original-properties
+    _metadata: ClassVar[list[str]] = [
+        *rs.DataSet._metadata,  # noqa: SLF001, combining parent `_metadata` is the standard pattern
+        "_amplitude_column",
+        "_phase_column",
+        "_uncertainty_column",
+    ]
+
     # in addition, __init__ specifies 3 columns special that can be named dynamically to support:
     # amplitudes, phases, uncertainties; all other columns are forbidden
 
