@@ -11,12 +11,55 @@ import reciprocalspaceship as rs
 
 from meteor.rsmap import Map
 from meteor.scripts.common import (
+    PHASE_COLUMN_NAME,
     DiffmapArgParser,
     DiffMapSet,
     WeightMode,
     kweight_diffmap_according_to_mode,
 )
 from meteor.utils import ResolutionCutOverlapError
+
+NONCANONICAL_ASU_TEST_SPACEGROUP: int = 154
+NONCANONICAL_ASU_TEST_CELL: tuple[float, float, float, float, float, float] = (
+    83.5,
+    83.5,
+    90.3,
+    90.0,
+    90.0,
+    120.0,
+)
+
+
+def dataset_in_canonical_asu() -> rs.DataSet:
+    index = pd.MultiIndex.from_arrays(
+        [[1, 2, 3, 4, 5], [1, 1, 2, 2, 3], [1, 2, 3, 4, 5]], names=("H", "K", "L")
+    )
+    data = {
+        "F": np.array([2.0, 3.0, 1.0, 4.0, 5.0]),
+        "SIGF": np.array([0.5, 0.5, 1.0, 0.2, 0.3]),
+    }
+    dataset = rs.DataSet(
+        data,
+        index=index,
+        cell=NONCANONICAL_ASU_TEST_CELL,
+        spacegroup=NONCANONICAL_ASU_TEST_SPACEGROUP,
+    ).infer_mtz_dtypes()
+    return dataset.hkl_to_asu()
+
+
+def mocked_read_mtz_in_noncanonical_asu(dummy_filename: str) -> rs.DataSet:
+    # the same reflections as `dataset_in_canonical_asu`, but indexed as their Friedel mates,
+    # which live outside the canonical ASU -- this is what an MTZ reindexed to resolve an
+    # indexing ambiguity can look like
+    assert isinstance(dummy_filename, str), "read_mtz takes a string only"
+
+    canonical_dataset = dataset_in_canonical_asu()
+    friedel_mate_dataset = canonical_dataset.copy()
+    friedel_mate_dataset.index = pd.MultiIndex.from_arrays(
+        [-canonical_dataset.index.get_level_values(level) for level in ("H", "K", "L")],
+        names=("H", "K", "L"),
+    )
+    return friedel_mate_dataset
 
 
 def mocked_read_mtz(dummy_filename: str) -> rs.DataSet:
@@ -203,6 +246,51 @@ def test_contruct_map_column_lookup(
         assert len(constructed_map) > 0
         assert len(constructed_map) <= len(index)
         assert constructed_map.has_uncertainties
+
+
+@mock.patch("meteor.scripts.common.rs.read_mtz", mocked_read_mtz_in_noncanonical_asu)
+def test_construct_map_moves_noncanonical_asu_to_canonical_asu() -> None:
+    # regression test: reflections are matched across the native/derivative/calculated maps by
+    # Miller index. an MTZ indexed in a non-canonical ASU used to be read in as-is, so its indices
+    # never lined up, and the difference map silently collapsed to the few reflections the two
+    # conventions share -- surfacing much later as an opaque "Golden minimization failed" from the
+    # TV weight search
+    canonical_dataset = dataset_in_canonical_asu()
+    calculated_map_phases = rs.DataSeries(
+        np.linspace(-90.0, 90.0, len(canonical_dataset)),
+        index=canonical_dataset.index,
+        name=PHASE_COLUMN_NAME,
+    )
+
+    # the input is really out of the canonical ASU, otherwise this test proves nothing
+    mtz_as_read = mocked_read_mtz_in_noncanonical_asu("function-is-mocked.mtz")
+    assert not np.any(rs.utils.in_asu(mtz_as_read.get_hkls(), mtz_as_read.spacegroup))
+
+    constructed_map = DiffmapArgParser._construct_map(
+        name="fake-name",
+        mtz_file=Path("function-is-mocked.mtz"),
+        calculated_map_phases=calculated_map_phases,
+        amplitude_column="F",
+        uncertainty_column="SIGF",
+    )
+
+    # every reflection should survive, in the canonical ASU, with its calculated phase attached
+    assert len(constructed_map) == len(canonical_dataset)
+    assert np.all(rs.utils.in_asu(constructed_map.get_hkls(), constructed_map.spacegroup))
+    assert constructed_map.index.sort_values().equals(canonical_dataset.index.sort_values())
+    assert not constructed_map.phases.isna().to_numpy().any()
+
+    sorted_map = constructed_map.sort_index()
+    np.testing.assert_allclose(
+        sorted_map.phases.to_numpy(),
+        calculated_map_phases.sort_index().to_numpy(),
+        rtol=1e-5,
+    )
+    np.testing.assert_allclose(
+        sorted_map.amplitudes.to_numpy(),
+        canonical_dataset.sort_index()["F"].to_numpy(),
+        rtol=1e-5,
+    )
 
 
 def test_load_difference_maps(random_difference_map: Map, base_cli_arguments: list[str]) -> None:

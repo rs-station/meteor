@@ -205,6 +205,7 @@ class DiffmapArgParser(argparse.ArgumentParser):
         )
 
         mtz = rs.read_mtz(str(mtz_file))
+        mtz.hkl_to_asu(inplace=True)
 
         if PHASE_COLUMN_NAME in mtz.columns:
             log.warning(
