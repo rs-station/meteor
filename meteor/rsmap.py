@@ -1,3 +1,6 @@
+# Copyright (c) 2024 Reciprocal Space Ship
+# SPDX-License-Identifier: MIT
+
 """Map class definition and related functions"""
 
 from __future__ import annotations
@@ -256,7 +259,7 @@ class Map(rs.DataSet):
     @overload
     def drop(self, labels: Any, *, inplace: Literal[False]) -> Map: ...
 
-    def drop(self, labels: Any, *, inplace: bool = False) -> None | Map:
+    def drop(self, labels: Any, *, inplace: bool = False) -> Map | None:
         return super().drop(labels=labels, axis="index", columns=None, inplace=inplace)
 
     def copy(self, *, deep: bool = True) -> Map:

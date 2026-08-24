@@ -1,3 +1,6 @@
+# Copyright (c) 2024 Reciprocal Space Ship
+# SPDX-License-Identifier: MIT
+
 from pydantic import BaseModel
 
 from .settings import K_PARAMETER_NAME, TV_WEIGHT_PARAMETER_NAME
