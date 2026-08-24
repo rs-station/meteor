@@ -47,8 +47,8 @@ el.replaceWith(d);
 <p><code><a title="meteor" href="#meteor">meteor</a></code> is a tool for computing crystallographic difference maps. </p>
 <p><code><a title="meteor" href="#meteor">meteor</a></code> specializes the robust identification of weak signals arising from minor but scientifically interesting populations, such as bound ligands or changes that occur in time-resolved experiments. That said, if you need an difference map, <code><a title="meteor" href="#meteor">meteor</a></code> can do it!</p>
 <h2 id="quickstart">quickstart</h2>
-<p>Meteor needs a python <code>3.11</code> or <code>3.12</code> environment. We recommend <a href="https://docs.anaconda.com/miniconda/">installing conda</a> and creating a fresh environment,</p>
-<pre><code>conda create --name meteor python==3.12 --yes
+<p>We recommend <a href="https://docs.anaconda.com/miniconda/">installing conda</a> and creating a fresh environment, <em>e.g.</em></p>
+<pre><code>conda create --name meteor python==3.13 --yes
 conda activate meteor
 </code></pre>
 <p>Then install <code><a title="meteor" href="#meteor">meteor</a></code> </p>
@@ -108,6 +108,9 @@ meteor.phaseboost -h
 <p>If you feel adventurous, check out <code>meteor/settings.py</code>. Default values are collected there, and you could ducktype to your heart's content. Not recommended for 99% of users!</p>
 <h3 id="what-the-heck-are-these-meteor_metadatajson-files">what the heck are these <code>meteor_metadata.json</code> files?</h3>
 <p>These are flat text files that contain information about how <code><a title="meteor" href="#meteor">meteor</a></code> ran. The primary intent is for debugging purposes, but you can also <a href="https://github.com/rs-station/meteor/blob/64f96ca0a293520cbd0163267768ddbfd68c7b0b/meteor/scripts/common.py#L331">read them with <code>meteor</code></a> or any standard JSON parser, and make some plots to better understand <code><a title="meteor" href="#meteor">meteor</a></code>'s runtime behavior.</p>
+<h2 id="license">license</h2>
+<p><code><a title="meteor" href="#meteor">meteor</a></code> is licensed under the <a href="LICENSE">MIT License</a>.
+Copyright (c) 2024 Reciprocal Space Ship.</p>
 </section>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
@@ -295,6 +298,7 @@ meteor.phaseboost -h
 <li><a href="#what-the-heck-are-these-meteor_metadatajson-files">what the heck are these meteor_metadata.json files?</a></li>
 </ul>
 </li>
+<li><a href="#license">license</a></li>
 </ul>
 </li>
 </ul>

@@ -105,6 +105,16 @@ el.replaceWith(d);
     # these columns are always allowed
     _allowed_columns: ClassVar[list[str]] = [&#34;H&#34;, &#34;K&#34;, &#34;L&#34;]
 
+    # without this, pandas drops these attributes on pickle/copy/slicing operations, since they
+    # are not part of `rs.DataSet._metadata` -- see:
+    # https://pandas.pydata.org/docs/development/extending.html#define-original-properties
+    _metadata: ClassVar[list[str]] = [
+        *rs.DataSet._metadata,  # noqa: SLF001, combining parent `_metadata` is the standard pattern
+        &#34;_amplitude_column&#34;,
+        &#34;_phase_column&#34;,
+        &#34;_uncertainty_column&#34;,
+    ]
+
     # in addition, __init__ specifies 3 columns special that can be named dynamically to support:
     # amplitudes, phases, uncertainties; all other columns are forbidden
 
@@ -278,8 +288,14 @@ el.replaceWith(d);
     @overload
     def drop(self, labels: Any, *, inplace: Literal[False]) -&gt; Map: ...
 
-    def drop(self, labels: Any, *, inplace: bool = False) -&gt; None | Map:
+    def drop(self, labels: Any, *, inplace: bool = False) -&gt; Map | None:
         return super().drop(labels=labels, axis=&#34;index&#34;, columns=None, inplace=inplace)
+
+    def copy(self, *, deep: bool = True) -&gt; Map:
+        new_map = super().copy(deep=deep)
+        new_map.cell = self.cell.parameters
+        new_map.spacegroup = self.spacegroup.xhm()
+        return new_map
 
     def get_hkls(self) -&gt; np.ndarray:
         # overwrite rs implt&#39;n, return w/o modifying self -&gt; same behavior, under testing - @tjlane
@@ -1025,15 +1041,161 @@ the HKL indices in the object.</p>
 <dd>Whether to add the column in place or return a copy</dd>
 </dl></div>
 </dd>
-<dt id="meteor.rsmap.Map.drop"><code class="name flex">
-<span>def <span class="ident">drop</span></span>(<span>self, labels: Any, *, inplace: bool = False) ‑> None | <a title="meteor.rsmap.Map" href="#meteor.rsmap.Map">Map</a></span>
+<dt id="meteor.rsmap.Map.copy"><code class="name flex">
+<span>def <span class="ident">copy</span></span>(<span>self, *, deep: bool = True) ‑> <a title="meteor.rsmap.Map" href="#meteor.rsmap.Map">Map</a></span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def drop(self, labels: Any, *, inplace: bool = False) -&gt; None | Map:
+<pre><code class="python">def copy(self, *, deep: bool = True) -&gt; Map:
+    new_map = super().copy(deep=deep)
+    new_map.cell = self.cell.parameters
+    new_map.spacegroup = self.spacegroup.xhm()
+    return new_map</code></pre>
+</details>
+<div class="desc"><p>Make a copy of this object's indices and data.</p>
+<p>When <code>deep=True</code> (default), a new object will be created with a
+copy of the calling object's data and indices. Modifications to
+the data or indices of the copy will not be reflected in the
+original object (see notes below).</p>
+<p>When <code>deep=False</code>, a new object will be created without copying
+the calling object's data or index (only references to the data
+and index are copied). Any changes to the data of the original
+will be reflected in the shallow copy (and vice versa).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code>deep=False</code> behaviour as described above will change
+in pandas 3.0. <code>Copy-on-Write
+&lt;https://pandas.pydata.org/docs/dev/user_guide/copy_on_write.html&gt;</code>__
+will be enabled by default, which means that the "shallow" copy
+is that is returned with <code>deep=False</code> will still avoid making
+an eager copy, but changes to the data of the original will <em>no</em>
+longer be reflected in the shallow copy (or vice versa). Instead,
+it makes use of a lazy (deferred) copy mechanism that will copy
+the data only when any changes to the original or shallow copy is
+made.</p>
+<p>You can already get the future behavior and improvements through
+enabling copy on write <code>pd.options.mode.copy_on_write = True</code></p>
+</div>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>deep</code></strong> :&ensp;<code>bool</code>, default <code>True</code></dt>
+<dd>Make a deep copy, including a copy of the data and the indices.
+With <code>deep=False</code> neither the indices nor the data are copied.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Series</code> or <code>DataFrame</code></dt>
+<dd>Object type matches caller.</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>When <code>deep=True</code>, data is copied but actual Python objects
+will not be copied recursively, only the reference to the object.
+This is in contrast to <code>copy.deepcopy</code> in the Standard Library,
+which recursively copies object data (see examples below).</p>
+<p>While <code>Index</code> objects are copied when <code>deep=True</code>, the underlying
+numpy array is not copied for performance reasons. Since <code>Index</code> is
+immutable, the underlying data can be safely shared and a copy
+is not needed.</p>
+<p>Since pandas is not thread safe, see the
+:ref:<code>gotchas &lt;gotchas.thread-safety&gt;</code> when copying in a threading
+environment.</p>
+<p>When <code>copy_on_write</code> in pandas config is set to <code>True</code>, the
+<code>copy_on_write</code> config takes effect even when <code>deep=False</code>.
+This means that any changes to the copied data would make a new copy
+of the data upon write (and vice versa). Changes made to either the
+original or copied variable would not be reflected in the counterpart.
+See :ref:<code>Copy_on_Write &lt;copy_on_write&gt;</code> for more information.</p>
+<h2 id="examples">Examples</h2>
+<pre><code class="language-python-repl">&gt;&gt;&gt; s = pd.Series([1, 2], index=[&quot;a&quot;, &quot;b&quot;])
+&gt;&gt;&gt; s
+a    1
+b    2
+dtype: int64
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; s_copy = s.copy()
+&gt;&gt;&gt; s_copy
+a    1
+b    2
+dtype: int64
+</code></pre>
+<p><strong>Shallow copy versus default (deep) copy:</strong></p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; s = pd.Series([1, 2], index=[&quot;a&quot;, &quot;b&quot;])
+&gt;&gt;&gt; deep = s.copy()
+&gt;&gt;&gt; shallow = s.copy(deep=False)
+</code></pre>
+<p>Shallow copy shares data and index with original.</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; s is shallow
+False
+&gt;&gt;&gt; s.values is shallow.values and s.index is shallow.index
+True
+</code></pre>
+<p>Deep copy has own copy of data and index.</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; s is deep
+False
+&gt;&gt;&gt; s.values is deep.values or s.index is deep.index
+False
+</code></pre>
+<p>Updates to the data shared by shallow copy and original is reflected
+in both (NOTE: this will no longer be true for pandas &gt;= 3.0);
+deep copy remains unchanged.</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; s.iloc[0] = 3
+&gt;&gt;&gt; shallow.iloc[1] = 4
+&gt;&gt;&gt; s
+a    3
+b    4
+dtype: int64
+&gt;&gt;&gt; shallow
+a    3
+b    4
+dtype: int64
+&gt;&gt;&gt; deep
+a    1
+b    2
+dtype: int64
+</code></pre>
+<p>Note that when copying an object containing Python objects, a deep copy
+will copy the data, but will not do so recursively. Updating a nested
+data object will be reflected in the deep copy.</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; s = pd.Series([[1, 2], [3, 4]])
+&gt;&gt;&gt; deep = s.copy()
+&gt;&gt;&gt; s[0][0] = 10
+&gt;&gt;&gt; s
+0    [10, 2]
+1     [3, 4]
+dtype: object
+&gt;&gt;&gt; deep
+0    [10, 2]
+1     [3, 4]
+dtype: object
+</code></pre>
+<p><strong>Copy-on-Write is set to true</strong>, the shallow copy is not modified
+when the original data is changed:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; with pd.option_context(&quot;mode.copy_on_write&quot;, True):
+...     s = pd.Series([1, 2], index=[&quot;a&quot;, &quot;b&quot;])
+...     copy = s.copy(deep=False)
+...     s.iloc[0] = 100
+...     s
+a    100
+b      2
+dtype: int64
+&gt;&gt;&gt; copy
+a    1
+b    2
+dtype: int64
+</code></pre></div>
+</dd>
+<dt id="meteor.rsmap.Map.drop"><code class="name flex">
+<span>def <span class="ident">drop</span></span>(<span>self, labels: Any, *, inplace: bool = False) ‑> <a title="meteor.rsmap.Map" href="#meteor.rsmap.Map">Map</a> | None</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def drop(self, labels: Any, *, inplace: bool = False) -&gt; Map | None:
     return super().drop(labels=labels, axis=&#34;index&#34;, columns=None, inplace=inplace)</code></pre>
 </details>
 <div class="desc"><p>Drop specified labels from rows or columns.</p>
@@ -1445,6 +1607,7 @@ MTZ datatypes</dd>
 <li><code><a title="meteor.rsmap.Map.canonicalize_amplitudes" href="#meteor.rsmap.Map.canonicalize_amplitudes">canonicalize_amplitudes</a></code></li>
 <li><code><a title="meteor.rsmap.Map.cell" href="#meteor.rsmap.Map.cell">cell</a></code></li>
 <li><code><a title="meteor.rsmap.Map.compute_dHKL" href="#meteor.rsmap.Map.compute_dHKL">compute_dHKL</a></code></li>
+<li><code><a title="meteor.rsmap.Map.copy" href="#meteor.rsmap.Map.copy">copy</a></code></li>
 <li><code><a title="meteor.rsmap.Map.drop" href="#meteor.rsmap.Map.drop">drop</a></code></li>
 <li><code><a title="meteor.rsmap.Map.from_3d_numpy_map" href="#meteor.rsmap.Map.from_3d_numpy_map">from_3d_numpy_map</a></code></li>
 <li><code><a title="meteor.rsmap.Map.from_ccp4_map" href="#meteor.rsmap.Map.from_ccp4_map">from_ccp4_map</a></code></li>
