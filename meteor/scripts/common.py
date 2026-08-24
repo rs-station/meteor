@@ -208,6 +208,11 @@ class DiffmapArgParser(argparse.ArgumentParser):
         )
 
         mtz = rs.read_mtz(str(mtz_file))
+        mtz.hkl_to_asu(inplace=True)
+        if not mtz.index.is_unique:
+            msg = f"{mtz_file} contains duplicate Miller indices after mapping to the canonical ASU"
+            msg += "; provide merged structure factors with one observation per Miller index"
+            raise ValueError(msg)
 
         if PHASE_COLUMN_NAME in mtz.columns:
             log.warning(
