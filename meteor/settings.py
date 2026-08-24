@@ -1,3 +1,6 @@
+# Copyright (c) 2024 Reciprocal Space Ship
+# SPDX-License-Identifier: MIT
+
 """runtime settings for `meteor`"""
 
 from __future__ import annotations

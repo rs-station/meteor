@@ -1,3 +1,6 @@
+# Copyright (c) 2024 Reciprocal Space Ship
+# SPDX-License-Identifier: MIT
+
 """crystallographic helper functions"""
 
 from __future__ import annotations

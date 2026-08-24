@@ -1,3 +1,6 @@
+# Copyright (c) 2024 Reciprocal Space Ship
+# SPDX-License-Identifier: MIT
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -24,7 +27,7 @@ DEFAULT_WEIGHTS_TO_SCAN = np.logspace(-2, 0, 25)
 )
 @pytest.mark.parametrize("full_output", [False, True])
 def test_tv_denoise_map_smoke(
-    weights_to_scan: None | Sequence[float],
+    weights_to_scan: Sequence[float] | None,
     full_output: bool,
     random_difference_map: Map,
 ) -> None:
@@ -78,7 +81,7 @@ def test_tv_denoise_retains_scale(random_difference_map: Map) -> None:
 
 @pytest.mark.parametrize("weights_to_scan", [None, DEFAULT_WEIGHTS_TO_SCAN])
 def test_tv_denoise_map(
-    weights_to_scan: None | Sequence[float],
+    weights_to_scan: Sequence[float] | None,
     noise_free_map: Map,
     noisy_map: Map,
 ) -> None:
