@@ -1,3 +1,6 @@
+# Copyright (c) 2024 Reciprocal Space Ship
+# SPDX-License-Identifier: MIT
+
 """map quality assessment: negentropy and negentropy maximization"""
 
 from __future__ import annotations

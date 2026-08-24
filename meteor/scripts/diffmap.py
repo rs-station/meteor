@@ -1,3 +1,6 @@
+# Copyright (c) 2024 Reciprocal Space Ship
+# SPDX-License-Identifier: MIT
+
 """source code for meteor.diffmap"""
 
 from __future__ import annotations

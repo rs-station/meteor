@@ -1,11 +1,16 @@
+# Copyright (c) 2024 Reciprocal Space Ship
+# SPDX-License-Identifier: MIT
+
 [build-system]
-requires = ["setuptools >= 61.0", "setuptools-scm"]
+requires = ["setuptools >= 77.0.3", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "meteor-maps"
 description = "denoise crystallographic difference maps"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 dynamic = ["version"]
 authors = [
     { name = "Alisia Fadini", email = "af840@cam.ac.uk" },
@@ -14,7 +19,6 @@ authors = [
 requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 dependencies = [

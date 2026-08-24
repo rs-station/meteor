@@ -112,3 +112,9 @@ If you feel adventurous, check out `meteor/settings.py`. Default values are coll
 ### what the heck are these `meteor_metadata.json` files?
 
 These are flat text files that contain information about how `meteor` ran. The primary intent is for debugging purposes, but you can also [read them with `meteor`](https://github.com/rs-station/meteor/blob/64f96ca0a293520cbd0163267768ddbfd68c7b0b/meteor/scripts/common.py#L331) or any standard JSON parser, and make some plots to better understand `meteor`'s runtime behavior.
+
+
+## license
+
+`meteor` is licensed under the [MIT License](LICENSE).
+Copyright (c) 2024 Reciprocal Space Ship.
