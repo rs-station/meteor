@@ -294,6 +294,36 @@ def test_construct_map_moves_noncanonical_asu_to_canonical_asu() -> None:
         canonical_dataset.sort_index()["F"].to_numpy(),
         rtol=1e-5,
     )
+@mock.patch("meteor.scripts.common.rs.read_mtz")
+def test_construct_map_rejects_duplicate_indices_after_asu_mapping(
+    read_mtz_mock: mock.Mock,
+) -> None:
+    canonical_dataset = dataset_in_canonical_asu()
+    noncanonical_dataset = mocked_read_mtz_in_noncanonical_asu("function-is-mocked.mtz")
+    mtz_with_symmetry_equivalent_indices = rs.concat(
+        [canonical_dataset, noncanonical_dataset.iloc[[0]]]
+    )
+    assert mtz_with_symmetry_equivalent_indices.index.is_unique
+
+    read_mtz_mock.return_value = mtz_with_symmetry_equivalent_indices
+    calculated_map_phases = rs.DataSeries(
+        np.zeros(len(canonical_dataset)),
+        index=canonical_dataset.index,
+        name=PHASE_COLUMN_NAME,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match=r"function-is-mocked\.mtz contains duplicate Miller indices",
+    ):
+        DiffmapArgParser._construct_map(
+            name="fake-name",
+            mtz_file=Path("function-is-mocked.mtz"),
+            calculated_map_phases=calculated_map_phases,
+            amplitude_column="F",
+            uncertainty_column="SIGF",
+        )
+
 
 
 def test_load_difference_maps(random_difference_map: Map, base_cli_arguments: list[str]) -> None:
