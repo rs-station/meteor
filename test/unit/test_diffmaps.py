@@ -1,6 +1,8 @@
 # Copyright (c) 2024 Reciprocal Space Ship
 # SPDX-License-Identifier: MIT
 
+from __future__ import annotations
+
 from collections.abc import Callable
 
 import numpy as np
@@ -163,3 +165,105 @@ def test_kweight_optimization(noise_free_map: rs.DataSet, noisy_map: rs.DataSet)
     # the optimal k-weight should have the highest negentropy
     assert negentropies[0] <= negentropies[1]
     assert negentropies[2] <= negentropies[1]
+
+
+@pytest.fixture
+def difference_map_without_origin() -> Map:
+    index = pd.MultiIndex.from_tuples([(1, 0, 0), (0, 2, 0), (0, 0, 3)], names=("H", "K", "L"))
+    return Map(
+        {"F": [2.0, 3.0, 4.0], "PHI": [0.0, 30.0, 90.0], "SIGF": [0.5, 1.0, 2.0]},
+        index=index,
+        cell=(10.0, 10.0, 10.0, 90.0, 90.0, 90.0),
+        spacegroup=1,
+    ).infer_mtz_dtypes()
+
+
+@pytest.mark.parametrize("k_parameter", [0.0, 0.05, 1.0])
+@pytest.mark.parametrize(
+    ("origin_amplitude", "origin_uncertainty"),
+    [(0.0, 1e6), (1e8, 0.0), (1e8, 1e6), (np.nan, np.nan)],
+)
+def test_kweights_origin_does_not_change_measured_reflections(
+    difference_map_without_origin: Map,
+    k_parameter: float,
+    origin_amplitude: float,
+    origin_uncertainty: float,
+) -> None:
+    # Regression: an artificial F000 error used to dominate the moments and
+    # normalization, changing every measured reflection's k weight.
+    with_origin = difference_map_without_origin.copy()
+    with_origin.loc[(0, 0, 0), ["F", "PHI", "SIGF"]] = [origin_amplitude, 0.0, origin_uncertainty]
+    with_origin = with_origin.sort_index()
+    expected = compute_kweights(difference_map_without_origin, k_parameter=k_parameter)
+    actual = compute_kweights(with_origin, k_parameter=k_parameter)
+
+    np.testing.assert_allclose(actual.loc[expected.index], expected, rtol=1e-6)
+    np.testing.assert_allclose(actual.loc[(0, 0, 0)], 1.0)
+    np.testing.assert_allclose(np.mean(actual.loc[expected.index]), 1.0)
+    assert actual.index.equals(with_origin.index)
+
+
+@pytest.mark.parametrize("k_parameter", [0.0, 0.05, 1.0])
+def test_kweights_without_origin_preserves_existing_formula(
+    difference_map_without_origin: Map, k_parameter: float
+) -> None:
+    difference_map = difference_map_without_origin
+    expected = 1 / (
+        1
+        + difference_map.uncertainties**2 / (difference_map.uncertainties**2).mean()
+        + k_parameter * difference_map.amplitudes**2 / (difference_map.amplitudes**2).mean()
+    )
+    expected /= np.mean(expected)
+    actual = compute_kweights(difference_map, k_parameter=k_parameter)
+    np.testing.assert_allclose(actual, expected)
+
+
+def test_kweighting_preserves_origin_amplitude_phase_and_uncertainty(
+    dummy_derivative: Map, dummy_native: Map
+) -> None:
+    # Regression: weighting must retain F000 and therefore the map's DC baseline.
+    derivative = dummy_derivative.copy()
+    native = dummy_native.copy()
+    derivative.loc[(0, 0, 0), ["F", "PHI", "SIGF"]] = [12000.0, 0.0, 1200.0]
+    native.loc[(0, 0, 0), ["F", "PHI", "SIGF"]] = [10000.0, 0.0, 1000.0]
+    unweighted = compute_difference_map(derivative, native)
+    weighted = compute_kweighted_difference_map(derivative, native, k_parameter=0.05)
+
+    np.testing.assert_allclose(
+        weighted.loc[(0, 0, 0)].to_numpy(dtype=float),
+        unweighted.loc[(0, 0, 0)].to_numpy(dtype=float),
+    )
+    np.testing.assert_allclose(weighted.amplitudes.loc[(0, 0, 0)], 2000.0)
+    assert weighted.index.equals(unweighted.index)
+
+
+def test_kweights_only_origin_returns_unit_weight() -> None:
+    origin_only_map = Map(
+        {"F": [10000.0], "PHI": [0.0], "SIGF": [1000.0]},
+        index=pd.MultiIndex.from_tuples([(0, 0, 0)], names=("H", "K", "L")),
+        cell=(10.0, 10.0, 10.0, 90.0, 90.0, 90.0),
+        spacegroup=1,
+    ).infer_mtz_dtypes()
+    weights = compute_kweights(origin_only_map, k_parameter=0.05)
+    np.testing.assert_allclose(weights, [1.0])
+    assert weights.index.equals(origin_only_map.index)
+
+
+def test_kweights_pure_origin_difference_keeps_measured_weights_finite(
+    difference_map_without_origin: Map,
+) -> None:
+    # Regression: removing F000 from the moments must not leave a 0/0 amplitude
+    # penalty when the entire difference is a constant density offset.
+    difference_map = difference_map_without_origin.copy()
+    difference_map.amplitudes *= 0.0
+    difference_map.loc[(0, 0, 0), ["F", "PHI", "SIGF"]] = [10000.0, 0.0, 1000.0]
+
+    weights = compute_kweights(difference_map, k_parameter=0.05)
+
+    np.testing.assert_allclose(
+        weights.loc[difference_map_without_origin.index],
+        [1.4457142857, 1.0514285714, 0.5028571429],
+        rtol=1e-6,
+    )
+    np.testing.assert_allclose(weights.loc[(0, 0, 0)], 1.0)
+    assert np.all(np.isfinite(weights))
