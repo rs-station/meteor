@@ -77,17 +77,36 @@ def compute_kweights(difference_map: Map, *, k_parameter: float) -> rs.DataSerie
     -------
     weights: rs.DataSeries
         A series of computed weights, where higher uncertainties and larger differences lead to
-        lower weights.
+        lower weights. The zero-frequency (0, 0, 0) coefficient receives unit weight
+        and is excluded from both moment estimates and weight normalization.
     """
     assert_is_map(difference_map, require_uncertainties=True)
 
-    weights = 1.0 / (
-        1
-        + (difference_map.uncertainties**2 / (difference_map.uncertainties**2).mean())
-        + k_parameter * (difference_map.amplitudes**2 / (difference_map.amplitudes**2).mean())
-    )
+    nonzero_frequency = ~difference_map.index.isin([(0, 0, 0)])
+    if not np.any(nonzero_frequency):
+        msg = "dataset is either empty or only consists of F000"
+        raise ValueError(msg)
 
-    return weights / np.mean(weights)
+    measured_difference_map = difference_map.loc[nonzero_frequency]
+    mean_squared_amplitude = (measured_difference_map.amplitudes**2).mean()
+
+    # compute k-weights
+    amplitude_penalty = (
+        k_parameter * (measured_difference_map.amplitudes**2 / mean_squared_amplitude)
+        if mean_squared_amplitude != 0.0
+        else 0.0
+    )
+    kweights = 1.0 / (
+        1
+        + (
+            measured_difference_map.uncertainties**2
+            / (measured_difference_map.uncertainties**2).mean()
+        )
+        + amplitude_penalty
+    )
+    normalized_weights = kweights / np.mean(kweights)
+
+    return normalized_weights.reindex(difference_map.index, fill_value=1.0)
 
 
 def compute_kweighted_difference_map(derivative: Map, native: Map, *, k_parameter: float) -> Map:
