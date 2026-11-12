@@ -294,6 +294,8 @@ def test_construct_map_moves_noncanonical_asu_to_canonical_asu() -> None:
         canonical_dataset.sort_index()["F"].to_numpy(),
         rtol=1e-5,
     )
+
+
 @mock.patch("meteor.scripts.common.rs.read_mtz")
 def test_construct_map_rejects_duplicate_indices_after_asu_mapping(
     read_mtz_mock: mock.Mock,
@@ -323,7 +325,6 @@ def test_construct_map_rejects_duplicate_indices_after_asu_mapping(
             amplitude_column="F",
             uncertainty_column="SIGF",
         )
-
 
 
 def test_load_difference_maps(random_difference_map: Map, base_cli_arguments: list[str]) -> None:

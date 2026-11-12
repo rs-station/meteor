@@ -84,18 +84,19 @@ def compute_kweights(difference_map: Map, *, k_parameter: float) -> rs.DataSerie
 
     nonzero_frequency = ~difference_map.index.isin([(0, 0, 0)])
     if not np.any(nonzero_frequency):
-        return rs.DataSeries(1.0, index=difference_map.index)
+        msg = "dataset is either empty or only consists of F000"
+        raise ValueError(msg)
 
-    # F000 sets the density baseline and may have an artificial uncertainty. It
-    # must neither change the measured-reflection weights nor be attenuated.
     measured_difference_map = difference_map.loc[nonzero_frequency]
     mean_squared_amplitude = (measured_difference_map.amplitudes**2).mean()
+
+    # compute k-weights
     amplitude_penalty = (
         k_parameter * (measured_difference_map.amplitudes**2 / mean_squared_amplitude)
         if mean_squared_amplitude != 0.0
         else 0.0
     )
-    weights = 1.0 / (
+    kweights = 1.0 / (
         1
         + (
             measured_difference_map.uncertainties**2
@@ -103,7 +104,8 @@ def compute_kweights(difference_map: Map, *, k_parameter: float) -> rs.DataSerie
         )
         + amplitude_penalty
     )
-    normalized_weights = weights / np.mean(weights)
+    normalized_weights = kweights / np.mean(kweights)
+
     return normalized_weights.reindex(difference_map.index, fill_value=1.0)
 
 
